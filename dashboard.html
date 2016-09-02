@@ -69,15 +69,55 @@
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Navbar example</h1>
-        <p>This example is a quick exercise to illustrate how the default, static and fixed to top navbar work. It includes the responsive CSS and HTML, so it also adapts to your viewport and device.</p>
-        <p>To see the difference between static and fixed top navbars, just scroll.</p>
-        <p>
+        <p>Outline: Maybe use the area this jumbotron is in to display live tickers of some sort displaying what captioners are currently captioning which networks</p>
+        <p>The space below can show information in a list about which networks are currently configured, and summary information about their configurations. Clicking on one will navigate to an edit network page where outgoing servers can be viewed and configured for a given network.</p>
+        <!-- <p>
           <a class="btn btn-lg btn-primary" href="#navbar" role="button">View navbar docs &raquo;</a>
-        </p>
+        </p> -->
       </div>
 
-    </div> <!-- /container -->
+      <!-- Maybe use http://getbootstrap.com/css/#tables-contextual-classes to indicate what networks are experiencing problems  -->
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <caption>Current Networks</caption>
+          <!-- <tr class="active">...</tr>
+          <tr class="success">...</tr>
+          <tr class="warning">...</tr>
+          <tr class="danger">...</tr>
+          <tr class="info">...</tr> -->
 
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Network Name</th>
+              <th># of Captioners</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <th scope=row>1</th>
+              <td>Fox News</td>
+              <td>2</td>
+              <td>Okay</td>
+            </tr>
+            <tr class="danger">
+              <th scope=row>2</th>
+              <td>CSPAN 2</td>
+              <td>0</td>
+              <td>Failing</td>
+            </tr>
+            <tr>
+              <th scope=row>3</th>
+              <td>For Business</td>
+              <td>3</td>
+              <td>Okay</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
