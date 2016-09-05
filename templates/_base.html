@@ -42,25 +42,45 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand">CC App</a>
+
+          <a href="/" class="navbar-brand">CC App</a>
         </div>
+
         <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="dashboard.html">Dashboard</a></li>
-          </ul>
+          <!-- <ul class="nav navbar-nav">
+            <li class="active">
+              <a href="dashboard.html">Dashboard</a>
+            </li>
+          </ul> -->
+
           <ul class="nav navbar-nav navbar-right">
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                Account <span class="caret"></span>
+              </a>
+
               <ul class="dropdown-menu">
-                <li><a href="#">View Profile</a></li>
+                <li>
+                  <a href="#">View Profile</a>
+                </li>
+
                 <li role="separator" class="divider"></li>
-                <li class="dropdown-header">Nav header</li>
-                <li><a href="#">Switch Accounts</a></li>
-                <li><a href="#">Logout</a></li>
+
+                <li class="dropdown-header">
+                  Nav header
+                </li>
+
+                <li>
+                  <a href="#">Switch Accounts</a>
+                </li>
+
+                <li>
+                  <a href="#">Logout</a>
+                </li>
               </ul>
             </li>
           </ul>
-        </div><!--/.nav-collapse -->
+        </div>
       </div>
     </nav>
 
@@ -68,9 +88,6 @@
       {{ template "content" . }}
     </div>
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="js/vendor/jquery.min.js"><\/script>')</script>
     <script src="js/bootstrap.min.js"></script>
