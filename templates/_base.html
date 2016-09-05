@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="favicon.ico">
 
-    <title>CC</title>
+    <title>{{ template "title" . }}</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -42,11 +42,11 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">CC App</a>
+          <a class="navbar-brand">CC App</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Dashboard</a></li>
+            <li class="active"><a href="dashboard.html">Dashboard</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="dropdown">
@@ -65,59 +65,8 @@
     </nav>
 
     <div class="container">
-
-      <!-- Main component for a primary marketing message or call to action -->
-      <div class="jumbotron">
-        <h1>Navbar example</h1>
-        <p>Outline: Maybe use the area this jumbotron is in to display live tickers of some sort displaying what captioners are currently captioning which networks</p>
-        <p>The space below can show information in a list about which networks are currently configured, and summary information about their configurations. Clicking on one will navigate to an edit network page where outgoing servers can be viewed and configured for a given network.</p>
-        <!-- <p>
-          <a class="btn btn-lg btn-primary" href="#navbar" role="button">View navbar docs &raquo;</a>
-        </p> -->
-      </div>
-
-      <!-- Maybe use http://getbootstrap.com/css/#tables-contextual-classes to indicate what networks are experiencing problems  -->
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <caption>Current Networks</caption>
-          <!-- <tr class="active">...</tr>
-          <tr class="success">...</tr>
-          <tr class="warning">...</tr>
-          <tr class="danger">...</tr>
-          <tr class="info">...</tr> -->
-
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Network Name</th>
-              <th># of Captioners</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr>
-              <th scope=row>1</th>
-              <td>Fox News</td>
-              <td>2</td>
-              <td>Okay</td>
-            </tr>
-            <tr class="danger">
-              <th scope=row>2</th>
-              <td>CSPAN 2</td>
-              <td>0</td>
-              <td>Failing</td>
-            </tr>
-            <tr>
-              <th scope=row>3</th>
-              <td>For Business</td>
-              <td>3</td>
-              <td>Okay</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div> <!-- /container -->
+      {{ template "content" . }}
+    </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -127,5 +76,6 @@
     <script src="js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="js/ie10-viewport-bug-workaround.js"></script>
+    <script src="js/dashboard.js"></script>
   </body>
 </html>
