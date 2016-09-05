@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -8,23 +9,32 @@ import (
 
 var baseTemplate = "templates/_base.html"
 
-var dashboardTemplate = template.Must(template.ParseFiles(
-	baseTemplate,
-	"templates/_dashboard.html",
-))
+func templateOnBase(path string) *template.Template {
+	template := template.Must(template.ParseFiles(
+		baseTemplate,
+		path,
+	))
 
-func index(w http.ResponseWriter, r *http.Request) {
-	if err := dashboardTemplate.Execute(w, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	return template
+}
+
+func serveStaticFolder(folder string) {
+	static := fmt.Sprintf("static%s", folder)
+	http.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
 }
 
 func main() {
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("templates/static/css"))))
-	http.Handle("/fonts/", http.StripPrefix("/fonts/", http.FileServer(http.Dir("templates/static/fonts"))))
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("templates/static/js"))))
+	serveStaticFolder("/css/")
+	serveStaticFolder("/fonts/")
+	serveStaticFolder("/js/")
 
-	http.HandleFunc("/", index)
+	http.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
+		template := templateOnBase("templates/_dashboard.html")
+
+		if err := template.Execute(writer, nil); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		}
+	})
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
