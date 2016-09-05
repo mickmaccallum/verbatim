@@ -1,0 +1,97 @@
+{{ define "title" }}Network - {{ end }}
+
+{{ define "content" }}
+
+<ol class="breadcrumb">
+  <li><a href="/">Dashboard</a></li>
+  <li class="active">Networks</li>
+</ol>
+
+<div class="page-header">
+  <h1>Network Name <small>(n servers)</small></h1>
+</div>
+<!-- Maybe use http://getbootstrap.com/css/#tables-contextual-classes to indicate what networks are experiencing problems  -->
+<div class="table-responsive">
+  <table class="table table-hover" id="network-selection-table">
+    <caption>Current Networks</caption>
+    <!-- <tr class="active">...</tr>
+    <tr class="success">...</tr>
+    <tr class="warning">...</tr>
+    <tr class="danger">...</tr>
+    <tr class="info">...</tr> -->
+
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Network Name</th>
+        <th># of Captioners</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr id="F84JSD0">
+        <th scope=row>1</th>
+        <td>Fox News</td>
+        <td>2</td>
+        <td>Okay</td>
+      </tr>
+      <tr class="danger">
+        <th scope=row>2</th>
+        <td>CSPAN 2</td>
+        <td>0</td>
+        <td>Lost connection to downstream</td>
+      </tr>
+      <tr>
+        <th scope=row>3</th>
+        <td>For Business</td>
+        <td>3</td>
+        <td>Okay</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="page-header">
+  <h3>Add a Server</h3>
+</div>
+
+<div>
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="input-group">
+        <span class="input-group-addon">
+          IP Address
+        </span>
+
+        <input type="text" class="form-control" placeholder="192.168.1.1">
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Port
+        </span>
+
+        <input type="text" class="form-control" placeholder="8080">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Name
+        </span>
+
+        <input type="text" class="form-control" placeholder="Optional">
+
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button">Add Server</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ end }}
