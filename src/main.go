@@ -7,11 +7,9 @@ import (
 	"net/http"
 )
 
-var baseTemplate = "templates/_base.html"
-
 func templateOnBase(path string) *template.Template {
 	template := template.Must(template.ParseFiles(
-		baseTemplate,
+		"templates/_base.html",
 		path,
 	))
 
@@ -23,18 +21,22 @@ func serveStaticFolder(folder string) {
 	http.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
 }
 
-func main() {
-	serveStaticFolder("/css/")
-	serveStaticFolder("/fonts/")
-	serveStaticFolder("/js/")
-
-	http.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
-		template := templateOnBase("templates/_dashboard.html")
+func serveRoute(route string, templateName string) {
+	http.HandleFunc(route, func(writer http.ResponseWriter, _request *http.Request) {
+		template := templateOnBase(fmt.Sprintf("templates/%s", templateName))
 
 		if err := template.Execute(writer, nil); err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 	})
+}
+
+func main() {
+	serveStaticFolder("/css/")
+	serveStaticFolder("/fonts/")
+	serveStaticFolder("/js/")
+
+	serveRoute("/", "_dashboard.html")
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
