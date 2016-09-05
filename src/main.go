@@ -37,6 +37,7 @@ func main() {
 	serveStaticFolder("/js/")
 
 	serveRoute("/", "_dashboard.html")
+	serveRoute("/network.html", "_network.html")
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
