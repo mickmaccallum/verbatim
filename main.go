@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"io/ioutil"
 
+	"github.com/0x7fffffff/verbatim/server"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -27,17 +29,7 @@ func init() {
 }
 
 func main() {
-	// stmt, err := db.Prepare("INSERT INTO test_table(username, password) values(?, ?)")
-	// checkErr(err)
-	//
-	// res, err := stmt.Exec("John", "sk2zrule")
-	// checkErr(err)
-	//
-	// id, err := res.LastInsertId()
-	// checkErr(err)
-	//
-	// log.Println(id)
-	server.start()
+	server.Start()
 }
 
 func checkErr(err error) {

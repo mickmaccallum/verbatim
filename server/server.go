@@ -33,7 +33,8 @@ func serveRoute(route string, templateName string) {
 	})
 }
 
-func start() {
+// Start starts the HTTP server
+func Start() {
 	serveStaticFolder("/css/")
 	serveStaticFolder("/fonts/")
 	serveStaticFolder("/js/")
