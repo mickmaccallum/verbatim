@@ -35,6 +35,7 @@ func handleNetworks() {
 	http.HandleFunc("/network.html", func(writer http.ResponseWriter, request *http.Request) {
 		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
 		log.Println(request.URL.Query())
+		getNetworks()
 
 		if err := template.Execute(writer, nil); err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
