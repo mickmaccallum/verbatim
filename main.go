@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"io/ioutil"
 
-	"github.com/0x7fffffff/verbatim/server"
+	"github.com/0x7fffffff/verbatim/dashboard"
+	_ "github.com/0x7fffffff/verbatim/relay"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -29,7 +30,7 @@ func init() {
 }
 
 func main() {
-	server.Start()
+	dashboard.Start()
 }
 
 func checkErr(err error) {
