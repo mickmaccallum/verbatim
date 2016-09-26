@@ -58,13 +58,19 @@ func handleNetworks() {
 			clientError(writer, err)
 			return
 		}
-		fmt.Println(network)
+
+		encoders, err := getEncodersForNetwork(*network)
+		if err != nil {
+			serverError(writer, err)
+		}
 
 		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
 		data := struct {
-			Network Network // Yikes
+			Network  Network // Yikes
+			Encoders []Encoder
 		}{
 			*network,
+			encoders,
 		}
 
 		if err := template.Execute(writer, data); err != nil {

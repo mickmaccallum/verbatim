@@ -18,35 +18,21 @@
     <thead>
       <tr>
         <th>#</th>
-        <th>Name</th>
         <th>IP Address</th>
         <th>Port</th>
+        <th>Status</th>
       </tr>
     </thead>
 
     <tbody>
-      <tr>
-        <th scope=row>1</th>
-        <td>Fox News</td>
-        <td>2</td>
-        <td>
-          Okay <span class="glyphicon glyphicon-remove pull-right" aria-hidden="true"></span>
-        </td>
+    {{range $index, $element := .Encoders}}
+      <tr data-encoder-id="{{ $element.ID.Value}}">
+        <th scope=row>{{ $index }}</th>
+        <td>{{ $element.IPAddress.Value }}</td>
+        <td>{{ $element.Port.Value }}</td>
+        <td>{{ $element.Status.Value }}</td>
       </tr>
-
-      <tr class="danger">
-        <th scope=row>2</th>
-        <td>CSPAN 2</td>
-        <td>0</td>
-        <td>Lost connection to downstream</td>
-      </tr>
-
-      <tr>
-        <th scope=row>3</th>
-        <td>For Business</td>
-        <td>3</td>
-        <td>Okay</td>
-      </tr>
+    {{ end }}
     </tbody>
   </table>
 </div>
