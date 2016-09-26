@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"errors"
+	"github.com/0x7fffffff/verbatim/persist"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -43,21 +44,21 @@ func handleNetworks() {
 			return
 		}
 
-		network, err := getNetwork(id)
+		network, err := persist.GetNetwork(id)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		encoders, err := getEncodersForNetwork(*network)
+		encoders, err := persist.GetEncodersForNetwork(*network)
 		if err != nil {
 			serverError(writer, err)
 		}
 
 		template := templateOnBase("templates/_network.html")
 		data := struct {
-			Network  Network // Yikes
-			Encoders []Encoder
+			Network  persist.Network // Yikes
+			Encoders []persist.Encoder
 		}{
 			*network,
 			encoders,
@@ -71,7 +72,7 @@ func handleNetworks() {
 
 func handleDashboard() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
-		networks, err := getNetworks()
+		networks, err := persist.GetNetworks()
 
 		if err != nil {
 			serverError(writer, err)
@@ -79,7 +80,7 @@ func handleDashboard() {
 		}
 
 		data := struct {
-			Networks []Network
+			Networks []persist.Network
 		}{
 			networks,
 		}

@@ -1,23 +1,13 @@
 package dashboard
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
+	_ "github.com/0x7fffffff/verbatim/persist"
 	// Passing lint
 	_ "github.com/mattn/go-sqlite3"
 )
-
-var db *sql.DB
-
-func init() {
-	var err error
-	db, err = sql.Open("sqlite3", "database.db")
-	checkErr(err)
-	err = db.Ping()
-	checkErr(err)
-}
 
 // Start starts the HTTP server
 func Start() {

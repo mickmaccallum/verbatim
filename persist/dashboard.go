@@ -1,4 +1,4 @@
-package dashboard
+package persist
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ type Encoder struct {
 	networkID int
 }
 
-func getEncodersForNetwork(network Network) ([]Encoder, error) {
+func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 	query := `
 		SELECT id, ip_address, port, status, network_id
 		FROM encoder
@@ -59,7 +59,7 @@ func getEncodersForNetwork(network Network) ([]Encoder, error) {
 	return encoders, nil
 }
 
-func getNetwork(id int) (*Network, error) {
+func GetNetwork(id int) (*Network, error) {
 	query := `
 		SELECT id, name
 		FROM network
@@ -79,7 +79,7 @@ func getNetwork(id int) (*Network, error) {
 	return &net, nil
 }
 
-func getNetworks() ([]Network, error) {
+func GetNetworks() ([]Network, error) {
 	query := `
 		SELECT id, name
 		FROM network
