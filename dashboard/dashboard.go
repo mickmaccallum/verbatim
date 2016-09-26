@@ -6,7 +6,6 @@ import (
 
 	_ "github.com/0x7fffffff/verbatim/persist"
 	// Passing lint
-	_ "github.com/mattn/go-sqlite3"
 )
 
 // Start starts the HTTP server
