@@ -38,7 +38,13 @@ func getEncodersForNetwork(network Network) ([]Encoder, error) {
 	for rows.Next() {
 		var encoder Encoder
 
-		if err = rows.Scan(&encoder.ID, &encoder.IPAddress, &encoder.Port, &encoder.Status, &encoder.networkID); err != nil {
+		if err = rows.Scan(
+			&encoder.ID,
+			&encoder.IPAddress,
+			&encoder.Port,
+			&encoder.Status,
+			&encoder.networkID,
+		); err != nil {
 			log.Fatal(err)
 			continue
 		}
@@ -59,6 +65,7 @@ func getNetwork(id int) (*Network, error) {
 		FROM network
 		WHERE id = ?
 	`
+
 	row := db.QueryRow(query, id)
 	if row == nil {
 		return nil, errors.New("Network not found")
