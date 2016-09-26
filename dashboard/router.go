@@ -2,7 +2,6 @@ package dashboard
 
 import (
 	"errors"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -18,7 +17,8 @@ func templateOnBase(path string) *template.Template {
 }
 
 func serveStaticFolder(folder string) {
-	static := fmt.Sprintf("static%s", folder)
+	static := "static" + folder
+
 	http.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
 }
 
@@ -54,7 +54,7 @@ func handleNetworks() {
 			serverError(writer, err)
 		}
 
-		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
+		template := templateOnBase("templates/_network.html")
 		data := struct {
 			Network  Network // Yikes
 			Encoders []Encoder
@@ -84,7 +84,7 @@ func handleDashboard() {
 			networks,
 		}
 
-		template := templateOnBase(fmt.Sprintf("templates/_dashboard.html"))
+		template := templateOnBase("templates/_dashboard.html")
 		if err = template.Execute(writer, data); err != nil {
 			serverError(writer, err)
 		}
