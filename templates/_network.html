@@ -4,15 +4,15 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">Networks ({{ .Network.Name.Value }})</li>
+  <li class="active">Networks ({{ .Network.Name }})</li>
 </ol>
 
 <div class="page-header">
-  <h1>{{ .Network.Name.Value }} <small>(n servers)</small></h1>
+  <h1>{{ .Network.Name }} <small>({{ len .Encoders}} encoders)</small></h1>
 </div>
 
 <div class="table-responsive panel panel-default">
-  <div class="panel-heading">Servers</div>
+  <div class="panel-heading">Encoders</div>
 
   <table class="table table-hover" id="servers-selection-table">
     <thead>
@@ -26,11 +26,11 @@
 
     <tbody>
     {{range $index, $element := .Encoders}}
-      <tr data-encoder-id="{{ $element.ID.Value}}">
+      <tr data-encoder-id="{{ $element.ID}}">
         <th scope=row>{{ $index }}</th>
-        <td>{{ $element.IPAddress.Value }}</td>
-        <td>{{ $element.Port.Value }}</td>
-        <td>{{ $element.Status.Value }}</td>
+        <td>{{ $element.IPAddress }}</td>
+        <td>{{ $element.Port }}</td>
+        <td>{{ $element.Status }}</td>
       </tr>
     {{ end }}
     </tbody>

@@ -1,39 +1,33 @@
 package dashboard
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 )
 
 // Network represents a downstream network
 type Network struct {
-	ID   sql.NullInt64
-	Name sql.NullString
+	ID   int
+	Name string
 }
 
 // Encoder represents a single downstream encoder for a given network
 type Encoder struct {
-	ID        sql.NullInt64
-	IPAddress sql.NullString
-	Port      sql.NullInt64
-	Status    sql.NullInt64
-	networkID sql.NullInt64
+	ID        int
+	IPAddress string
+	Port      int
+	Status    int
+	networkID int
 }
 
 func getEncodersForNetwork(network Network) ([]Encoder, error) {
-	networkID, err := network.ID.Value()
-	if err != nil {
-		return nil, err
-	}
-
 	query := `
 		SELECT id, ip_address, port, status, network_id
 		FROM encoder
 		WHERE network_id = ?
 	`
 
-	rows, err := db.Query(query, networkID)
+	rows, err := db.Query(query, network.ID)
 
 	if err != nil {
 		return nil, err

@@ -38,9 +38,9 @@
 
     <tbody>
     {{range $index, $element := .Networks}}
-      <tr data-network-id="{{ $element.ID.Value}}">
+      <tr data-network-id="{{ $element.ID}}">
         <th scope=row>{{ $index }}</th>
-        <td>{{ $element.Name.Value }}</td>
+        <td>{{ $element.Name }}</td>
         <td>2</td>
         <td>Okay</td>
       </tr>
