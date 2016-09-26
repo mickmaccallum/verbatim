@@ -2,8 +2,10 @@ package persist
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
+
+	// Linter
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB

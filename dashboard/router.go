@@ -2,10 +2,11 @@ package dashboard
 
 import (
 	"errors"
-	"github.com/0x7fffffff/verbatim/persist"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/0x7fffffff/verbatim/persist"
 )
 
 func templateOnBase(path string) *template.Template {

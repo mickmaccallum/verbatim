@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	_ "github.com/0x7fffffff/verbatim/persist"
 	// Passing lint
+	_ "github.com/0x7fffffff/verbatim/persist"
 )
 
 // Start starts the HTTP server

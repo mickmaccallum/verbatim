@@ -20,6 +20,7 @@ type Encoder struct {
 	networkID int
 }
 
+// GetEncodersForNetwork Gets a slice of Encoders for a given Network.
 func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 	query := `
 		SELECT id, ip_address, port, status, network_id
@@ -59,6 +60,7 @@ func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 	return encoders, nil
 }
 
+// GetNetwork gets the Network for a given id.
 func GetNetwork(id int) (*Network, error) {
 	query := `
 		SELECT id, name
@@ -79,6 +81,7 @@ func GetNetwork(id int) (*Network, error) {
 	return &net, nil
 }
 
+// GetNetworks Gets all Networks in the database.
 func GetNetworks() ([]Network, error) {
 	query := `
 		SELECT id, name
