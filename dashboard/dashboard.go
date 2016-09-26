@@ -15,6 +15,8 @@ func init() {
 	var err error
 	db, err = sql.Open("sqlite3", "database.db")
 	checkErr(err)
+	err = db.Ping()
+	checkErr(err)
 }
 
 // Start starts the HTTP server
