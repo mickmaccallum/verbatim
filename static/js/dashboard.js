@@ -1,4 +1,11 @@
 $('#network-selection-table > tbody > tr').click(function(e) {
-  console.log(e.currentTarget.sectionRowIndex);
-  window.location.href = 'network.html';
+  var id = $(e.currentTarget).attr('data-network-id');
+
+  if (id != null) {
+    e.preventDefault();
+    window.location.href = 'network.html?network=' + id;
+    return true;
+  }
+
+  return false;
 });
