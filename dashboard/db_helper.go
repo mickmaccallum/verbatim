@@ -12,6 +12,53 @@ type Network struct {
 	Name sql.NullString
 }
 
+// Encoder represents a single downstream encoder for a given network
+type Encoder struct {
+	ID        sql.NullInt64
+	IPAddress sql.NullString
+	Port      sql.NullInt64
+	Status    sql.NullInt64
+	networkID sql.NullInt64
+}
+
+func getEncodersForNetwork(network Network) ([]Encoder, error) {
+	networkID, err := network.ID.Value()
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT id, ip_address, port, status, network_id
+		FROM encoder
+		WHERE network_id = ?
+	`
+
+	rows, err := db.Query(query, networkID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var encoders = make([]Encoder, 0)
+
+	for rows.Next() {
+		var encoder Encoder
+
+		if err = rows.Scan(&encoder.ID, &encoder.IPAddress, &encoder.Port, &encoder.Status, &encoder.networkID); err != nil {
+			log.Fatal(err)
+			continue
+		}
+
+		encoders = append(encoders, encoder)
+	}
+
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+
+	return encoders, nil
+}
+
 func getNetwork(id int) (*Network, error) {
 	query := `
 		SELECT id, name
@@ -32,7 +79,11 @@ func getNetwork(id int) (*Network, error) {
 }
 
 func getNetworks() ([]Network, error) {
-	rows, err := db.Query("select id, name from network;")
+	query := `
+		SELECT id, name
+		FROM network
+	`
+	rows, err := db.Query(query)
 
 	if err != nil {
 		return nil, err
