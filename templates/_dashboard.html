@@ -4,7 +4,6 @@
 <!-- Main component for a primary marketing message or call to action -->
 <div class="jumbotron">
   <h1>Navbar example</h1>
-{{.route}}
   <p>
     Outline: Maybe use the area this jumbotron is in to display live tickers of some sort displaying what captioners are currently captioning which networks
   </p>
@@ -38,12 +37,16 @@
     </thead>
 
     <tbody>
-      <tr id="F84JSD0">
-        <th scope=row>1</th>
-        <td>Fox News</td>
+    {{range $index, $element := .Networks}}
+      <tr data-network-id="{{ $element.ID.Value}}">
+        <th scope=row>{{ $index }}</th>
+        <td>{{ $element.Name.Value }}</td>
         <td>2</td>
         <td>Okay</td>
       </tr>
+    {{ end }}
+
+      <!--
       <tr class="danger">
         <th scope=row>2</th>
         <td>CSPAN 2</td>
