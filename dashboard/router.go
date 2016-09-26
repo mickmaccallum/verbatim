@@ -59,16 +59,15 @@ func handleNetworks() {
 			return
 		}
 		fmt.Println(network)
-		fmt.Println(err.Error())
 
 		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
-		params := struct {
-			Network Network
+		data := struct {
+			Network Network // Yikes
 		}{
 			*network,
 		}
 
-		if err := template.Execute(writer, params); err != nil {
+		if err := template.Execute(writer, data); err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 	})
@@ -83,14 +82,14 @@ func handleDashboard() {
 			return
 		}
 
-		params := struct {
-			Network []Network
+		data := struct {
+			Networks []Network
 		}{
 			networks,
 		}
 
 		template := templateOnBase(fmt.Sprintf("templates/_dashboard.html"))
-		if err = template.Execute(writer, params); err != nil {
+		if err = template.Execute(writer, data); err != nil {
 			serverError(writer, err)
 		}
 	})
