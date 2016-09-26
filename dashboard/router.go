@@ -1,10 +1,11 @@
 package dashboard
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
+	"strconv"
 )
 
 func templateOnBase(path string) *template.Template {
@@ -33,11 +34,41 @@ func serveStaticFolder(folder string) {
 
 func handleNetworks() {
 	http.HandleFunc("/network.html", func(writer http.ResponseWriter, request *http.Request) {
-		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
-		log.Println(request.URL.Query())
-		getNetworks()
 
-		if err := template.Execute(writer, nil); err != nil {
+		ids := request.URL.Query()["network"]
+		if ids == nil {
+			clientError(writer, errors.New("Missing network parameter"))
+			return
+		}
+
+		idString := ids[0]
+		if idString == "" {
+			clientError(writer, errors.New("Missing network identifier"))
+			return
+		}
+
+		id, err := strconv.Atoi(idString)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network, err := getNetwork(id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+		fmt.Println(network)
+		fmt.Println(err.Error())
+
+		template := templateOnBase(fmt.Sprintf("templates/_network.html"))
+
+		var params struct {
+			Network Network
+		}
+		params.Network = *network
+
+		if err := template.Execute(writer, params); err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 	})
@@ -45,13 +76,21 @@ func handleNetworks() {
 
 func handleDashboard() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
+		networks, err := getNetworks()
+
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		var params struct {
+			Networks []Network
+		}
+		params.Networks = networks
+
 		template := templateOnBase(fmt.Sprintf("templates/_dashboard.html"))
-
-		m := make(map[string]int)
-		m["route"] = 66
-
-		if err := template.Execute(writer, m); err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+		if err = template.Execute(writer, params); err != nil {
+			serverError(writer, err)
 		}
 	})
 }
@@ -65,4 +104,12 @@ func addRoutes() {
 
 	handleDashboard()
 	handleNetworks()
+}
+
+func clientError(writer http.ResponseWriter, err error) {
+	http.Error(writer, err.Error(), http.StatusBadRequest)
+}
+
+func serverError(writer http.ResponseWriter, err error) {
+	http.Error(writer, err.Error(), http.StatusInternalServerError)
 }
