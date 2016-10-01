@@ -102,6 +102,19 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("GET")
 }
 
+func handleNotFound(writer http.ResponseWriter, request *http.Request) {
+	data := struct {
+		Location string
+	}{
+		request.URL.RequestURI(),
+	}
+
+	template := templateOnBase("templates/error/_404.html")
+	if err := template.Execute(writer, data); err != nil {
+		serverError(writer, err)
+	}
+}
+
 func addRoutes(router *mux.Router) {
 	// TODO: Guard around admin privileges
 
@@ -111,6 +124,8 @@ func addRoutes(router *mux.Router) {
 
 	handleDashboardPage(router)
 	handleNetworksPage(router)
+
+	router.NotFoundHandler = http.HandlerFunc(handleNotFound)
 
 	http.Handle("/", router)
 }
