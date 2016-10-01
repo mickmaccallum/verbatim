@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/gorilla/mux"
 )
 
 func templateOnBase(path string) *template.Template {
@@ -18,14 +19,30 @@ func templateOnBase(path string) *template.Template {
 	return template
 }
 
-func serveStaticFolder(folder string) {
+func serveStaticFolder(folder string, router *mux.Router) {
 	static := "static" + folder
 
 	http.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
 }
 
-func handleNetworks() {
-	http.HandleFunc("/network.html", func(writer http.ResponseWriter, request *http.Request) {
+func handleNetworksPage(router *mux.Router) {
+	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
+
+		if isMethodNotAllowed("POST", writer, request) {
+			return
+		}
+
+		// decoder := json.NewDecoder(request.Body)
+
+		log.Println(request.Body)
+	})
+
+	router.HandleFunc("/network.html", func(writer http.ResponseWriter, request *http.Request) {
+
+		if request.Method != "GET" {
+			http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
 		ids := request.URL.Query()["network"]
 		if ids == nil {
@@ -71,8 +88,8 @@ func handleNetworks() {
 	})
 }
 
-func handleDashboard() {
-	http.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
+func handleDashboardPage(router *mux.Router) {
+	router.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
 		networks, err := persist.GetNetworks()
 
 		if err != nil {
@@ -96,12 +113,16 @@ func handleDashboard() {
 func addRoutes() {
 	// TODO: Guard around admin privileges
 
-	serveStaticFolder("/css/")
-	serveStaticFolder("/fonts/")
-	serveStaticFolder("/js/")
+	router := mux.NewRouter()
 
-	handleDashboard()
-	handleNetworks()
+	serveStaticFolder("/css/", router)
+	serveStaticFolder("/fonts/", router)
+	serveStaticFolder("/js/", router)
+
+	handleDashboardPage(router)
+	handleNetworksPage(router)
+
+	http.Handle("/", router)
 }
 
 func clientError(writer http.ResponseWriter, err error) {
