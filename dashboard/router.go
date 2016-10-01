@@ -3,10 +3,13 @@ package dashboard
 import (
 	"errors"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/0x7fffffff/verbatim/persist"
+	// Pin in this
+	_ "github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
@@ -30,29 +33,16 @@ func serveStaticFolder(folder string, router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 
-		if isMethodNotAllowed("POST", writer, request) {
-			return
-		}
-
 		// decoder := json.NewDecoder(request.Body)
 
 		log.Println(request.Body)
-	})
+	}).Methods("POST")
 
-	router.HandleFunc("/network.html", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 
-		if request.Method != "GET" {
-			http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
+		vars := mux.Vars(request)
+		idString := vars["network_id"]
 
-		ids := request.URL.Query()["network"]
-		if ids == nil {
-			clientError(writer, errors.New("Missing network parameter"))
-			return
-		}
-
-		idString := ids[0]
 		if idString == "" {
 			clientError(writer, errors.New("Missing network identifier"))
 			return
@@ -87,7 +77,7 @@ func handleNetworksPage(router *mux.Router) {
 		if err := template.Execute(writer, data); err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
-	})
+	}).Methods("GET")
 }
 
 func handleDashboardPage(router *mux.Router) {
@@ -109,7 +99,7 @@ func handleDashboardPage(router *mux.Router) {
 		if err = template.Execute(writer, data); err != nil {
 			serverError(writer, err)
 		}
-	})
+	}).Methods("GET")
 }
 
 func addRoutes(router *mux.Router) {
@@ -131,4 +121,9 @@ func clientError(writer http.ResponseWriter, err error) {
 
 func serverError(writer http.ResponseWriter, err error) {
 	http.Error(writer, err.Error(), http.StatusInternalServerError)
+}
+
+func isMethodNotAllowed(method string, writer http.ResponseWriter, request *http.Request) bool {
+	http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
+	return method != request.Method
 }
