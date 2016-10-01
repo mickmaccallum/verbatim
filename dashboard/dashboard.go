@@ -22,8 +22,7 @@ func Start() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-func checkErr(err error) {
-	if err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		panic(err)
 	}
 }
