@@ -6,11 +6,12 @@ import (
 
 	// Passing lint
 	_ "github.com/0x7fffffff/verbatim/persist"
+	"github.com/gorilla/mux"
 )
 
 // Start starts the HTTP server
 func Start() {
-	addRoutes()
+	router := mux.NewRouter()
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
