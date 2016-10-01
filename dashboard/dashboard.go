@@ -1,8 +1,8 @@
 package dashboard
 
 import (
-	"log"
 	"net/http"
+	"time"
 
 	// Passing lint
 	_ "github.com/0x7fffffff/verbatim/persist"
@@ -13,12 +13,14 @@ import (
 func Start() {
 	router := mux.NewRouter()
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		panic(err)
-	} else {
-		log.Println("Server running on :8080")
+	addRoutes(router)
+
+	srv := &http.Server{
+		Handler:      router,
+		Addr:         "127.0.0.1:8080",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
 	}
-}
 
 func checkErr(err error) {
 	if err != nil {
