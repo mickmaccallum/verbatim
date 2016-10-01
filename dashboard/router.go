@@ -22,7 +22,9 @@ func templateOnBase(path string) *template.Template {
 func serveStaticFolder(folder string, router *mux.Router) {
 	static := "static" + folder
 
-	http.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
+	// router.Handle(folder, http.StripPrefix(folder, http.FileServer(http.Dir(static))))
+
+	router.PathPrefix(folder).Handler(http.StripPrefix(folder, http.FileServer(http.Dir(static))))
 }
 
 func handleNetworksPage(router *mux.Router) {
