@@ -112,10 +112,8 @@ func handleDashboardPage(router *mux.Router) {
 	})
 }
 
-func addRoutes() {
+func addRoutes(router *mux.Router) {
 	// TODO: Guard around admin privileges
-
-	router := mux.NewRouter()
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/fonts/", router)
