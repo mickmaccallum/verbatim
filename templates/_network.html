@@ -14,12 +14,13 @@
 <div class="table-responsive panel panel-default">
   <div class="panel-heading">Encoders</div>
 
-  <table class="table table-hover" id="servers-selection-table">
+  <table class="table table-hover" id="encoder-selection-table">
     <thead>
       <tr>
         <th>#</th>
         <th>IP Address</th>
         <th>Port</th>
+        <th>Name</th>
         <th>Status</th>
       </tr>
     </thead>
@@ -30,6 +31,7 @@
         <th scope=row>{{ $index }}</th>
         <td>{{ $element.IPAddress }}</td>
         <td>{{ $element.Port }}</td>
+        <td>{{ $element.Name.Value }}</td>
         <td>{{ $element.Status }}</td>
       </tr>
     {{ end }}
@@ -44,6 +46,7 @@
 <div>
   <div class="row">
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
+      <input id="add-encoder-network-element" type="hidden" class="form-control" value="{{ .Network.ID }}">
       <div class="col-lg-4">
         <div class="input-group">
           <span class="input-group-addon">
