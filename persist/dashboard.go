@@ -1,6 +1,7 @@
 package persist
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 )
@@ -13,11 +14,12 @@ type Network struct {
 
 // Encoder represents a single downstream encoder for a given network
 type Encoder struct {
-	ID        int
+	ID        sql.NullInt64
+	Name      sql.NullString
 	IPAddress string
 	Port      int
 	Status    int
-	networkID int
+	NetworkID int
 }
 
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
@@ -44,7 +46,7 @@ func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 			&encoder.IPAddress,
 			&encoder.Port,
 			&encoder.Status,
-			&encoder.networkID,
+			&encoder.NetworkID,
 		); err != nil {
 			log.Fatal(err)
 			continue
