@@ -3,8 +3,8 @@ package dashboard
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -31,19 +31,12 @@ func serveStaticFolder(folder string, router *mux.Router) {
 
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
-		log.Println(request.Cookies())
-		cookie, err := request.Cookie("current_network_id")
-		if err != nil {
-			log.Println(err.Error())
-			clientError(writer, err)
-			return
-		}
 
-		networkIDString := cookie.Value
-		ip, portString, name :=
+		ip, portString, name, networkIDString :=
 			request.FormValue("ip"),
 			request.FormValue("port"),
-			request.FormValue("name")
+			request.FormValue("name"),
+			request.FormValue("network")
 
 		if len(ip) < 7 || len(ip) > 15 || len(portString) < 1 || len(portString) > 5 || len(networkIDString) == 0 {
 			clientError(writer, errors.New("Invalid data"))
@@ -52,14 +45,12 @@ func handleNetworksPage(router *mux.Router) {
 
 		port, err := strconv.Atoi(portString)
 		if err != nil {
-			log.Println(err.Error())
 			clientError(writer, err)
 			return
 		}
 
 		networkID, err := strconv.Atoi(networkIDString)
 		if err != nil {
-			log.Println(err.Error())
 			clientError(writer, err)
 			return
 		}
@@ -75,21 +66,23 @@ func handleNetworksPage(router *mux.Router) {
 		var network *persist.Network
 		network, err = persist.GetNetwork(networkID)
 		if err != nil {
-			log.Println(err.Error())
 			clientError(writer, err)
 			return
 		}
 
-		err = persist.AddEncoder(encoder, *network)
+		newEncoder, err := persist.AddEncoder(encoder, *network)
 		if err != nil {
-			log.Println(err.Error())
 			serverError(writer, err)
+			return
 		}
 
-		// fmt.Fprint(writer, "{\"message\":\"got it!\"}")
+		bytes, err := persist.EncoderToJSON(*newEncoder)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
 
-		writer.WriteHeader(200)
-
+		fmt.Fprint(writer, template.JSStr(bytes))
 	}).Methods("POST")
 
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
