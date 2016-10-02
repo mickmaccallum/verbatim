@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS encoder (
   ip_address TEXT NOT NULL,
   port INTEGER NOT NULL,
   status INTEGER NOT NULL DEFAULT(0),
+  name TEXT,
 
   network_id INTEGER NOT NULL,
   FOREIGN KEY(network_id) REFERENCES network(id)
