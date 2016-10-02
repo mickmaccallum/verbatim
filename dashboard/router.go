@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"database/sql"
 	"errors"
 	"html/template"
 	"log"
@@ -30,10 +31,65 @@ func serveStaticFolder(folder string, router *mux.Router) {
 
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
+		log.Println(request.Cookies())
+		cookie, err := request.Cookie("current_network_id")
+		if err != nil {
+			log.Println(err.Error())
+			clientError(writer, err)
+			return
+		}
 
-		// decoder := json.NewDecoder(request.Body)
+		networkIDString := cookie.Value
+		ip, portString, name :=
+			request.FormValue("ip"),
+			request.FormValue("port"),
+			request.FormValue("name")
 
-		log.Println(request.Body)
+		if len(ip) < 7 || len(ip) > 15 || len(portString) < 1 || len(portString) > 5 || len(networkIDString) == 0 {
+			clientError(writer, errors.New("Invalid data"))
+			return
+		}
+
+		port, err := strconv.Atoi(portString)
+		if err != nil {
+			log.Println(err.Error())
+			clientError(writer, err)
+			return
+		}
+
+		networkID, err := strconv.Atoi(networkIDString)
+		if err != nil {
+			log.Println(err.Error())
+			clientError(writer, err)
+			return
+		}
+
+		encoder := persist.Encoder{
+			IPAddress: ip,
+			Name:      sql.NullString{String: name, Valid: true},
+			Port:      port,
+			Status:    0,
+			NetworkID: networkID,
+		}
+
+		var network *persist.Network
+		network, err = persist.GetNetwork(networkID)
+		if err != nil {
+			log.Println(err.Error())
+			clientError(writer, err)
+			return
+		}
+
+		err = persist.AddEncoder(encoder, *network)
+		if err != nil {
+			log.Println(err.Error())
+			serverError(writer, err)
+		}
+
+		// fmt.Fprint(writer, "{\"message\":\"got it!\"}")
+
+		writer.WriteHeader(200)
+
 	}).Methods("POST")
 
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
@@ -65,15 +121,22 @@ func handleNetworksPage(router *mux.Router) {
 
 		template := templateOnBase("templates/_network.html")
 		data := struct {
-			Network  persist.Network // Yikes
+			Network  persist.Network
 			Encoders []persist.Encoder
 		}{
 			*network,
 			encoders,
 		}
 
+		cookie := &http.Cookie{
+			Name:  "current_network_id",
+			Value: strconv.Itoa(network.ID),
+			Path:  request.URL.Path,
+		}
+		http.SetCookie(writer, cookie)
+
 		if err := template.Execute(writer, data); err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			serverError(writer, err)
 		}
 	}).Methods("GET")
 }
