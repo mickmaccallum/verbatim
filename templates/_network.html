@@ -38,19 +38,19 @@
 </div>
 
 <div class="page-header">
-  <h3>Add a Server</h3>
+  <h3>Add an Encoder</h3>
 </div>
 
 <div>
   <div class="row">
-    <form method="POST" action="/encoder/add" accept-charset="UTF-8">
+    <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
       <div class="col-lg-4">
         <div class="input-group">
           <span class="input-group-addon">
             IP Address
           </span>
 
-          <input type="text" class="form-control" placeholder="192.168.1.1">
+          <input id="encoder-form-ip" type="text" class="form-control" placeholder="192.168.1.1">
         </div>
       </div>
 
@@ -60,7 +60,7 @@
             Port
           </span>
 
-          <input type="text" class="form-control" placeholder="8080">
+          <input id="encoder-form-port" type="text" class="form-control" placeholder="8080">
         </div>
       </div>
 
@@ -70,15 +70,17 @@
             Name
           </span>
 
-          <input type="text" class="form-control" placeholder="Optional">
+          <input id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
 
           <span class="input-group-btn">
-            <button class="btn btn-default" type="button">Add Server</button>
+            <button id="submit-encoder" class="btn btn-default" type="button">Add Encoder</button>
           </span>
         </div>
       </div>
     </form>
   </div>
 </div>
+
+<script src="/js/networks.js"></script>
 
 {{ end }}
