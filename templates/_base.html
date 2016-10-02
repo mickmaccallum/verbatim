@@ -84,17 +84,17 @@
       </div>
     </nav>
 
-    <!-- Scripts placed above body for side effects in nested template. -->
+    <div class="container">
+      {{ template "content" . }}
+    </div>
+
     <script src="/js/vendor/jquery-3.1.0.min.js"></script>
     <script src="/js/vendor/vue.js"></script>
     <script src="/js/vendor/vue-validator.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="/js/ie10-viewport-bug-workaround.js"></script>
-    <script src="/js/dashboard.js"></script>
 
-    <div class="container">
-      {{ template "content" . }}
-    </div>
+    {{ template "scripts" . }}
   </body>
 </html>
