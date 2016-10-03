@@ -42,13 +42,19 @@ func notifyCaptionerSendingData() {
 }
 
 // TODO
-func notifyBackendConnected() {}
+func notifyBackendConnected() {
+
+}
 
 // TODO
-func notifyBackenddisconnected() {}
+func notifyBackenddisconnected() {
+
+}
 
 // TODO
-func doBackendScheduledConnectAndDisconnect() {}
+func doBackendScheduledConnectAndDisconnect() {
+
+}
 
 // Passing lint
 func AddDownstreamConnection(encoder persist.Encoder) error {
