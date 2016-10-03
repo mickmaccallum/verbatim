@@ -2,12 +2,14 @@ package main
 
 import (
 	"github.com/0x7fffffff/verbatim/dashboard"
-	_ "github.com/0x7fffffff/verbatim/relay"
+	"github.com/0x7fffffff/verbatim/relay"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+
+	go relay.Start()
 	dashboard.Start()
 }
 

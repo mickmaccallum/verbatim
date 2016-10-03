@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	_ "os"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -25,10 +27,12 @@ type Activity struct {
 
 var actvity chan Activity
 
-// Need some kind of way to map between users and connections
-// Need to use an RWMutex on this.
-var encodersToConnections = make(map[persist.Encoder][]net.Conn)
+// Current working assumption: Each captioner is going to be tied to all the encoders in a network
+var networkToConns = make(map[persist.Network]chan string)
+
 var connMux = &sync.RWMutex{}
+
+var encoderIdToConn = make(map[int]net.Conn)
 
 // TODO
 // Connect this to a captioners list?
@@ -36,7 +40,7 @@ func notifyCaptionerConnected() {
 
 }
 
-// TODO
+//
 func notifyCaptionerSendingData() {
 
 }
@@ -47,7 +51,7 @@ func notifyBackendConnected() {
 }
 
 // TODO
-func notifyBackenddisconnected() {
+func notifyBackendDisconnected() {
 
 }
 
@@ -72,12 +76,11 @@ func AddDownstreamConnection(encoder persist.Encoder) error {
 
 	log.Panic("NOT DONE YET")
 	return nil
-
 }
 
 // Listen for TCP connections
 func Start() error {
-	ln, err := net.Listen("tcp", ":6000")
+	ln, err := net.Listen("tcp", "localhost:6000")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,16 +94,51 @@ func Start() error {
 	}
 }
 
-// TODO: Get this working?
-func authenticateUser(c net.Conn) error {
-	return nil
+// This is now sort of working. We'll need to use this to work out how to send data around
+func authenticateUser(c net.Conn) (*persist.Network, error) {
+	buf := make([]byte, 128)
+	_, err := c.Write([]byte("Enter the id of the network you want to connect to:"))
+	if err != nil {
+		c.Close()
+		return nil, err
+	}
+
+	// Will read block?
+	n, err := c.Read(buf)
+	log.Println("Buff", string(buf[0:n]))
+	if err != nil {
+		c.Close()
+	}
+
+	// #runningwithscissors
+	id, err := strconv.Atoi(strings.Trim(string(buf[0:n]), "\r\n\t "))
+	if err != nil {
+		fmt.Fprintln(c, "Invalid network id, please reconnect and try again")
+		log.Println(err.Error())
+		c.Close()
+		return nil, err
+	}
+
+	network, err := persist.GetNetwork(id)
+	if err != nil {
+		fmt.Fprintln(c, "Unable to find network!")
+		c.Close()
+		return nil, err
+	}
+	return network, nil
 }
 
+// Basic demoable state.
 func handleConnection(c net.Conn) {
 	// TODO: Authenticate a new user
-	authenticateUser(c)
+	network, err := authenticateUser(c)
+	if err != nil {
+		// Bail
+		return
+	}
 
-	// TODO: Notify that a user is connected once authenticated
+	fmt.Fprintln(c, "Connected to echo server for:", network.Name)
+
 	buf := make([]byte, 4096)
 
 	for {
