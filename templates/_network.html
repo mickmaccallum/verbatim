@@ -28,7 +28,7 @@
     <tbody>
     {{range $index, $element := .Encoders}}
       <tr data-encoder-id="{{ $element.ID}}">
-        <th scope=row>{{ $index }}</th>
+        <th scope=row>{{ inc $index }}</th>
         <td>{{ $element.IPAddress }}</td>
         <td>{{ $element.Port }}</td>
         <td>{{ $element.Name.Value }}</td>

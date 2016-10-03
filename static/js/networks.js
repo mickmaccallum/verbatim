@@ -3,14 +3,17 @@ addEncoder = function(encoder) {
     return false;
   }
 
+  var body = $('#encoder-selection-table > tbody');
+  var count = body.children().length;
+
   var row = $('<tr></tr>');
-  row.append('<th scope=row></th>');
+  row.append('<th scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + encoder.IPAddress + '</td>');
   row.append('<td>' + encoder.Port + '</td>');
   row.append('<td>' + encoder.Name + '</td>');
   row.append('<td>' + encoder.Status + '</td>');
 
-  $('#encoder-selection-table > tbody').append(row);
+  body.append(row);
   return true;
 };
 
