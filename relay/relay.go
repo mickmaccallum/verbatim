@@ -9,10 +9,6 @@ import (
 	"sync"
 )
 
-func test() {
-
-}
-
 // The type of a given activity
 type ActivityType int
 
@@ -31,10 +27,30 @@ var actvity chan Activity
 
 // Need some kind of way to map between users and connections
 // Need to use an RWMutex on this.
-var captionerToConnections = make(map[persist.Encoder][]net.Conn)
+var encodersToConnections = make(map[persist.Encoder][]net.Conn)
 var connMux = &sync.RWMutex{}
 
-// Passing lint. :P
+// TODO
+// Connect this to a captioners list?
+func notifyCaptionerConnected() {
+
+}
+
+// TODO
+func notifyCaptionerSendingData() {
+
+}
+
+// TODO
+func notifyBackendConnected() {}
+
+// TODO
+func notifyBackenddisconnected() {}
+
+// TODO
+func doBackendScheduledConnectAndDisconnect() {}
+
+// Passing lint
 func AddDownstreamConnection(encoder persist.Encoder) error {
 	// TODO: Dial into downstream connection
 	addr := fmt.Sprint(encoder.IPAddress, ":", encoder.Port)
@@ -69,7 +85,7 @@ func Start() error {
 	}
 }
 
-// TODO: Get this
+// TODO: Get this working?
 func authenticateUser(c net.Conn) error {
 	return nil
 }
@@ -113,7 +129,4 @@ If we are going to be real time:
 -- Are we getting successful writes to the encoders?
 -- How do we know if downstream is gone?
 --
-
-
-
 */
