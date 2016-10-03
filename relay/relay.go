@@ -81,6 +81,7 @@ func AddDownstreamConnection(encoder persist.Encoder) error {
 // Listen for TCP connections
 func Start() error {
 	ln, err := net.Listen("tcp", "localhost:6000")
+	log.Println("Lisenting on port 6000")
 	if err != nil {
 		log.Fatal(err)
 	}
