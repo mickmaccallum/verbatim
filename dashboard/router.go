@@ -15,12 +15,16 @@ import (
 )
 
 func templateOnBase(path string) *template.Template {
-	template := template.Must(template.ParseFiles(
+	funcMap := template.FuncMap{
+		"inc": func(i int) int {
+			return i + 1
+		},
+	}
+
+	return template.Must(template.New("_base.html").Funcs(funcMap).ParseFiles(
 		"templates/_base.html",
 		path,
 	))
-
-	return template
 }
 
 func serveStaticFolder(folder string, router *mux.Router) {
@@ -120,13 +124,6 @@ func handleNetworksPage(router *mux.Router) {
 			*network,
 			encoders,
 		}
-
-		cookie := &http.Cookie{
-			Name:  "current_network_id",
-			Value: strconv.Itoa(network.ID),
-			Path:  request.URL.Path,
-		}
-		http.SetCookie(writer, cookie)
 
 		if err := template.Execute(writer, data); err != nil {
 			serverError(writer, err)
