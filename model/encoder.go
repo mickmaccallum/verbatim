@@ -18,9 +18,9 @@ type Encoder struct {
 	NetworkID int
 }
 
-// EncoderFromFormValues validates that an Encoder can be created
+// FormValuesToEncoder validates that an Encoder can be created
 // from the given form values and creates it.
-func EncoderFromFormValues(values url.Values) (*Encoder, error) {
+func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 	ipAddress, portString, name, handle, password, networkIDString :=
 		values.Get("ip_address"),
 		values.Get("port"),
