@@ -18,7 +18,6 @@ func init() {
 	checkErr(err)
 
 	_, err = configureDatabase(db)
-
 	checkErr(err)
 }
 

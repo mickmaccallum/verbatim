@@ -1,13 +1,13 @@
 package dashboard
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 
+	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	// Pin in this
 	_ "github.com/gorilla/csrf"
@@ -51,45 +51,20 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 
-		ip, portString, name, networkIDString :=
-			request.FormValue("ip"),
-			request.FormValue("port"),
-			request.FormValue("name"),
-			request.FormValue("network")
-
-		if len(ip) < 7 || len(ip) > 15 || len(portString) < 1 || len(portString) > 5 || len(networkIDString) == 0 {
-			clientError(writer, errors.New("Invalid data"))
-			return
-		}
-
-		port, err := strconv.Atoi(portString)
+		encoder, err := model.EncoderFromFormValues(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		networkID, err := strconv.Atoi(networkIDString)
+		var network *model.Network
+		network, err = persist.GetNetwork(encoder.NetworkID)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		encoder := persist.Encoder{
-			IPAddress: ip,
-			Name:      sql.NullString{String: name, Valid: true},
-			Port:      port,
-			Status:    0,
-			NetworkID: networkID,
-		}
-
-		var network *persist.Network
-		network, err = persist.GetNetwork(networkID)
-		if err != nil {
-			clientError(writer, err)
-			return
-		}
-
-		newEncoder, err := persist.AddEncoder(encoder, *network)
+		newEncoder, err := persist.AddEncoder(*encoder, *network)
 		if err != nil {
 			serverError(writer, err)
 			return
@@ -133,8 +108,8 @@ func handleNetworksPage(router *mux.Router) {
 
 		template := templateOnBase("templates/_network.html")
 		data := struct {
-			Network  persist.Network
-			Encoders []persist.Encoder
+			Network  model.Network
+			Encoders []model.Encoder
 		}{
 			*network,
 			encoders,
@@ -156,7 +131,7 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		data := struct {
-			Networks []persist.Network
+			Networks []model.Network
 		}{
 			networks,
 		}
