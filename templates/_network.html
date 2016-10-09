@@ -8,7 +8,7 @@
 </ol>
 
 <div class="page-header">
-  <h1>{{ .Network.Name }} <small>({{ len .Encoders}} encoders)</small></h1>
+  <h1>{{ .Network.Name }} <small>({{ len .Encoders }} encoders)</small></h1>
 </div>
 
 <div class="table-responsive panel panel-default">
@@ -26,8 +26,8 @@
     </thead>
 
     <tbody>
-    {{range $index, $element := .Encoders}}
-      <tr data-encoder-id="{{ $element.ID}}">
+    {{range $index, $element := .Encoders }}
+      <tr data-encoder-id="{{ $element.ID }}">
         <th scope=row>{{ inc $index }}</th>
         <td>{{ $element.IPAddress }}</td>
         <td>{{ $element.Port }}</td>
