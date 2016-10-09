@@ -1,51 +1,37 @@
 
-/*DROP TABLE IF EXISTS user;*/
-CREATE TABLE IF NOT EXISTS user (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  is_admin BOOLEAN NOT NULL DEFAULT(0),
-  handle TEXT NOT NULL,
-  hashed_password TEXT NOT NULL,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  status INTEGER NOT NULL DEFAULT(0)
+-- 
+/*drop table if exists user;*/
+create table if not exists admin (
+  id int primary key,
+  handle text not null,
+  hashed_password text not null,
 );
 
-/*DROP TABLE IF EXISTS ports;*/
-CREATE TABLE IF NOT EXISTS ports (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  port int,
-  network_id int
-  FOREIGN KEY(network_id) REFERENCES network(id)
-   TEXT NOT NULL
+/*drop table if exists ports;*/
+create table if not exists ports (
+  id int primary key,
+  port int not null,
+  network_id int,
+  foreign key(network_id) references network(id) 
 );
 
 
-/*DROP TABLE IF EXISTS network;*/
-CREATE TABLE IF NOT EXISTS network (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL
+/*drop table if exists network;*/
+create table if not exists network (
+  id integer primary key,
+  name text not null
 );
 
-/*DROP TABLE IF EXISTS encoder;*/
-CREATE TABLE IF NOT EXISTS encoder (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  ip_address TEXT NOT NULL,
-  port INTEGER NOT NULL,
-  status INTEGER NOT NULL DEFAULT(0),
-  name TEXT,
-
-  network_id INTEGER NOT NULL,
-  FOREIGN KEY(network_id) REFERENCES network(id)
+/*drop table if exists encoder;*/
+create table if not exists encoder (
+  id int primary key,
+  ip_address text not null,
+  port integer not null default(23),
+  status integer not null default(0),
+  name text null default ('New Encoder'),
+  handle text not null,
+  password text not null,
+  network_id integer not null,
+  foreign key(network_id) references network(id)
 );
 
-DROP TABLE IF EXISTS connection;
-CREATE TABLE IF NOT EXISTS connection (
-  id INTEGER PRIMARY KEY AUTOINCREMENT
-
-  /*captioner_id INTEGER NOT NULL,
-  FOREIGN KEY(captioner_id) REFERENCES user(id),
-  network_id INTEGER NOT NULL,
-  FOREIGN KEY(network_id) REFERENCES network(id),*/
-  /*encoder_id INTEGER NOT NULL,
-  FOREIGN KEY(encoder_id) REFERENCES encoder(id)*/
-);
