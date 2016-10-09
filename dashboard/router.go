@@ -104,6 +104,7 @@ func handleNetworksPage(router *mux.Router) {
 		encoders, err := persist.GetEncodersForNetwork(*network)
 		if err != nil {
 			serverError(writer, err)
+			return
 		}
 
 		template := templateOnBase("templates/_network.html")
