@@ -10,7 +10,7 @@ import (
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
 func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 	query := `
-		SELECT id, ip_address, port, status, network_id
+		SELECT id, ip_address, port, name, handle, password, network_id
 		FROM encoder
 		WHERE network_id = ?
 	`
@@ -51,7 +51,7 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 // GetNetwork gets the Network for a given id.
 func GetNetwork(id int) (*model.Network, error) {
 	query := `
-		SELECT id, name
+		SELECT id, listening_port, name
 		FROM network
 		WHERE id = ?
 	`
@@ -72,7 +72,7 @@ func GetNetwork(id int) (*model.Network, error) {
 // GetNetworks Gets all Networks in the database.
 func GetNetworks() ([]model.Network, error) {
 	query := `
-		SELECT id, name
+		SELECT id, listening_port, name
 		FROM network
 	`
 	rows, err := db.Query(query)
