@@ -33,6 +33,21 @@ func serveStaticFolder(folder string, router *mux.Router) {
 	router.PathPrefix(folder).Handler(http.StripPrefix(folder, fileServer))
 }
 
+func handleCaptionersPage(router *mux.Router) {
+	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
+		data := struct {
+			// Networks []persist.Network
+		}{
+		// networks,
+		}
+
+		template := templateOnBase("templates/_captioners.html")
+		if err := template.Execute(writer, data); err != nil {
+			serverError(writer, err)
+		}
+	}).Methods("GET")
+}
+
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 
@@ -175,6 +190,7 @@ func addRoutes(router *mux.Router) {
 
 	handleDashboardPage(router)
 	handleNetworksPage(router)
+	handleCaptionersPage(router)
 
 	router.NotFoundHandler = http.HandlerFunc(handleNotFound)
 
