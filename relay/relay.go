@@ -4,35 +4,41 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"github.com/0x7fffffff/verbatim/model"
+	// Lint
 	_ "os"
 	"sync"
-	"github.com/0x7fffffff/verbatim/persist"
 )
 
-// The type of a given activity
+// ActivityType The type of a given activity
 type ActivityType int
 
 const (
+	// ActvityLogin lint
 	ActvityLogin ActivityType = iota
+	// ActivtySendData lint
 	ActivtySendData
 )
 
-// The type used for notifying the outside world of what is going on, at a high level.
+// Activity The type used for notifying the outside world of what is going on, at a high level.
 type Activity struct {
-	Id   int
+	// ID lint
+	ID   int
 	Type ActivityType
 }
 
 var actvity chan Activity
 
 // Current working assumption: Each captioner is going to be tied to all the encoders in a network
-var networkToConns = make(map[persist.Network]chan string)
+var networkToConns = make(map[model.Network]chan string)
 
 var connMux = &sync.RWMutex{}
 
-var encoderIdToConn = make(map[int]net.Conn)
+var encoderIDToConn = make(map[int]net.Conn)
 
-func NotifyPortAdded(portNum int, n persist.Network) {
+// NotifyPortAdded lint
+func NotifyPortAdded(portNum int, n model.Network) {
 	log.Println("Port added", portNum, n.Name)
 }
 
@@ -56,8 +62,13 @@ func doBackendScheduledConnectAndDisconnect() {
 
 }
 
-// Passing lint
-func AddDownstreamConnection(encoder persist.Encoder) error {
+// Start I'm a stub.
+func Start() {
+
+}
+
+// AddDownstreamConnection Passing lint
+func AddDownstreamConnection(encoder model.Encoder) error {
 	// TODO: Dial into downstream connection
 	addr := fmt.Sprint(encoder.IPAddress, ":", encoder.Port)
 	log.Print(addr)
