@@ -1,0 +1,80 @@
+{{ define "title" }}Captioner - {{ end }}
+
+{{ define "content" }}
+
+<ol class="breadcrumb">
+  <li><a href="/">Dashboard</a></li>
+  
+</ol>
+
+<div class="page-header">
+
+</div>
+
+<div class="table-responsive panel panel-default">
+  <div class="panel-heading">Captioners</div>
+
+  <table class="table table-hover" id="captioner-selection-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>IP Address</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+    
+    </tbody>
+  </table>
+</div>
+
+<div class="page-header">
+  <h3>Add a Captioner</h3>
+</div>
+
+<div>
+  <div class="row">
+    <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
+      <input id="add-encoder-network-element" type="hidden" class="form-control" value="">
+      <div class="col-lg-4">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Captioner Name
+          </span>
+
+          <input id="encoder-form-ip" type="text" class="form-control" placeholder="John Smith">
+        </div>
+      </div>
+
+      <div class="col-lg-3">
+        <div class="input-group">
+          <span class="input-group-addon">
+            IP Address
+          </span>
+
+          <input id="encoder-form-port" type="text" class="form-control" placeholder="192.168.0.1">
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Name
+          </span>
+
+          <input id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
+
+          <span class="input-group-btn">
+            <button id="submit-encoder" class="btn btn-default" type="button">Add Captioner</button>
+          </span>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{ end }}
+{{ define "scripts"}}
+{{ end }}
