@@ -1,0 +1,5 @@
+package megaphone
+
+func test() {
+
+}
