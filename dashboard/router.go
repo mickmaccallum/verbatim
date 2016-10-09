@@ -51,7 +51,7 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 
-		encoder, err := model.EncoderFromFormValues(request.Form)
+		encoder, err := model.FormValuesToEncoder(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
