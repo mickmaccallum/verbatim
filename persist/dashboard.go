@@ -1,30 +1,14 @@
 package persist
 
 import (
-	"database/sql"
 	"errors"
 	"log"
+
+	"github.com/0x7fffffff/verbatim/model"
 )
 
-// Network represents a downstream network
-type Network struct {
-	ID   int
-	Port int
-	Name string
-}
-
-// Encoder represents a single downstream encoder for a given network
-type Encoder struct {
-	ID        sql.NullInt64
-	Name      sql.NullString
-	IPAddress string
-	Port      int
-	Status    int
-	NetworkID int
-}
-
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
-func GetEncodersForNetwork(network Network) ([]Encoder, error) {
+func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 	query := `
 		SELECT id, ip_address, port, status, network_id
 		FROM encoder
@@ -37,16 +21,17 @@ func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 		return nil, err
 	}
 
-	var encoders = make([]Encoder, 0)
+	var encoders = make([]model.Encoder, 0)
 
 	for rows.Next() {
-		var encoder Encoder
+		var encoder model.Encoder
 
 		if err = rows.Scan(
 			&encoder.ID,
 			&encoder.IPAddress,
 			&encoder.Port,
-			&encoder.Status,
+			&encoder.Handle,
+			&encoder.Password,
 			&encoder.NetworkID,
 		); err != nil {
 			log.Fatal(err)
@@ -64,7 +49,7 @@ func GetEncodersForNetwork(network Network) ([]Encoder, error) {
 }
 
 // GetNetwork gets the Network for a given id.
-func GetNetwork(id int) (*Network, error) {
+func GetNetwork(id int) (*model.Network, error) {
 	query := `
 		SELECT id, name
 		FROM network
@@ -76,16 +61,16 @@ func GetNetwork(id int) (*Network, error) {
 		return nil, errors.New("Network not found")
 	}
 
-	var net Network
-	if err := row.Scan(&net.ID, &net.Name); err != nil {
-		return nil, errors.New("Failed to create Network from query")
+	var net model.Network
+	if err := row.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
+		return nil, errors.New("Failed to find specified Network")
 	}
 
 	return &net, nil
 }
 
 // GetNetworks Gets all Networks in the database.
-func GetNetworks() ([]Network, error) {
+func GetNetworks() ([]model.Network, error) {
 	query := `
 		SELECT id, name
 		FROM network
@@ -96,12 +81,12 @@ func GetNetworks() ([]Network, error) {
 		return nil, err
 	}
 
-	var networks = make([]Network, 0)
+	var networks = make([]model.Network, 0)
 
 	for rows.Next() {
-		var net Network
+		var net model.Network
 
-		if err = rows.Scan(&net.ID, &net.Name); err != nil {
+		if err = rows.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
 			log.Fatal(err)
 			continue
 		}
