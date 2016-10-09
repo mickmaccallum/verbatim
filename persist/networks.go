@@ -1,21 +1,24 @@
 package persist
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
+
+	"github.com/0x7fffffff/verbatim/model"
 )
 
 // AddEncoder adds a new encoder for the given network
-func AddEncoder(encoder Encoder, network Network) (*Encoder, error) {
+func AddEncoder(encoder model.Encoder, network model.Network) (*model.Encoder, error) {
 	query := `
     INSERT INTO encoder (
-      name, ip_address, port, status, network_id
+      ip_address, port, name, handle, password, network_id
     ) VALUES (
-      ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?
     );
   `
-	result, err := db.Exec(query, encoder.Name, encoder.IPAddress, encoder.Port, encoder.Status, network.ID)
+
+	result, err := db.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -25,12 +28,13 @@ func AddEncoder(encoder Encoder, network Network) (*Encoder, error) {
 		return nil, err
 	}
 
-	newEncoder := Encoder{
-		ID:        sql.NullInt64{Int64: rowID, Valid: true},
-		Name:      encoder.Name,
+	newEncoder := model.Encoder{
+		ID:        int(rowID),
 		IPAddress: encoder.IPAddress,
 		Port:      encoder.Port,
-		Status:    encoder.Status,
+		Name:      encoder.Name,
+		Handle:    encoder.Handle,
+		Password:  encoder.Password,
 		NetworkID: network.ID,
 	}
 
@@ -38,24 +42,26 @@ func AddEncoder(encoder Encoder, network Network) (*Encoder, error) {
 }
 
 // EncoderToJSON Removes SQL fields and transforms to a []byte of JSON data.
-func EncoderToJSON(encoder Encoder) ([]byte, error) {
-	if !encoder.ID.Valid || !encoder.Name.Valid {
+func EncoderToJSON(encoder model.Encoder) ([]byte, error) {
+	if !encoder.Name.Valid {
 		return nil, errors.New("Error validating Encoder")
 	}
 
 	newEncoder := struct {
-		ID        int64
-		Name      string
+		ID        int
 		IPAddress string
 		Port      int
-		Status    int
+		Name      string
+		Handle    string
+		Password  string
 		NetworkID int
 	}{
-		encoder.ID.Int64,
-		encoder.Name.String,
+		encoder.ID,
 		encoder.IPAddress,
 		encoder.Port,
-		encoder.Status,
+		encoder.Name.String,
+		encoder.Handle,
+		encoder.Password,
 		encoder.NetworkID,
 	}
 
