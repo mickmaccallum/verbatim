@@ -9,6 +9,7 @@ import (
 // Network represents a downstream network
 type Network struct {
 	ID   int
+	Port int
 	Name string
 }
 
