@@ -12,44 +12,26 @@ function addNetworkListListeners() {
   });
 }
 
-var ws;
-
-function startWebSocket() {
-  if (ws != null) {
-    return;
-  }
-
-  ws = new WebSocket(socketURL);
-
-  ws.onopen = function(event) {
-    console.log("OPEN");
-
-    console.log("sending message");
-
-    var payload = {
-      "message": "Hello, Servar."
-    };
-
-    ws.send(JSON.stringify(payload));
-  }
-
-  ws.onclose = function(event) {
-    console.log("CLOSE");
-    ws = null;
-  }
-
-  ws.onmessage = function(event) {
-    var msg = JSON.parse(event.data);
-
-    console.log("RESPONSE: " + JSON.stringify(msg));
-  }
-
-  ws.onerror = function(event) {
-    console.log("ERROR: " + event.data);
-  }
-}
-
 $(function () {
   addNetworkListListeners();
-  startWebSocket();
+
+  wsStart().then(function(webSocket) {
+    webSocket.prototype.onNewMessage = function(message) {
+      console.log("RESPONSE: " + JSON.stringify(message));
+    };
+
+    webSocket.onerror = function(event) {
+      console.log("ERROR: " + event.data);
+    };
+  }).catch(function(event) {
+    console.log(event);
+  });
 });
+
+// var payload = {
+//   "message": "Hello, Servar."
+// };
+//
+// wsSend(payload, function(reply) {
+//   console.log(reply);
+// });
