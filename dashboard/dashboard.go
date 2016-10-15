@@ -13,6 +13,7 @@ import (
 func Start() {
 	router := mux.NewRouter()
 	addRoutes(router)
+	startSocket(router)
 
 	// Switch these lines for production
 	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
