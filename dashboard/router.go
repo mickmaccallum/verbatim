@@ -9,8 +9,6 @@ import (
 
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
-	// Pin in this
-	_ "github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
@@ -107,13 +105,22 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		// t.ExecuteTemplate(w, "signup_form.tmpl", map[string]interface{}{
+		// 	csrf.TemplateTag: csrf.TemplateField(r),
+		// })
+		// csrf.TemplateTag.
+
+		// csrf.TemplateField(r)
+
 		template := templateOnBase("templates/_network.html")
 		data := struct {
 			Network  model.Network
 			Encoders []model.Encoder
+			// TemplateTag template.HTML
 		}{
 			*network,
 			encoders,
+			// csrf.TemplateField(request),
 		}
 
 		if err := template.Execute(writer, data); err != nil {
