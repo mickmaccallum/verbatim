@@ -123,7 +123,7 @@ func handleNetworksPage(router *mux.Router) {
 }
 
 func handleDashboardPage(router *mux.Router) {
-	router.HandleFunc("/", func(writer http.ResponseWriter, _request *http.Request) {
+	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		networks, err := persist.GetNetworks()
 
 		if err != nil {
@@ -132,9 +132,11 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		data := struct {
-			Networks []model.Network
+			Networks  []model.Network
+			SocketURL string
 		}{
 			networks,
+			"ws://" + request.Host + "/socket",
 		}
 
 		template := templateOnBase("templates/_dashboard.html")

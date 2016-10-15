@@ -42,5 +42,8 @@
 {{ end }}
 
 {{ define "scripts" }}
+<script>
+  var socketURL = "{{ .SocketURL }}";
+</script>
 <script src="/js/dashboard.js"></script>
 {{ end }}
