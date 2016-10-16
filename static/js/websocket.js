@@ -15,13 +15,14 @@ function wsStart() {
 
     webSocket.onmessage = function(event) {
       var message = JSON.parse(event.data);
-      var handler = checkQueue(message);
+      var handler = loadCallback(message);
       var payload = message['payload'];
 
       if (handler == null) {
         webSocket.onNewMessage(payload)
       } else {
         handler(payload);
+        removeCallback(message);
       }
     }
 
@@ -48,7 +49,7 @@ function wsSend(payload, completion) {
   });
 };
 
-function checkQueue(message) {
+function loadCallback(message) {
   if (message == null) {
     return null;
   }
@@ -59,6 +60,13 @@ function checkQueue(message) {
   }
 
   return waitQueue[ref];
+};
+
+function removeCallback(message) {
+  var ref = message['reference'];
+
+  waitQueue[ref] = null;
+  delete waitQueue[reference];
 };
 
 function chainMessageSend(payload, completion) {
