@@ -137,13 +137,28 @@ func UpdateNetwork(network model.Network) error {
 
 // DeleteNetwork deletes the specified Network.
 func DeleteNetwork(network model.Network) error {
-	query := `
+	transaction, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	deleteNetwork := `
 		DELETE from network
 		WHERE id = ?
 	`
 
-	_, err := db.Exec(query, network.ID)
-	return err
+	deleteEncoders := `
+		DELETE from encoder
+		WHERE network_id = ?
+	`
+
+	_, err = transaction.Exec(deleteEncoders, network.ID)
+	_, err = transaction.Exec(deleteNetwork, network.ID)
+	if err != nil {
+		return transaction.Rollback()
+	}
+
+	return transaction.Commit()
 }
 
 // GetNetworks Gets all Networks in the database.
