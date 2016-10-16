@@ -86,7 +86,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoder, err := persist.GetEncoder(id)
+		encoder, err := persist.GetEncoder(*id)
 		if err != nil {
 			clientError(writer, err)
 			return
