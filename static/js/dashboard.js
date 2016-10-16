@@ -16,8 +16,8 @@ $(function () {
   addNetworkListListeners();
 
   wsStart().then(function(webSocket) {
-    webSocket.prototype.onNewMessage = function(message) {
       console.log("RESPONSE: " + JSON.stringify(message));
+    webSocket.onNewMessage = function(message) {
     };
 
     webSocket.onerror = function(event) {
