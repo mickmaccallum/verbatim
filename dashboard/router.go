@@ -238,3 +238,19 @@ func isMethodNotAllowed(method string, writer http.ResponseWriter, request *http
 	http.Error(writer, "Method not allowed", http.StatusMethodNotAllowed)
 	return method != request.Method
 }
+
+func identifierFromRequest(identifier string, request *http.Request) *int {
+	vars := mux.Vars(request)
+	idString := vars[identifier]
+
+	if idString == "" {
+		return nil
+	}
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		return nil
+	}
+
+	return &id
+}
