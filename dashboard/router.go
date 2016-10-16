@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -151,6 +152,25 @@ func handleDashboardPage(router *mux.Router) {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
+
+	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		networkIDString := vars["id"]
+
+		networkID, err := strconv.Atoi(networkIDString)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network, err := persist.GetNetwork(networkID)
+		log.Println(network)
+		log.Println(err)
+
+		// http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, "", http.StatusOK)
+	}).Methods("POST")
+
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		vars := mux.Vars(request)
 		networkIDString := vars["id"]
