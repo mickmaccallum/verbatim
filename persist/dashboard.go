@@ -7,6 +7,11 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 )
 
+// GetEncoders Get all of the encoders
+func GetEncoders() ([]model.Encoder, error) {
+	return nil, nil
+}
+
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
 func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 	query := `
