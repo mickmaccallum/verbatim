@@ -69,6 +69,32 @@ func GetNetwork(id int) (*model.Network, error) {
 	return &net, nil
 }
 
+// UpdateNetwork update the info for a given Network
+func UpdateNetwork(network model.Network) error {
+	query := `
+		UPDATE network
+			SET
+				name = ?,
+				listening_port = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := db.Exec(query, network.Name, network.ListeningPort, network.ID)
+	return err
+}
+
+// DeleteNetwork deletes the specified Network.
+func DeleteNetwork(network model.Network) error {
+	query := `
+		DELETE from network
+		WHERE id = ?
+	`
+
+	_, err := db.Exec(query, network.ID)
+	return err
+}
+
 // GetNetworks Gets all Networks in the database.
 func GetNetworks() ([]model.Network, error) {
 	query := `
