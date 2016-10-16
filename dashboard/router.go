@@ -78,23 +78,38 @@ func handleNetworksPage(router *mux.Router) {
 		fmt.Fprint(writer, template.JSStr(bytes))
 	}).Methods("POST")
 
-	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 
-		vars := mux.Vars(request)
-		idString := vars["network_id"]
-
-		if idString == "" {
-			clientError(writer, errors.New("Missing network identifier"))
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
 			return
 		}
 
-		id, err := strconv.Atoi(idString)
+		encoder, err := persist.GetEncoder(id)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		network, err := persist.GetNetwork(id)
+		err = persist.DeleteEncoder(*encoder)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		http.Error(writer, "Encoder deleted", http.StatusOK)
+	}).Methods("DELETE")
+
+	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+
+		id := identifierFromRequest("network_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing network identifier"))
+			return
+		}
+
+		network, err := persist.GetNetwork(*id)
 		if err != nil {
 			clientError(writer, err)
 			return
@@ -144,7 +159,7 @@ func handleDashboardPage(router *mux.Router) {
 			SocketURL string
 		}{
 			networks,
-			"ws://" + request.Host + "/socket", // Update to wss:// once SSL support is added.
+			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
