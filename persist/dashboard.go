@@ -1,6 +1,7 @@
 package persist
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 
@@ -9,7 +10,18 @@ import (
 
 // GetEncoders Get all of the encoders
 func GetEncoders() ([]model.Encoder, error) {
-	return nil, nil
+	query := `
+		SELECT id, ip_address, port, name, handle, password, network_id
+		FROM encoder
+	`
+
+	rows, err := db.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return queryEncoders(rows)
 }
 
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
@@ -26,12 +38,16 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 		return nil, err
 	}
 
+	return queryEncoders(rows)
+}
+
+func queryEncoders(rows *sql.Rows) ([]model.Encoder, error) {
 	var encoders = make([]model.Encoder, 0)
 
 	for rows.Next() {
 		var encoder model.Encoder
 
-		if err = rows.Scan(
+		if err := rows.Scan(
 			&encoder.ID,
 			&encoder.IPAddress,
 			&encoder.Port,
@@ -46,7 +62,7 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 		encoders = append(encoders, encoder)
 	}
 
-	if err = rows.Close(); err != nil {
+	if err := rows.Close(); err != nil {
 		return nil, err
 	}
 
