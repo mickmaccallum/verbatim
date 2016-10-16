@@ -8,6 +8,34 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 )
 
+// GetEncoder Gets the Encoder with a given identifier.
+func GetEncoder(id int) (*model.Encoder, error) {
+	query := `
+		SELECT id, ip_address, port, name, handle, password, network_id
+		FROM encoder
+		WHERE id = ?
+	`
+
+	row := db.QueryRow(query, id)
+	if row == nil {
+		return nil, errors.New("Encoder not found")
+	}
+
+	var encoder model.Encoder
+	if err := row.Scan(
+		&encoder.ID,
+		&encoder.IPAddress,
+		&encoder.Port,
+		&encoder.Handle,
+		&encoder.Password,
+		&encoder.NetworkID,
+	); err != nil {
+		return nil, errors.New("Failed to find specified Encoder")
+	}
+
+	return &encoder, nil
+}
+
 // GetEncoders Get all of the encoders
 func GetEncoders() ([]model.Encoder, error) {
 	query := `
