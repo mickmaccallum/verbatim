@@ -16,8 +16,10 @@ $(function () {
   addNetworkListListeners();
 
   wsStart().then(function(webSocket) {
-      console.log("RESPONSE: " + JSON.stringify(message));
     webSocket.onNewMessage = function(message) {
+      console.log('Got new message');
+      console.log(message);
+      console.log(JSON.stringify(message));
     };
 
     webSocket.onerror = function(event) {
