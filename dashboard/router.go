@@ -151,6 +151,30 @@ func handleDashboardPage(router *mux.Router) {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
+	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		networkIDString := vars["id"]
+
+		networkID, err := strconv.Atoi(networkIDString)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network, err := persist.GetNetwork(networkID)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		err = persist.DeleteNetwork(*network)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		http.Error(writer, "Deleted Network", http.StatusOK)
+	}).Methods("DELETE")
 }
 
 func handleNotFound(writer http.ResponseWriter, request *http.Request) {
