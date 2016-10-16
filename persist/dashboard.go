@@ -69,6 +69,36 @@ func queryEncoders(rows *sql.Rows) ([]model.Encoder, error) {
 	return encoders, nil
 }
 
+// UpdateEncoder updates all fields for the given Encoder.
+func UpdateEncoder(encoder model.Encoder) error {
+	query := `
+		UPDATE encoder
+			SET
+				ip_address = ?,
+				port = ?,
+				name = ?,
+				handle = ?,
+				password = ?,
+				network_id = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := db.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID, encoder.ID)
+	return err
+}
+
+// DeleteEncoder deletes the specified Encoder.
+func DeleteEncoder(encoder model.Encoder) error {
+	query := `
+		DELETE from encoder
+		WHERE id = ?
+	`
+
+	_, err := db.Exec(query, encoder.ID)
+	return err
+}
+
 // GetNetwork gets the Network for a given id.
 func GetNetwork(id int) (*model.Network, error) {
 	query := `
