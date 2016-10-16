@@ -1,4 +1,4 @@
-package dashboard
+package websocket
 
 import (
 	"log"
@@ -10,7 +10,8 @@ import (
 
 var upgrader = websocket.Upgrader{} // use default options
 
-func startSocket(router *mux.Router) {
+// Start starts the socket
+func Start(router *mux.Router) {
 	log.Println("starting socket")
 	router.HandleFunc("/socket", openSocket)
 }

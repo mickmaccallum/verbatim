@@ -5,6 +5,7 @@ import (
 
 	// Passing lint
 	_ "github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/websocket"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
@@ -13,7 +14,7 @@ import (
 func Start() {
 	router := mux.NewRouter()
 	addRoutes(router)
-	startSocket(router)
+	websocket.Start(router)
 
 	// Switch these lines for production
 	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
