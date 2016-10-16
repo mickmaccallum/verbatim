@@ -143,7 +143,7 @@ func handleDashboardPage(router *mux.Router) {
 			SocketURL string
 		}{
 			networks,
-			"ws://" + request.Host + "/socket",
+			"ws://" + request.Host + "/socket", // Update to wss:// once SSL support is added.
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
