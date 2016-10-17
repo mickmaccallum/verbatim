@@ -201,6 +201,34 @@ func handleDashboardPage(router *mux.Router) {
 		}
 	}).Methods("GET")
 
+	// Add Network
+	router.HandleFunc("/network/add", func(writer http.ResponseWriter, request *http.Request) {
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network, err := model.FormValuesToNetwork(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		newNetwork, err := persist.AddNetwork(*network)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		bytes, err := persist.NetworkToJSON(*newNetwork)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		fmt.Fprint(writer, template.JSStr(bytes))
+	}).Methods("POST")
+
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		networkID := identifierFromRequest("id", request)
