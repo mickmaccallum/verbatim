@@ -148,6 +148,38 @@ func GetNetwork(id int) (*model.Network, error) {
 	return &net, nil
 }
 
+// GetNetworks Gets all Networks in the database.
+func GetNetworks() ([]model.Network, error) {
+	query := `
+		SELECT id, listening_port, name
+		FROM network
+	`
+	rows, err := db.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var networks = make([]model.Network, 0)
+
+	for rows.Next() {
+		var net model.Network
+
+		if err = rows.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
+			log.Fatal(err)
+			continue
+		}
+
+		networks = append(networks, net)
+	}
+
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+
+	return networks, nil
+}
+
 // UpdateNetwork update the info for a given Network
 func UpdateNetwork(network model.Network) error {
 	query := `
@@ -187,36 +219,4 @@ func DeleteNetwork(network model.Network) error {
 	}
 
 	return transaction.Commit()
-}
-
-// GetNetworks Gets all Networks in the database.
-func GetNetworks() ([]model.Network, error) {
-	query := `
-		SELECT id, listening_port, name
-		FROM network
-	`
-	rows, err := db.Query(query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var networks = make([]model.Network, 0)
-
-	for rows.Next() {
-		var net model.Network
-
-		if err = rows.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
-			log.Fatal(err)
-			continue
-		}
-
-		networks = append(networks, net)
-	}
-
-	if err = rows.Close(); err != nil {
-		return nil, err
-	}
-
-	return networks, nil
 }
