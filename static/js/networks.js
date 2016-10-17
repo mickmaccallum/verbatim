@@ -87,10 +87,10 @@ $(function() {
   });
 
   $('#edit-encoder').click(function (e) {
-    var ip      = 
-    var port    = 
-    var name    = 
-    var network = 
+    // var ip      =
+    // var port    =
+    // var name    =
+    // var network =
 
     $.ajax({
       url: '/encoder/add',
