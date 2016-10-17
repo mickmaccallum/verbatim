@@ -119,6 +119,10 @@ $(function() {
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
 
+    if (!confirm("Are you sure you want to delete this encoder?")) {
+      return;
+    }
+
     $.ajax({
       url: '/encoder/' + encoderId,
       type: 'DELETE',
