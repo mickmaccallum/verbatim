@@ -65,10 +65,7 @@ function addNetworkCreationListener() {
   });
 };
 
-$(function () {
-  addNetworkListListeners();
-  addNetworkCreationListener();
-
+function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
       console.log('Got new message');
@@ -94,4 +91,10 @@ $(function () {
   }).catch(function(event) {
     console.log(event);
   });
+};
+
+$(function () {
+  addNetworkListListeners();
+  addNetworkCreationListener();
+  startWebSocket();
 });
