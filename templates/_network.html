@@ -23,18 +23,26 @@
         <th>Port</th>
         <th>Handle</th>
         <th>Password</th>
+        <th></th>
       </tr>
     </thead>
 
     <tbody>
     {{range $index, $element := .Encoders }}
       <tr data-encoder-id="{{ $element.ID }}">
-        <th scope=row>{{ inc $index }}</th>
-        <td>{{ $element.IPAddress }}</td>
+        <th class="col-md-1" scope=row>{{ inc $index }}</th>
         <td>{{ $element.Name.Value }}</td>
+        <td>{{ $element.IPAddress }}</td>
         <td>{{ $element.Port }}</td>
         <td>{{ $element.Handle }}</td>
         <td>{{ $element.Password }}</td>
+        <td class="col-md-1">
+          <p data-placement="top" data-toggle="tooltip" title="Delete">
+            <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
+              <span class="glyphicon glyphicon-trash"></span>
+            </button>
+          </p>
+        </td>
       </tr>
     {{ end }}
     </tbody>

@@ -2,7 +2,7 @@
 
 {{ define "content" }}
 <!-- Main component for a primary marketing message or call to action -->
-<div class="jumbotron">
+<!-- <div class="jumbotron">
   <h1>Navbar example</h1>
   <p>
     Outline: Maybe use the area this jumbotron is in to display live tickers of some sort displaying what captioners are currently captioning which networks
@@ -11,7 +11,7 @@
   <p>
     The space below can show information in a list about which networks are currently configured, and summary information about their configurations. Clicking on one will navigate to an edit network page where outgoing servers can be viewed and configured for a given network.
   </p>
-</div>
+</div> -->
 
 <!-- Maybe use http://getbootstrap.com/css/#tables-contextual-classes to indicate what networks are experiencing problems  -->
 <div class="table-responsive panel panel-default">
@@ -23,6 +23,9 @@
         <th>#</th>
         <th>Network Name</th>
         <th>Port</th>
+        <th>
+          &nbsp;
+        </th>
         <!-- <th># of Captioners</th>
         <th>Status</th> -->
       </tr>
@@ -31,11 +34,17 @@
     <tbody>
     {{ range $index, $element := .Networks }}
       <tr data-network-id="{{ $element.ID }}">
-        <th scope=row>{{ inc $index }}</th>
-        <td>{{ $element.Name }}</td>
-        <td>{{ $element.ListeningPort }}</td>
-        <!-- <td>2</td>
-        <td>Okay</td> -->
+        <th class="col-md-1" scope=row>{{ inc $index }}</th>
+        <td class="col-md-5">{{ $element.Name }}</td>
+        <td class="col-md-5">{{ $element.ListeningPort }}</td>
+
+        <td class="col-md-1">
+          <p data-placement="top" data-toggle="tooltip" title="Delete">
+            <button class="btn btn-danger btn-xs pull-right" data-title="Delete" data-toggle="modal" data-target="#delete">
+              <span class="glyphicon glyphicon-trash"></span>
+            </button>
+          </p>
+        </td>
       </tr>
     {{ end }}
     </tbody>

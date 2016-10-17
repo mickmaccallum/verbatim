@@ -6,6 +6,14 @@ function addEncoder(encoder) {
   var body = $('#encoder-selection-table > tbody');
   var count = body.children().length;
 
+  var deleteItem = '<td class="col-md-1">' +
+      '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
+        '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
+          '<span class="glyphicon glyphicon-trash"></span>' +
+        '</button>' +
+      '</p>' +
+    '</td>'
+
   var row = $('<tr></tr>');
   row.append('<th scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + encoder.IPAddress + '</td>');
@@ -13,6 +21,7 @@ function addEncoder(encoder) {
   row.append('<td>' + encoder.Port + '</td>');
   row.append('<td>' + encoder.Handle + '</td>');
   row.append('<td>' + encoder.Password + '</td>');
+  row.append(deleteItem);
 
   body.append(row);
   return true;
@@ -100,26 +109,24 @@ $(function() {
       success: function(encoder) {
 
       },
-      error: function () {
+      error: function (xhr, ajaxOptions, thrownError) {
 
       }
     });
   });
 
-  $('#encoder-selection-table > tbody > tr').click(function(event) {
-    var that = $(this);
-    var encoderId = that.attr('data-encoder-id');
-    console.log('The encoder ID of the clicked row is: ' + encoderId);
+  $('.delete-encoder-button').click(function(event) {
+    var row = $(this).closest('tr');
+    var encoderId = row.attr('data-encoder-id');
 
     $.ajax({
       url: '/encoder/' + encoderId,
       type: 'DELETE',
-      dataType: 'json',
-      success: function(encoder) {
-        that.remove();
+      success: function(msg) {
+        row.remove();
       },
-      error: function() {
-        alert("Failed to remove encoder from list.")
+      error: function (xhr, ajaxOptions, thrownError) {
+        alert(thrownError);
       }
     });
   });
