@@ -43,7 +43,7 @@ function wsSend(payload, completion) {
   }
 
   return wsStart().then(function(value) {
-    return chainMessageSend(payload, completion)
+    return chainMessageSend(payload, completion);
   }, function(error) {
     return Promise.reject(error);
   });
@@ -76,7 +76,7 @@ function chainMessageSend(payload, completion) {
       'payload': payload
     };
 
-    waitQueue[reference] = completion
+    waitQueue[reference] = completion;
     webSocket.send(JSON.stringify(message));
 
     resolve(message);
