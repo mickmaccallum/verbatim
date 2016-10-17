@@ -1,84 +1,88 @@
-var webSocket;
+var socketRocket = (function() {
+  var webSocket;
+  var reference = 0;
+  var waitQueue = {};
+  var exports = {};
 
-function wsStart() {
-  if (webSocket != null) {
-    return Promise.resolve(webSocket);
-  }
-
-  webSocket = new WebSocket(socketURL);
-
-  return new Promise(function(resolve, reject) {
-    webSocket.onopen = function(event) {
-      console.log("OPEN");
-      resolve(webSocket);
-    };
-
-    webSocket.onmessage = function(event) {
-      var message = JSON.parse(event.data);
-      var handler = loadCallback(message);
-      var payload = message['payload'];
-
-      if (handler == null) {
-        webSocket.onNewMessage(payload)
-      } else {
-        handler(payload);
-        removeCallback(message);
-      }
+  function loadCallback(message) {
+    if (message == null) {
+      return null;
     }
 
-    webSocket.onclose = function(event) {
-      console.log("CLOSE");
-      webSocket = null;
-      reject(event);
-    };
-  });
-};
+    var ref = message['reference'];
+    if (ref == null) {
+      return null;
+    }
 
-var reference = 0;
-var waitQueue = {};
+    return waitQueue[ref];
+  };
 
-function wsSend(payload, completion) {
-  if (webSocket != null) {
-    return chainMessageSend(payload, completion);
-  }
+  function removeCallback(message) {
+    var ref = message['reference'];
 
-  return wsStart().then(function(value) {
-    return chainMessageSend(payload, completion);
-  }, function(error) {
-    return Promise.reject(error);
-  });
-};
+    waitQueue[ref] = null;
+    delete waitQueue[reference];
+  };
 
-function loadCallback(message) {
-  if (message == null) {
-    return null;
-  }
+  function chainMessageSend(payload, completion) {
+    return new Promise(function(resolve, reject) {
+      var message = {
+        'reference': ++reference,
+        'payload': payload
+      };
 
-  var ref = message['reference'];
-  if (ref == null) {
-    return null;
-  }
+      waitQueue[reference] = completion;
+      webSocket.send(JSON.stringify(message));
 
-  return waitQueue[ref];
-};
+      resolve(message);
+    });
+  };
 
-function removeCallback(message) {
-  var ref = message['reference'];
+  exports.start = function(url) {
+    if (webSocket != null) {
+      return Promise.resolve(webSocket);
+    }
 
-  waitQueue[ref] = null;
-  delete waitQueue[reference];
-};
+    webSocket = new WebSocket(url);
 
-function chainMessageSend(payload, completion) {
-  return new Promise(function(resolve, reject) {
-    var message = {
-      'reference': ++reference,
-      'payload': payload
-    };
+    return new Promise(function(resolve, reject) {
+      webSocket.onopen = function(event) {
+        console.log("OPEN");
+        resolve(webSocket);
+      };
 
-    waitQueue[reference] = completion;
-    webSocket.send(JSON.stringify(message));
+      webSocket.onmessage = function(event) {
+        var message = JSON.parse(event.data);
+        var handler = loadCallback(message);
+        var payload = message['payload'];
 
-    resolve(message);
-  });
-};
+        if (handler == null) {
+          webSocket.onNewMessage(payload)
+        } else {
+          handler(payload);
+          removeCallback(message);
+        }
+      }
+
+      webSocket.onclose = function(event) {
+        console.log("CLOSE");
+        webSocket = null;
+        reject(event);
+      };
+    });
+  };
+
+  exports.send = function(payload, completion) {
+    if (webSocket != null) {
+      return chainMessageSend(payload, completion);
+    }
+
+    return wsStart().then(function(value) {
+      return chainMessageSend(payload, completion);
+    }, function(error) {
+      return Promise.reject(error);
+    });
+  };
+
+  return exports;
+})();

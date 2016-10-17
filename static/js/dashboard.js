@@ -15,7 +15,7 @@ function addNetworkListListeners() {
 $(function () {
   addNetworkListListeners();
 
-  wsStart().then(function(webSocket) {
+  socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
       console.log('Got new message');
       console.log(message);
@@ -25,6 +25,18 @@ $(function () {
     webSocket.onerror = function(event) {
       console.log("ERROR: " + event.data);
     };
+
+    setTimeout(function() {
+      console.log("sending message");
+      var payload = {
+        "message": "Hello, Servar."
+      };
+
+      socketRocket.send(payload, function(reply) {
+        console.log(reply);
+      });
+    }, 2000);
+
   }).catch(function(event) {
     console.log(event);
   });
@@ -64,11 +76,3 @@ $(function () {
   });
 
 });
-
-// var payload = {
-//   "message": "Hello, Servar."
-// };
-//
-// wsSend(payload, function(reply) {
-//   console.log(reply);
-// });
