@@ -1,11 +1,56 @@
 package persist
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 
 	"github.com/0x7fffffff/verbatim/model"
 )
+
+// GetEncoder Gets the Encoder with a given identifier.
+func GetEncoder(id int) (*model.Encoder, error) {
+	query := `
+		SELECT id, ip_address, port, name, handle, password, network_id
+		FROM encoder
+		WHERE id = ?
+	`
+
+	row := db.QueryRow(query, id)
+	if row == nil {
+		return nil, errors.New("Encoder not found")
+	}
+
+	var encoder model.Encoder
+	if err := row.Scan(
+		&encoder.ID,
+		&encoder.IPAddress,
+		&encoder.Port,
+		&encoder.Handle,
+		&encoder.Password,
+		&encoder.NetworkID,
+	); err != nil {
+		return nil, errors.New("Failed to find specified Encoder")
+	}
+
+	return &encoder, nil
+}
+
+// GetEncoders Get all of the encoders
+func GetEncoders() ([]model.Encoder, error) {
+	query := `
+		SELECT id, ip_address, port, name, handle, password, network_id
+		FROM encoder
+	`
+
+	rows, err := db.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return queryEncoders(rows)
+}
 
 // GetEncodersForNetwork Gets a slice of Encoders for a given Network.
 func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
@@ -21,12 +66,16 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 		return nil, err
 	}
 
+	return queryEncoders(rows)
+}
+
+func queryEncoders(rows *sql.Rows) ([]model.Encoder, error) {
 	var encoders = make([]model.Encoder, 0)
 
 	for rows.Next() {
 		var encoder model.Encoder
 
-		if err = rows.Scan(
+		if err := rows.Scan(
 			&encoder.ID,
 			&encoder.IPAddress,
 			&encoder.Port,
@@ -41,11 +90,41 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 		encoders = append(encoders, encoder)
 	}
 
-	if err = rows.Close(); err != nil {
+	if err := rows.Close(); err != nil {
 		return nil, err
 	}
 
 	return encoders, nil
+}
+
+// UpdateEncoder updates all fields for the given Encoder.
+func UpdateEncoder(encoder model.Encoder) error {
+	query := `
+		UPDATE encoder
+			SET
+				ip_address = ?,
+				port = ?,
+				name = ?,
+				handle = ?,
+				password = ?,
+				network_id = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := db.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID, encoder.ID)
+	return err
+}
+
+// DeleteEncoder deletes the specified Encoder.
+func DeleteEncoder(encoder model.Encoder) error {
+	query := `
+		DELETE from encoder
+		WHERE id = ?
+	`
+
+	_, err := db.Exec(query, encoder.ID)
+	return err
 }
 
 // GetNetwork gets the Network for a given id.
@@ -86,13 +165,28 @@ func UpdateNetwork(network model.Network) error {
 
 // DeleteNetwork deletes the specified Network.
 func DeleteNetwork(network model.Network) error {
-	query := `
+	transaction, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	deleteNetwork := `
 		DELETE from network
 		WHERE id = ?
 	`
 
-	_, err := db.Exec(query, network.ID)
-	return err
+	deleteEncoders := `
+		DELETE from encoder
+		WHERE network_id = ?
+	`
+
+	_, err = transaction.Exec(deleteEncoders, network.ID)
+	_, err = transaction.Exec(deleteNetwork, network.ID)
+	if err != nil {
+		return transaction.Rollback()
+	}
+
+	return transaction.Commit()
 }
 
 // GetNetworks Gets all Networks in the database.

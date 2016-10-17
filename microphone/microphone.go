@@ -125,7 +125,6 @@ func listenForNetwork(n model.Network) {
 
 // Basic demoable state.
 func handleCaptioner(c net.Conn, network model.Network) {
-
 	// Keep a buffer of 1KiB per captioner
 	buf := make([]byte, 1024)
 	for {
