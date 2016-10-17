@@ -199,16 +199,13 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		vars := mux.Vars(request)
-		networkIDString := vars["id"]
-
-		networkID, err := strconv.Atoi(networkIDString)
-		if err != nil {
-			clientError(writer, err)
+		networkID := identifierFromRequest("id", request)
+		if networkID == nil {
+			clientError(writer, errors.New("Invalid Network ID"))
 			return
 		}
 
-		network, err := persist.GetNetwork(networkID)
+		network, err := persist.GetNetwork(*networkID)
 		log.Println(network)
 		log.Println(err)
 
@@ -218,12 +215,10 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Delete Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		vars := mux.Vars(request)
-		networkIDString := vars["id"]
 
-		networkID, err := strconv.Atoi(networkIDString)
-		if err != nil {
-			clientError(writer, err)
+		networkID := identifierFromRequest("id", request)
+		if networkID == nil {
+			clientError(writer, errors.New("Invalid Network ID"))
 			return
 		}
 
