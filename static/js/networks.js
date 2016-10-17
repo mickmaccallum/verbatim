@@ -42,15 +42,19 @@ $(function() {
   // });
 
   $('#submit-encoder').click(function (e) {
-    var ip      = $('#encoder-form-ip').val().trim();
-    var port    = $('#encoder-form-port').val().trim();
-    var name    = $('#encoder-form-name').val().trim();
-    var network = $('#add-encoder-network-element').val().trim();
+    var ip       = $('#encoder-form-ip').val().trim();
+    var name     = $('#encoder-form-name').val().trim();
+    var port     = $('#encoder-form-port').val().trim();
+    var handle   = $('#encoder-form-handle').val().trim();
+    var password = $('#encoder-form-password').val().trim();
+    var network  = $('#add-encoder-network-element').val().trim();
 
     var data = {
       'ip': ip,
-      'port': port,
       'name': name,
+      'port': port,
+      'handle': handle,
+      'password': password,
       'network': network
     }
 
@@ -69,6 +73,8 @@ $(function() {
         $('#encoder-form-ip').val('');
         $('#encoder-form-port').val('');
         $('#encoder-form-name').val('');
+        $('#encoder-form-handle').val('');
+        $('#encoder-form-password').val('');
       },
       error: function (xhr, ajaxOptions, thrownError) {
         console.log('++++++++++++++++++++++++++++++++');
@@ -76,6 +82,25 @@ $(function() {
         console.log(ajaxOptions);
         console.log(thrownError);
         console.log('--------------------------------');
+      }
+    });
+  });
+
+  $('#edit-encoder').click(function (e) {
+    var ip      = 
+    var port    = 
+    var name    = 
+    var network = 
+
+    $.ajax({
+      url: '/encoder/add',
+      type: 'POST',
+      dataType: 'json',
+      success: function(encoder) {
+
+      },
+      error: function () {
+
       }
     });
   });

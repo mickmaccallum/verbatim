@@ -19,8 +19,10 @@
       <tr>
         <th>#</th>
         <th>IP Address</th>
-        <th>Port</th>
         <th>Name</th>
+        <th>Port</th>
+        <th>Handle</th>
+        <th>Password</th>
         <th>Status</th>
       </tr>
     </thead>
@@ -30,8 +32,10 @@
       <tr data-encoder-id="{{ $element.ID }}">
         <th scope=row>{{ inc $index }}</th>
         <td>{{ $element.IPAddress }}</td>
-        <td>{{ $element.Port }}</td>
         <td>{{ $element.Name.Value }}</td>
+        <td>{{ $element.Port }}</td>
+        <td>{{ $element.Handle }}</td>
+        <td>{{ $element.Password }}</td>
         <td>{{ $element.Status }}</td>
       </tr>
     {{ end }}
@@ -57,6 +61,16 @@
         </div>
       </div>
 
+      <div class="col-lg-5">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Name
+          </span>
+
+          <input id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
+        </div>
+      </div>
+
       <div class="col-lg-3">
         <div class="input-group">
           <span class="input-group-addon">
@@ -67,19 +81,31 @@
         </div>
       </div>
 
-      <div class="col-lg-5">
+      <div class="col-lg-4">
         <div class="input-group">
           <span class="input-group-addon">
-            Name
+            Handle
           </span>
 
-          <input id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
+          <input id="encoder-form-port" type="text" class="form-control" placeholder="user123">
+        </div>
+      </div>
+
+            <div class="col-lg-5">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Password
+          </span>
+
+          <input id="encoder-form-port" type="text" class="form-control" placeholder="********">
+
 
           <span class="input-group-btn">
             <button id="submit-encoder" class="btn btn-default" type="button">Add Encoder</button>
           </span>
         </div>
       </div>
+
     </form>
   </div>
 </div>
