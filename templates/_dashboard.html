@@ -23,8 +23,8 @@
         <th>#</th>
         <th>Network Name</th>
         <th>Port</th>
-        <th># of Captioners</th>
-        <th>Status</th>
+        <!-- <th># of Captioners</th>
+        <th>Status</th> -->
       </tr>
     </thead>
 
@@ -33,9 +33,9 @@
       <tr data-network-id="{{ $element.ID }}">
         <th scope=row>{{ inc $index }}</th>
         <td>{{ $element.Name }}</td>
-        <td>8080</td>
-        <td>2</td>
-        <td>Okay</td>
+        <td>{{ $element.ListeningPort }}</td>
+        <!-- <td>2</td>
+        <td>Okay</td> -->
       </tr>
     {{ end }}
     </tbody>
@@ -73,7 +73,6 @@
           </span>
         </div>
       </div>
-
     </form>
   </div>
 </div>
