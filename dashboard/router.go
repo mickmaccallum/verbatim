@@ -86,6 +86,30 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		encoder, err := model.FormValuesToEncoder(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		encoder.ID = *id
+		err = persist.UpdateEncoder(*encoder)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		http.Error(writer, "Encoder Updated", http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
 		encoder, err := persist.GetEncoder(*id)
 		if err != nil {
 			clientError(writer, err)
