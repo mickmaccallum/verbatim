@@ -180,6 +180,35 @@ func GetNetworks() ([]model.Network, error) {
 	return networks, nil
 }
 
+// AddNetwork Adds the given Network.
+func AddNetwork(network model.Network) (*model.Network, error) {
+	query := `
+		INSERT INTO network (
+			listening_port, name
+		) VALUES (
+			?, ?
+		);
+	`
+
+	result, err := db.Exec(query, network.ListeningPort, network.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	rowID, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	newNetwork := model.Network{
+		ID:            int(rowID),
+		Name:          network.Name,
+		ListeningPort: network.ListeningPort,
+	}
+
+	return &newNetwork, nil
+}
+
 // UpdateNetwork update the info for a given Network
 func UpdateNetwork(network model.Network) error {
 	query := `
