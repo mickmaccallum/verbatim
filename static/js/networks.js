@@ -50,12 +50,12 @@ $(function() {
     var network  = $('#add-encoder-network-element').val().trim();
 
     var data = {
-      'ip': ip,
+      'ip_address': ip,
       'name': name,
       'port': port,
       'handle': handle,
       'password': password,
-      'network': network
+      'network_id': network
     }
 
     $.ajax({
