@@ -1,4 +1,4 @@
-addEncoder = function(encoder) {
+function addEncoder(encoder) {
   if (encoder == null || encoder == undefined) {
     return false;
   }
