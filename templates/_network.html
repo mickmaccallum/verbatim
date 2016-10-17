@@ -1,4 +1,4 @@
-{{ define "title" }}Network - {{ end }}
+{{ define "title" }}Network - {{ .Network.Name }}{{ end }}
 
 {{ define "content" }}
 
@@ -83,7 +83,7 @@
             Port
           </span>
 
-          <input id="encoder-form-port" type="text" class="form-control" placeholder="8080">
+          <input id="encoder-form-port" type="text" class="form-control" placeholder="23" value="23">
         </div>
       </div>
 
