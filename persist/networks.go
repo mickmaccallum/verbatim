@@ -67,3 +67,8 @@ func EncoderToJSON(encoder model.Encoder) ([]byte, error) {
 
 	return json.Marshal(newEncoder)
 }
+
+// NetworkToJSON Removes SQL fields and transforms to a []byte of JSON data. This is not exactly needed yet, but we're using this here in case Network ever gets fields that are SQL types.
+func NetworkToJSON(network model.Network) ([]byte, error) {
+	return json.Marshal(network)
+}
