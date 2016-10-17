@@ -26,16 +26,16 @@ $(function () {
       console.log("ERROR: " + event.data);
     };
 
-    setTimeout(function() {
-      console.log("sending message");
-      var payload = {
-        "message": "Hello, Servar."
-      };
-
-      socketRocket.send(payload, function(reply) {
-        console.log(reply);
-      });
-    }, 2000);
+    // setTimeout(function() {
+    //   console.log("sending message");
+    //   var payload = {
+    //     "message": "Hello, Servar."
+    //   };
+    //
+    //   socketRocket.send(payload, function(reply) {
+    //     console.log(reply);
+    //   });
+    // }, 2000);
 
   }).catch(function(event) {
     console.log(event);
