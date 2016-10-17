@@ -129,7 +129,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		http.Error(writer, "Encoder deleted", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 
 	// Get Encoder
