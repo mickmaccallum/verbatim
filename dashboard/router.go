@@ -48,6 +48,7 @@ func handleCaptionersPage(router *mux.Router) {
 }
 
 func handleNetworksPage(router *mux.Router) {
+	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 
 		encoder, err := model.FormValuesToEncoder(request.Form)
@@ -78,6 +79,32 @@ func handleNetworksPage(router *mux.Router) {
 		fmt.Fprint(writer, template.JSStr(bytes))
 	}).Methods("POST")
 
+	// Update Encoder
+	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
+		encoder, err := model.FormValuesToEncoder(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		encoder.ID = *id
+		err = persist.UpdateEncoder(*encoder)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		http.Error(writer, "Encoder Updated", http.StatusOK)
+	}).Methods("POST")
+
+	// Delete Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 
 		id := identifierFromRequest("encoder_id", request)
@@ -101,6 +128,7 @@ func handleNetworksPage(router *mux.Router) {
 		http.Error(writer, "Encoder deleted", http.StatusOK)
 	}).Methods("DELETE")
 
+	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 
 		id := identifierFromRequest("network_id", request)
@@ -146,6 +174,7 @@ func handleNetworksPage(router *mux.Router) {
 }
 
 func handleDashboardPage(router *mux.Router) {
+	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		networks, err := persist.GetNetworks()
 
@@ -168,17 +197,15 @@ func handleDashboardPage(router *mux.Router) {
 		}
 	}).Methods("GET")
 
+	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		vars := mux.Vars(request)
-		networkIDString := vars["id"]
-
-		networkID, err := strconv.Atoi(networkIDString)
-		if err != nil {
-			clientError(writer, err)
+		networkID := identifierFromRequest("id", request)
+		if networkID == nil {
+			clientError(writer, errors.New("Invalid Network ID"))
 			return
 		}
 
-		network, err := persist.GetNetwork(networkID)
+		network, err := persist.GetNetwork(*networkID)
 		log.Println(network)
 		log.Println(err)
 
@@ -186,17 +213,16 @@ func handleDashboardPage(router *mux.Router) {
 		http.Error(writer, "", http.StatusOK)
 	}).Methods("POST")
 
+	// Delete Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		vars := mux.Vars(request)
-		networkIDString := vars["id"]
 
-		networkID, err := strconv.Atoi(networkIDString)
-		if err != nil {
-			clientError(writer, err)
+		networkID := identifierFromRequest("id", request)
+		if networkID == nil {
+			clientError(writer, errors.New("Invalid Network ID"))
 			return
 		}
 
-		network, err := persist.GetNetwork(networkID)
+		network, err := persist.GetNetwork(*networkID)
 		if err != nil {
 			clientError(writer, err)
 			return
