@@ -22,6 +22,7 @@
       <tr>
         <th>#</th>
         <th>Network Name</th>
+        <th>Port</th>
         <th># of Captioners</th>
         <th>Status</th>
       </tr>
@@ -32,6 +33,7 @@
       <tr data-network-id="{{ $element.ID }}">
         <th scope=row>{{ inc $index }}</th>
         <td>{{ $element.Name }}</td>
+        <td>8080</td>
         <td>2</td>
         <td>Okay</td>
       </tr>
@@ -39,6 +41,43 @@
     </tbody>
   </table>
 </div>
+
+<div class="page-header">
+  <h3>Add a Network</h3>
+</div>
+
+<div>
+  <div class="row">
+    <form id="add-network-form" method="POST" accept-charset="UTF-8">
+      <input id="add-network-element" type="hidden" class="form-control">
+      <div class="col-lg-5">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Name
+          </span>
+
+          <input id="network-form-name" type="text" class="form-control" placeholder="C-SPAN">
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Port
+          </span>
+
+          <input id="network-form-port" type="text" class="form-control" placeholder="4000">
+
+          <span class="input-group-btn">
+            <button id="submit-network" class="btn btn-default" type="button">Add Network</button>
+          </span>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 {{ end }}
 
 {{ define "scripts" }}
