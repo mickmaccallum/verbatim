@@ -65,7 +65,6 @@ function addNetworkCreationListener() {
   });
 };
 
-<<<<<<< HEAD
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
