@@ -79,4 +79,22 @@ $(function() {
       }
     });
   });
+
+  $('#encoder-selection-table > tbody > tr').click(function(event) {
+    var that = $(this);
+    var encoderId = that.attr('data-encoder-id');
+    console.log('The encoder ID of the clicked row is: ' + encoderId);
+
+    $.ajax({
+      url: '/encoder/' + encoderId,
+      type: 'DELETE',
+      dataType: 'json',
+      success: function(encoder) {
+        that.remove();
+      },
+      error: function() {
+        alert("Failed to remove encoder from list.")
+      }
+    });
+  });
 });
