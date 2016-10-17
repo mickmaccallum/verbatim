@@ -65,6 +65,7 @@ function addNetworkCreationListener() {
   });
 };
 
+<<<<<<< HEAD
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
@@ -97,4 +98,37 @@ $(function () {
   addNetworkListListeners();
   addNetworkCreationListener();
   startWebSocket();
+
+  $('#edit-network').click(function (e) {
+
+    $.ajax({
+      url: '/network/add',
+      type: 'POST',
+      dataType: 'json',
+      success: function(network) {
+
+      },
+      error: function () {
+
+      }
+    });
+  });
+
+  $('#network-selection-table > tbody > tr').click(function(event) {
+    var that = $(this);
+    var networkId = that.attr('data-network-id');
+    console.log('The network ID of the clicked row is: ' + encoderId);
+
+    $.ajax({
+      url: '/network/' + networkId,
+      type: 'DELETE',
+      dataType: 'json',
+      success: function(network) {
+        that.remove();
+      },
+      error: function() {
+        alert("Failed to remove network from list.")
+      }
+    });
+  });
 });
