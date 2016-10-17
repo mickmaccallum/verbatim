@@ -45,7 +45,6 @@ func GetEncoders() ([]model.Encoder, error) {
 	`
 
 	rows, err := db.Query(query)
-
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +61,6 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 	`
 
 	rows, err := db.Query(query, network.ID)
-
 	if err != nil {
 		return nil, err
 	}
