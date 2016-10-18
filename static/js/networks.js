@@ -3,6 +3,7 @@ $(function() {
   addAddEncoderHandler();
   addEditEncoderHandler();
   addDeleteEncoderHandler();
+  configureEditing();
 });
 
 function recountEncoders() {
@@ -132,3 +133,15 @@ function addDeleteEncoderHandler() {
   });
 };
 
+function configureEditing() {
+  $.fn.editable.defaults.mode = 'inline';
+
+  $('.page-header > h1,h2,h3 > span').editable({
+    mode: 'popup',
+    placement: 'right'
+  });
+
+  $('#encoder-selection-table > tbody td').editable({
+    mode: 'inline'
+  });
+};
