@@ -1,10 +1,15 @@
+function recountEncoders() {
+  var body = $('#encoder-selection-table > tbody');
+  var count = body.children().length;
+  $('#encoder-count').text(count);
+};
+
 function addEncoder(encoder) {
   if (encoder == null || encoder == undefined) {
     return false;
   }
 
   var body = $('#encoder-selection-table > tbody');
-  var count = body.children().length;
 
   var deleteItem = '<td class="col-md-1">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
@@ -12,7 +17,9 @@ function addEncoder(encoder) {
           '<span class="glyphicon glyphicon-trash"></span>' +
         '</button>' +
       '</p>' +
-    '</td>'
+    '</td>';
+
+  var count = body.children().length;
 
   var row = $('<tr></tr>');
   row.append('<th scope=row>' + (count + 1) + '</th>');
@@ -75,7 +82,7 @@ $(function() {
       data: data,
       success: function(encoder) {
         if (addEncoder(encoder)) {
-
+          recountEncoders();
         } else {
 
         }
@@ -128,6 +135,7 @@ $(function() {
       type: 'DELETE',
       success: function(msg) {
         row.remove();
+        recountEncoders();
       },
       error: function (xhr, ajaxOptions, thrownError) {
         alert(thrownError);
