@@ -1,3 +1,10 @@
+
+$(function() {
+  addAddEncoderHandler();
+  addEditEncoderHandler();
+  addDeleteEncoderHandler();
+});
+
 function recountEncoders() {
   var body = $('#encoder-selection-table > tbody');
   var count = body.children().length;
@@ -34,30 +41,7 @@ function addEncoder(encoder) {
   return true;
 };
 
-$(function() {
-  // new Vue({
-  //   el: '#add-encoder-form',
-  //   data: {
-  //     newWorkorder: {
-  //       name: '',
-  //       area: '',
-  //       areaNumber: '',
-  //       location: '',
-  //       detail: ''
-  //     },
-  //     workorders: []
-  //   },
-  //   ready: function() {
-  //       // this.fetchWorkorders();
-  //   },
-  //   methods: {
-  //     addworkOrder: function(e) {
-  //       e.preventDefault();
-  //       this.newWorkorder.push(this.newWorkorder);
-  //     },
-  //   }
-  // });
-
+function addAddEncoderHandler() {
   $('#submit-encoder').click(function (e) {
     var ip       = $('#encoder-form-ip').val().trim();
     var name     = $('#encoder-form-name').val().trim();
@@ -102,7 +86,9 @@ $(function() {
       }
     });
   });
+};
 
+function addEditEncoderHandler() {
   $('#edit-encoder').click(function (e) {
     // var ip      =
     // var port    =
@@ -121,7 +107,9 @@ $(function() {
       }
     });
   });
+};
 
+function addDeleteEncoderHandler() {
   $('.delete-encoder-button').click(function(event) {
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
@@ -142,4 +130,5 @@ $(function() {
       }
     });
   });
-});
+};
+
