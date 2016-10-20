@@ -10,6 +10,8 @@ import (
 
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/websocket"
+	// "github.com/apexskier/httpauth"
 	"github.com/gorilla/mux"
 )
 
@@ -24,12 +26,6 @@ func templateOnBase(path string) *template.Template {
 		"templates/_base.html",
 		path,
 	))
-}
-
-func serveStaticFolder(folder string, router *mux.Router) {
-	static := "static" + folder
-	fileServer := http.FileServer(http.Dir(static))
-	router.PathPrefix(folder).Handler(http.StripPrefix(folder, fileServer))
 }
 
 func handleCaptionersPage(router *mux.Router) {
@@ -270,7 +266,7 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("DELETE")
 }
 
-func handleNotFound(writer http.ResponseWriter, request *http.Request) {
+func generalNotFound(writer http.ResponseWriter, request *http.Request) {
 	data := struct {
 		Location string
 	}{
@@ -283,20 +279,43 @@ func handleNotFound(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func addRoutes(router *mux.Router) {
-	// TODO: Guard around admin privileges
+func login(writer http.ResponseWriter, request *http.Request) {
 
-	serveStaticFolder("/css/", router)
-	serveStaticFolder("/fonts/", router)
-	serveStaticFolder("/js/", router)
+}
 
-	handleDashboardPage(router)
-	handleNetworksPage(router)
-	handleCaptionersPage(router)
+func addRoutes() {
+	generalRouter := mux.NewRouter()
+	generalRouter.NotFoundHandler = http.HandlerFunc(generalNotFound)
+	// route.Host("127.0.0.1")
+	// Put login/register routes before auth check
 
-	router.NotFoundHandler = http.HandlerFunc(handleNotFound)
+	handleDashboardPage(generalRouter)
+	handleNetworksPage(generalRouter)
+	handleCaptionersPage(generalRouter)
+	websocket.Start(generalRouter)
 
-	http.Handle("/", router)
+	loginRouter := mux.NewRouter()
+	loginRouter.PathPrefix("/login").HandlerFunc(login)
+
+	cssRouter := generalRouter.PathPrefix("/css/").Subrouter()
+	serveStaticFolder("/", cssRouter)
+
+	jsRouter := generalRouter.PathPrefix("/js/").Subrouter()
+	serveStaticFolder("/", jsRouter)
+
+	fontsRouter := generalRouter.PathPrefix("/fonts/").Subrouter()
+	serveStaticFolder("/", fontsRouter)
+
+	loginRouter.NotFoundHandler = generalRouter
+
+	// fire off authentication middleware before hitting other routes
+	http.Handle("/", Authenticate(generalRouter))
+}
+
+func serveStaticFolder(folder string, router *mux.Router) {
+	static := "static" + folder
+	fileServer := http.FileServer(http.Dir(static))
+	router.PathPrefix(folder).Handler(http.StripPrefix(folder, fileServer))
 }
 
 func clientError(writer http.ResponseWriter, err error) {

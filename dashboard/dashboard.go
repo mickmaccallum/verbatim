@@ -3,18 +3,40 @@ package dashboard
 import (
 	"net/http"
 
+	"github.com/0x7fffffff/verbatim/model"
+	"github.com/gorilla/sessions"
+
 	// Passing lint
-	_ "github.com/0x7fffffff/verbatim/persist"
-	"github.com/0x7fffffff/verbatim/websocket"
+	"github.com/0x7fffffff/verbatim/persist"
 	// "github.com/gorilla/csrf"
-	"github.com/gorilla/mux"
+	// "github.com/apexskier/httpauth"
+	"github.com/michaeljs1990/sqlitestore"
 )
+
+var store *sqlitestore.SqliteStore
+
+func init() {
+	var err error
+	store, err = sqlitestore.NewSqliteStoreFromConnection(persist.DB, "session", "/", 86400, []byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+	if err != nil {
+		panic(err)
+	}
+}
+
+// var (
+// 	// Auth auth
+// 	Auth httpauth.Authorizer
+// )
 
 // Start starts the HTTP server
 func Start() {
-	router := mux.NewRouter()
-	addRoutes(router)
-	websocket.Start(router)
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+	}
+
+	addRoutes()
 
 	// Switch these lines for production
 	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
@@ -23,4 +45,19 @@ func Start() {
 	if err := http.ListenAndServe("127.0.0.1:4000", nil /*protected*/); err != nil {
 		panic(err)
 	}
+}
+
+// EncoderState EncoderState
+type EncoderState int
+
+const (
+	// Connected Connected
+	Connected int = iota
+	// Disconnected Disconnected
+	Disconnected
+)
+
+// EncoderDidChangeState notify the dashboard that an encoder just changed to a new state.
+func EncoderDidChangeState(encoder model.Encoder, state EncoderState) {
+
 }
