@@ -113,6 +113,14 @@ function startWebSocket() {
   });
 };
 
+function stopWebSocket() {
+  $(window).on("beforeunload", function() {
+    socketRocket.stop(function() {
+      console.log("finished closing.");
+    });
+  });
+};
+
 $(function () {
   addNetworkListListeners();
   deleteNetworkListListeners();
