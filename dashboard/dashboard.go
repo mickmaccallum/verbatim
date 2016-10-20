@@ -9,7 +9,6 @@ import (
 	// Passing lint
 	"github.com/0x7fffffff/verbatim/persist"
 	// "github.com/gorilla/csrf"
-	// "github.com/apexskier/httpauth"
 	"github.com/michaeljs1990/sqlitestore"
 )
 
@@ -22,11 +21,6 @@ func init() {
 		panic(err)
 	}
 }
-
-// var (
-// 	// Auth auth
-// 	Auth httpauth.Authorizer
-// )
 
 // Start starts the HTTP server
 func Start() {
