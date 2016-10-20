@@ -17,6 +17,8 @@ type CaptionerID struct {
 	NumConn int
 }
 
+type NetworkID int
+
 func (c CaptionerID) String() string {
 	return fmt.Sprint(c.IPAddr, ":", c.NumConn)
 }
@@ -93,6 +95,7 @@ var getStatus = make(chan map[model.Network]map[CaptionerInfo]struct{})
 // This function is the sole arbiter of state for these stats
 func maintainListenerState() {
 	networks := make(map[model.Network]map[CaptionerInfo]struct{})
+	writers := make(map[CaptionerID]MuteCell)
 	for {
 		select {
 		case n := <-addNetworkChan:
@@ -106,6 +109,8 @@ func maintainListenerState() {
 		case l := <-rmListenerChan:
 			delete(networks[l.network], l)
 			relay.Disconnected(l, l.network)
+		case m := <-muteListenChan:
+
 		case <-askStatus:
 			// Copy all the current status and send it off to the relay server,
 			// to avoid coherency isues
@@ -151,7 +156,7 @@ func listenForNetwork(n model.Network) {
 }
 
 // Basic demoable state.
-func handleCaptioner(c net.Conn, network model.Network, numConn int) {
+func handleCaptioner(c net.Conn, network model.Network, writer *MuteCell, numConn int) {
 	// Notify that we have a new listener
 	capInfo := CaptionerInfo{
 		numConn: numConn,
@@ -176,7 +181,6 @@ func handleCaptioner(c net.Conn, network model.Network, numConn int) {
 		message := make([]byte, n)
 		copy(message, bug[0:n])
 		// Send any recieved bytes to the relay server
-		relay.SendDataToNetwork(network, message)
 	}
 	log.Printf("Connection from %v closed.", c.RemoteAddr())
 }
