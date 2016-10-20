@@ -2,7 +2,9 @@ var socketRocket = (function() {
   var webSocket;
   var reference = 0;
   var waitQueue = {};
-  var exports = {};
+  var exports = {
+    onComplete: null
+  };
 
   function loadCallback(message) {
     if (message == null) {
@@ -65,11 +67,27 @@ var socketRocket = (function() {
       }
 
       webSocket.onclose = function(event) {
-        console.log("CLOSE");
         webSocket = null;
+
+        if (event.code === 1005 && exports.onComplete !== undefined) {
+          exports.onComplete();
+          exports.onComplete = null;
+          return;
+        }
+
         reject(event);
       };
     });
+  };
+
+  exports.stop = function(completion) {
+    if (webSocket == null) {
+      completion();
+      return;
+    }
+
+    exports.onComplete = completion;
+    webSocket.close();
   };
 
   exports.send = function(payload, completion) {
