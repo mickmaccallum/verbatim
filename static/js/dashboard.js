@@ -16,11 +16,11 @@ function addNetwork(network) {
 };
 
 function addNetworkListListeners() {
-  $('#network-selection-table > tbody > tr').click(function(e) {
-    var id = $(e.currentTarget).attr('data-network-id');
+  $('#network-selection-table > tbody > tr').click(function(event) {
+    var id = $(event.currentTarget).attr('data-network-id');
 
     if (id != null) {
-      e.preventDefault();
+      event.preventDefault();
       window.location.href = 'networks/' + id;
       return true;
     }
@@ -29,8 +29,28 @@ function addNetworkListListeners() {
   });
 };
 
+function deleteNetworkListListeners() {
+  $('#network-selection-table > tbody > tr').click(function(event) {
+    var that = $(this);
+    var networkId = that.attr('data-network-id');
+    console.log('The network ID of the clicked row is: ' + encoderId);
+
+    $.ajax({
+      url: '/network/' + networkId,
+      type: 'DELETE',
+      dataType: 'json',
+      success: function(network) {
+        that.remove();
+      },
+      error: function() {
+        alert("Failed to remove network from list.")
+      }
+    });
+  });
+}
+
 function addNetworkCreationListener() {
-  $('#submit-network').click(function (e) {
+  $('#submit-network').click(function (event) {
     var port = $('#network-form-port').val().trim();
     var name = $('#network-form-name').val().trim();
 
@@ -95,39 +115,8 @@ function startWebSocket() {
 
 $(function () {
   addNetworkListListeners();
+  deleteNetworkListListeners();
   addNetworkCreationListener();
   startWebSocket();
-
-  $('#edit-network').click(function (e) {
-
-    $.ajax({
-      url: '/network/add',
-      type: 'POST',
-      dataType: 'json',
-      success: function(network) {
-
-      },
-      error: function () {
-
-      }
-    });
-  });
-
-  $('#network-selection-table > tbody > tr').click(function(event) {
-    var that = $(this);
-    var networkId = that.attr('data-network-id');
-    console.log('The network ID of the clicked row is: ' + encoderId);
-
-    $.ajax({
-      url: '/network/' + networkId,
-      type: 'DELETE',
-      dataType: 'json',
-      success: function(network) {
-        that.remove();
-      },
-      error: function() {
-        alert("Failed to remove network from list.")
-      }
-    });
-  });
+  stopWebSocket();
 });
