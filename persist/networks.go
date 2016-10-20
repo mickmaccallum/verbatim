@@ -17,7 +17,7 @@ func AddEncoder(encoder model.Encoder, network model.Network) (*model.Encoder, e
     );
   `
 
-	result, err := db.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID)
+	result, err := DB.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID)
 
 	if err != nil {
 		return nil, err

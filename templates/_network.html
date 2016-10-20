@@ -4,11 +4,19 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">Networks ({{ .Network.Name }})</li>
+  <li class="active">{{ .Network.Name }} <small>- <span id="encoder-count">{{ len .Encoders }}</span> encoder(s)</small></li>
 </ol>
 
 <div class="page-header">
-  <h1>{{ .Network.Name }} <small>({{ len .Encoders }} encoders)</small></h1>
+  <div>
+    <div>
+      <h3><span>{{ .Network.Name }}</span> <small>(Network Name)</small></h3>
+    </div>
+
+    <div>
+      <h3><span>{{ .Network.ListeningPort }}</span> <small>(Port)</small></h3>
+    </div>
+  </div>
 </div>
 
 <div class="table-responsive panel panel-default">
@@ -17,26 +25,26 @@
   <table class="table table-hover" id="encoder-selection-table">
     <thead>
       <tr>
-        <th>#</th>
-        <th>IP Address</th>
-        <th>Name</th>
-        <th>Port</th>
-        <th>Handle</th>
-        <th>Password</th>
-        <th></th>
+        <th width="5%">#</th>
+        <th width="18%">Name</th>
+        <th width="18%">IP Address</th>
+        <th width="18%">Port</th>
+        <th width="18%">Handle</th>
+        <th width="18%">Password</th>
+        <th width="5%"></th>
       </tr>
     </thead>
 
     <tbody>
     {{range $index, $element := .Encoders }}
       <tr data-encoder-id="{{ $element.ID }}">
-        <th class="col-md-1" scope=row>{{ inc $index }}</th>
-        <td>{{ $element.Name.Value }}</td>
-        <td>{{ $element.IPAddress }}</td>
-        <td>{{ $element.Port }}</td>
-        <td>{{ $element.Handle }}</td>
-        <td>{{ $element.Password }}</td>
-        <td class="col-md-1">
+        <th scope=row>{{ inc $index }}</th>
+        <td><span>{{ $element.Name.Value }}</span></td>
+        <td><span>{{ $element.IPAddress }}</span></td>
+        <td><span>{{ $element.Port }}</span></td>
+        <td><span>{{ $element.Handle }}</span></td>
+        <td><span>{{ $element.Password }}</span></td>
+        <td>
           <p data-placement="top" data-toggle="tooltip" title="Delete">
             <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
               <span class="glyphicon glyphicon-trash"></span>

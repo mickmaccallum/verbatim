@@ -16,7 +16,7 @@ func GetEncoder(id int) (*model.Encoder, error) {
 		WHERE id = ?
 	`
 
-	row := db.QueryRow(query, id)
+	row := DB.QueryRow(query, id)
 	if row == nil {
 		return nil, errors.New("Encoder not found")
 	}
@@ -44,7 +44,7 @@ func GetEncoders() ([]model.Encoder, error) {
 		FROM encoder
 	`
 
-	rows, err := db.Query(query)
+	rows, err := DB.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func GetEncodersForNetwork(network model.Network) ([]model.Encoder, error) {
 		WHERE network_id = ?
 	`
 
-	rows, err := db.Query(query, network.ID)
+	rows, err := DB.Query(query, network.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func UpdateEncoder(encoder model.Encoder) error {
 				id = ?
 	`
 
-	_, err := db.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID, encoder.ID)
+	_, err := DB.Exec(query, encoder.IPAddress, encoder.Port, encoder.Name, encoder.Handle, encoder.Password, encoder.NetworkID, encoder.ID)
 	return err
 }
 
@@ -123,7 +123,7 @@ func DeleteEncoder(encoder model.Encoder) error {
 		WHERE id = ?
 	`
 
-	_, err := db.Exec(query, encoder.ID)
+	_, err := DB.Exec(query, encoder.ID)
 	return err
 }
 
@@ -135,7 +135,7 @@ func GetNetwork(id int) (*model.Network, error) {
 		WHERE id = ?
 	`
 
-	row := db.QueryRow(query, id)
+	row := DB.QueryRow(query, id)
 	if row == nil {
 		return nil, errors.New("Network not found")
 	}
@@ -154,7 +154,7 @@ func GetNetworks() ([]model.Network, error) {
 		SELECT id, listening_port, name
 		FROM network
 	`
-	rows, err := db.Query(query)
+	rows, err := DB.Query(query)
 
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func AddNetwork(network model.Network) (*model.Network, error) {
 		);
 	`
 
-	result, err := db.Exec(query, network.ListeningPort, network.Name)
+	result, err := DB.Exec(query, network.ListeningPort, network.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -220,13 +220,13 @@ func UpdateNetwork(network model.Network) error {
 				id = ?
 	`
 
-	_, err := db.Exec(query, network.Name, network.ListeningPort, network.ID)
+	_, err := DB.Exec(query, network.Name, network.ListeningPort, network.ID)
 	return err
 }
 
 // DeleteNetwork deletes the specified Network.
 func DeleteNetwork(network model.Network) error {
-	transaction, err := db.Begin()
+	transaction, err := DB.Begin()
 	if err != nil {
 		return err
 	}
