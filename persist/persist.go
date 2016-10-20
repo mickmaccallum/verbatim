@@ -8,16 +8,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var db *sql.DB
+var DB *sql.DB
 
 func init() {
 	var err error
-	db, err = sql.Open("sqlite3", "database.db")
+	DB, err = sql.Open("sqlite3", "database.db")
 	checkErr(err)
-	err = db.Ping()
+	err = DB.Ping()
 	checkErr(err)
 
-	_, err = configureDatabase(db)
+	_, err = configureDatabase(DB)
 	checkErr(err)
 }
 
