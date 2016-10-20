@@ -1,16 +1,34 @@
 package megaphone
 
 import (
+	"fmt"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"log"
 	"net"
 )
 
+func encId(enc model.Encoder) EncoderID {
+	return EncoderID(enc.ID)
+}
+
+func networkId(enc model.Encoder) NetworkID {
+	return NetworkID(enc.NetworkID)
+}
+
+func netId(n model.Network) NetworkID {
+	return NetworkID(n.ID)
+}
+
 type MegaphoneListener interface {
 	// Logged into encoder properly
 	LoginSucceeded(enc model.Encoder)
+	// Logged into encoder properly
 	LoginFailed(enc model.Encoder)
+	// Writing to an encoder failed for some reason
+	UnexpectedDisconnect(enc model.Encoder)
+	// An encoder was logged out of
+	Logout(enc model.Encoder)
 }
 
 func NotifyNetworkAdded(n model.Network) {
@@ -29,11 +47,15 @@ func NotifyEncoderRemoved(enc model.Encoder) {
 	encoderRemoved <- enc
 }
 
+func NotifyEncoderLogout(enc model.Encoder) {
+	encoderRemoved <- enc
+}
+
 var l MegaphoneListener
 
-func Start(ml MegaphoneListener) {
+func Start(ml MegaphoneListener) error {
 	l = ml
-	setupEncoders()
+	return setupEncoders()
 }
 
 // Crud notifications
@@ -42,98 +64,107 @@ var (
 	networkRemoved = make(chan model.Network, 10)
 	encoderRemoved = make(chan model.Encoder, 10)
 	encoderAdded   = make(chan model.Encoder, 10)
+	encoderLogout  = make(chan model.Encoder, 10)
+)
+
+// Doing lookups on broadcasters
+var (
+	askBroadcaster   = make(chan NetworkID)
+	giveBroadCasters = make(chan *NetworkBroadcaster)
 )
 
 type NetworkID int
 type EncoderID int
 
 // Send notifications (coming from Relay server)
-var sendOnEncoders = make(map[NetworkID][]chan string)
+var networkBroadcasters = make(map[NetworkID]*NetworkBroadcaster)
 
-// Maps for tracking state of encoders, and for resolving sense
-var (
-	encodersByNetwork map[NetworkID][]model.Encoder
-	networksById      map[NetworkID]model.Network
-)
-
-func GetEncoderState() {
-
+func GetBroadcasterForNetwork(id NetworkID) *NetworkBroadcaster {
+	askBroadcaster <- id
+	return <-giveBroadCasters
 }
 
-func setupEncoders() {
-	loadEncoders()
-	sendOnEncoders = make(map[NetworkID][]chan string)
-	for network, encoders := range encodersByNetwork {
-		sendOnEncoders[network] = make([]chan string, len(encoders))
-		for idx, enc := range encoders {
-			inbound := make(chan string)
-			sendOnEncoders[network][idx] = inbound
-			go handleEncoder(enc, inbound)
-		}
+func setupEncoders() error {
+	// networks, err := persist.GetNetworks()
+	encoders, err := persist.GetEncoders()
+	if err != nil {
+		return err
 	}
-	manageHairyBallOPain()
+	networkBroadcasters = make(map[NetworkID]*NetworkBroadcaster)
+	encoderFaulted := make(chan encoderIdPair)
+	for _, encoder := range encoders {
+		var broadcaster *NetworkBroadcaster
+		if val, found := networkBroadcasters[networkId(encoder)]; found {
+			broadcaster = val
+		} else {
+			broadcaster = makeBroadcaster(networkId(encoder), encoderFaulted)
+			networkBroadcasters[networkId(encoder)] = broadcaster
+			// Launch this off so that calls below don't block
+			go broadcaster.serveConnection()
+		}
+		inbound := make(chan []byte)
+		broadcaster.registerEncoderChan(encId(encoder), inbound)
+		go handleEncoder(encoder, inbound, broadcaster)
+	}
+	daemonOfAwesome(networkBroadcasters, encoderFaulted)
+	return fmt.Errorf("Close the daemon of awesome for some reason")
 }
 
-//
-func manageHairyBallOPain() {
+func daemonOfAwesome(broadcasters map[NetworkID]*NetworkBroadcaster, encoderFaulted chan encoderIdPair) {
 	for {
-		// If any of the channels below are closed, crash the program, something when horribly wrong...
 		select {
-		case newNet, ok := <-networkAdded:
-			if !ok {
-				log.Print("Closed network addition channel!")
-				return
+		case id := <-askBroadcaster:
+			giveBroadCasters <- broadcasters[id]
+		case newNet := <-networkAdded:
+			if _, found := broadcasters[netId(newNet)]; !found {
+				b := makeBroadcaster(netId(newNet), encoderFaulted)
+				broadcasters[netId(newNet)] = b
+				go b.serveConnection()
 			}
-			encodersByNetwork[NetworkID(newNet.ID)] = make([]model.Encoder, 0)
+		case killNet := <-networkRemoved:
+			if b, found := broadcasters[NetworkID(killNet.ID)]; found {
+				b.destroy()
+				delete(broadcasters, NetworkID(killNet.ID))
+			}
 
+		case enc := <-encoderRemoved:
+			broadcasters[NetworkID(enc.NetworkID)].removeEncoder(EncoderID(enc.ID))
+
+		case restartEnc := <-encoderFaulted:
+			if b, found := broadcasters[restartEnc.network]; found {
+				inbound := make(chan []byte)
+				b.registerEncoderChan(restartEnc.encoder, inbound)
+				// Refresh the info from the database
+				enc, err := persist.GetEncoder(int(restartEnc.encoder))
+				if err != nil {
+					// Try to restart this at the next tick
+					b.faultedEncoder <- EncoderID(enc.ID)
+					continue
+				}
+				// Remove the encoder from the broadcaster if it dies
+				go handleEncoder(*enc, inbound, b)
+			} else {
+
+			}
 		case newEnc, ok := <-encoderAdded:
 			if !ok {
 				log.Print("Closed network addition channel!")
 				return
 			}
-			if encoders, found := encodersByNetwork[NetworkID(newEnc.NetworkID)]; found {
-				inbound := make(chan string)
-				encoders = append(encoders, newEnc)
-			} else {
-
+			// If we are asked to add an existing encoder, then do nothing
+			if b, found := broadcasters[NetworkID(newEnc.NetworkID)]; !found {
+				inbound := make(chan []byte)
+				b.registerEncoderChan(encId(newEnc), inbound)
+				// Remove the encoder from the broadcaster if it dies
+				go handleEncoder(newEnc, inbound, b)
 			}
-
 		}
 	}
-}
-func loadEncoders() {
-	networks, err := persist.GetNetworks()
-	if err != nil {
-		log.Fatal("Unable to connect to database!")
-	}
-	var networksById = make(map[int]model.Network)
-	for _, val := range networks {
-		networksById[val.ID] = val
-	}
-
-	encoders, err := persist.GetEncoders()
-	if err != nil {
-		log.Fatal("Unable to connect to database!")
-	}
-	encodersByNetwork = make(map[NetworkID][]model.Encoder)
-
-	for _, val := range encoders {
-		var encoderList []model.Encoder
-		if encoderList, found := encodersByNetwork[NetworkID(val.NetworkID)]; found {
-			encoderList = append(encoderList, val)
-		} else {
-			encoderList = []model.Encoder{val}
-		}
-		encodersByNetwork[NetworkID(val.NetworkID)] = encoderList
-	}
-}
-
-func SendMessageOnNetwork(id NetworkID) {
 }
 
 const LINE_CUT_WIDTH = 32
 
-func writeMessageSegmented(conn net.Conn, msg string) error {
+func writeMessageSegmented(conn net.Conn, msg []byte) error {
 	// Write message in chunks
 	for i := 0; i*LINE_CUT_WIDTH < len(msg); i++ {
 		begin := i * LINE_CUT_WIDTH
@@ -141,23 +172,58 @@ func writeMessageSegmented(conn net.Conn, msg string) error {
 		if end > len(msg) {
 			end = len(msg)
 		}
-		if _, err := conn.Write([]byte(msg[begin:end])); err != nil {
+		if _, err := conn.Write(msg[begin:end]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func handleEncoder(enc model.Encoder, inbound chan string) {
+func loginToEncoder(enc model.Encoder) (net.Conn, error) {
+	conn, err := net.Dial("tcp", fmt.Sprint(enc.IPAddress, ":", enc.Port))
+	if err != nil {
+		return nil, err
+	}
+	if _, err = conn.Write([]byte(enc.Handle + "\n")); err != nil {
+		return nil, err
+	}
+	if _, err = conn.Write([]byte(enc.Password + "\n")); err != nil {
+		return nil, err
+	}
+	// TODO: Read response here?
+	return conn, nil
+}
+
+func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster) {
 	conn, err := loginToEncoder(enc)
 	if err != nil {
+		// Login failed, remove it from the list of the things
+		n.removeEncoder(encId(enc))
+		// And then notify that login failed for the encoder
+		// Allowing the user to try to relogin
+		l.LoginFailed(enc)
+		conn.Close()
+		return
 	}
+	l.LoginSucceeded(enc)
 	for {
 		select {
+
 		case msg, ok := <-inbound:
 			if ok {
-				writeMessageSegmented(conn, msg)
+				err := writeMessageSegmented(conn, msg)
+				if err != nil {
+					// Close the connection
+					conn.Close()
+					// Signal to the broadcaster that we have an error
+					// and will need to be restarted
+					// Try to restart
+					l.UnexpectedDisconnect(enc)
+					n.faultedEncoder <- encId(enc)
+				}
 			} else {
+				conn.Close()
+				l.Logout(enc)
 				//
 				return
 			}
