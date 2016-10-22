@@ -1,0 +1,13 @@
+package websocket
+
+// SocketMessage A message to be emitted over all open websockets
+type SocketMessage struct {
+	Payload interface{}
+}
+
+// Send emits the receiver as a message across all websocket connections.
+func (message SocketMessage) Send() {
+	go func() {
+		messages <- message
+	}()
+}
