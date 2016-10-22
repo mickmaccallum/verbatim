@@ -11,7 +11,7 @@ var socketRocket = (function() {
       return null;
     }
 
-    var ref = message['reference'];
+    var ref = message['Reference'];
     if (ref == null) {
       return null;
     }
@@ -20,7 +20,7 @@ var socketRocket = (function() {
   };
 
   function removeCallback(message) {
-    var ref = message['reference'];
+    var ref = message['Reference'];
 
     waitQueue[ref] = null;
     delete waitQueue[reference];
@@ -29,8 +29,8 @@ var socketRocket = (function() {
   function chainMessageSend(payload, completion) {
     return new Promise(function(resolve, reject) {
       var message = {
-        'reference': ++reference,
-        'payload': payload
+        'Reference': ++reference,
+        'Payload': payload
       };
 
       waitQueue[reference] = completion;
@@ -56,7 +56,7 @@ var socketRocket = (function() {
       webSocket.onmessage = function(event) {
         var message = JSON.parse(event.data);
         var handler = loadCallback(message);
-        var payload = message['payload'];
+        var payload = message['Payload'];
 
         if (handler == null) {
           webSocket.onNewMessage(payload)
