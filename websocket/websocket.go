@@ -16,8 +16,8 @@ import (
 var messages = make(chan SocketMessage, 10)
 
 // TODO: Figure out how to remove conns on disconnect.
-var sockets = make(map[*websocket.Conn]struct{})
-var mutex = &sync.Mutex{}
+var connections = make(map[*websocket.Conn]struct{})
+var connMutex = &sync.Mutex{}
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -41,11 +41,11 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	mutex.Lock()
-	sockets[conn] = struct{}{}
-	mutex.Unlock()
+	connMutex.Lock()
+	connections[conn] = struct{}{}
+	connMutex.Unlock()
 
-	log.Println(sockets)
+	log.Println(connections)
 
 	// defer conn.Close()
 	// for {
@@ -69,21 +69,25 @@ func spin() {
 	for {
 		select {
 		case message := <-messages:
-			for conn := range sockets {
-				wrapper := struct {
-					Payload interface{}
-				}{
-					message.Payload,
-				}
-
-				err := conn.WriteJSON(wrapper)
-				if err != nil {
-					log.Println(err)
-				}
-			}
+			sendMessage(message)
 		}
 
 		runtime.Gosched()
+	}
+}
+
+func sendMessage(message SocketMessage) {
+	for conn := range connections {
+		wrapper := struct {
+			Payload interface{}
+		}{
+			message.Payload,
+		}
+
+		err := conn.WriteJSON(wrapper)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
