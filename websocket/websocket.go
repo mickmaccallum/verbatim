@@ -31,7 +31,10 @@ func Start(router *mux.Router) {
 	router.HandleFunc("/socket", openSocket)
 
 	go spin()
+	// sendTestMessage()
+}
 
+func sendTestMessage() {
 	time.AfterFunc(10*time.Second, func() {
 		payload := make(map[string]string)
 		payload["message"] = "Hello, browser"
