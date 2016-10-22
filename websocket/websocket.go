@@ -34,41 +34,6 @@ func Start(router *mux.Router) {
 	// sendTestMessage()
 }
 
-func sendTestMessage() {
-	time.AfterFunc(10*time.Second, func() {
-		payload := make(map[string]string)
-		payload["message"] = "Hello, browser"
-
-		m := &SocketMessage{
-			Payload: payload,
-		}
-		log.Println("Sending Message")
-		m.Send()
-	})
-}
-
-func spin() {
-	for {
-		select {
-		case message := <-messages:
-			for conn := range sockets {
-				wrapper := struct {
-					Payload interface{}
-				}{
-					message.Payload,
-				}
-
-				err := conn.WriteJSON(wrapper)
-				if err != nil {
-					log.Println(err)
-				}
-			}
-		}
-
-		runtime.Gosched()
-	}
-}
-
 func openSocket(writer http.ResponseWriter, request *http.Request) {
 	conn, err := upgrader.Upgrade(writer, request, nil)
 	if err != nil {
@@ -98,4 +63,39 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 	// 		break
 	// 	}
 	// }
+}
+
+func spin() {
+	for {
+		select {
+		case message := <-messages:
+			for conn := range sockets {
+				wrapper := struct {
+					Payload interface{}
+				}{
+					message.Payload,
+				}
+
+				err := conn.WriteJSON(wrapper)
+				if err != nil {
+					log.Println(err)
+				}
+			}
+		}
+
+		runtime.Gosched()
+	}
+}
+
+func sendTestMessage() {
+	time.AfterFunc(10*time.Second, func() {
+		payload := make(map[string]string)
+		payload["message"] = "Hello, browser"
+
+		m := &SocketMessage{
+			Payload: payload,
+		}
+		log.Println("Sending Message")
+		m.Send()
+	})
 }
