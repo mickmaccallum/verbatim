@@ -39,6 +39,14 @@ func Start() {
 	}
 }
 
+// CaptionerState CaptionerState
+type CaptionerState int
+
+const (
+	// CaptionerConnected connected
+	CaptionerConnected CaptionerState = iota
+)
+
 // EncoderState EncoderState
 type EncoderState int
 
