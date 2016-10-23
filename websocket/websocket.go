@@ -41,28 +41,41 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	connectionDidOpen(conn)
+
+	defer conn.Close()
+	for {
+		// messageType is either text or binary
+		messageType, message, err := conn.ReadMessage()
+		if err != nil {
+			if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
+				connectionDidClose(conn)
+			}
+
+			log.Println(err)
+			break
+		}
+
+		err = conn.WriteMessage(messageType, message)
+		if err != nil {
+			log.Println(err)
+			break
+		}
+	}
+}
+
+func connectionDidOpen(conn *websocket.Conn) {
 	connMutex.Lock()
 	connections[conn] = struct{}{}
 	connMutex.Unlock()
-
 	log.Println(connections)
+}
 
-	// defer conn.Close()
-	// for {
-	// 	messageType, message, err := conn.ReadMessage()
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		break
-	// 	}
-
-	// 	log.Printf("recv: %s", message)
-
-	// 	err = conn.WriteMessage(messageType, message)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		break
-	// 	}
-	// }
+func connectionDidClose(conn *websocket.Conn) {
+	connMutex.Lock()
+	delete(connections, conn)
+	connMutex.Unlock()
+	log.Println(connections)
 }
 
 func spin() {
