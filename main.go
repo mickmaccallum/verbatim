@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-
 	go relay.Start()
 	dashboard.Start()
 }
