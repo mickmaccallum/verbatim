@@ -42,8 +42,9 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 
 	defer conn.Close()
 	for {
-		// messageType is either text or binary
-		messageType, message, err := conn.ReadMessage()
+		var message SocketMessage
+
+		err := conn.ReadJSON(&message)
 		if err != nil {
 			if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
 				connectionClosed(conn)
@@ -54,11 +55,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		// Echo
-		err = conn.WriteMessage(messageType, message)
-		if err != nil {
-			log.Println(err)
-			break
-		}
+		message.Send()
 	}
 }
 
@@ -78,22 +75,16 @@ func spin() {
 	for {
 		select {
 		case message := <-messages:
-			sendMessage(message)
+			broadcastMessage(message)
 		}
 	}
 }
 
-func sendMessage(message SocketMessage) []error {
+func broadcastMessage(message SocketMessage) []error {
 	var errors []error
 
 	for conn := range connections {
-		wrapper := struct {
-			Payload interface{}
-		}{
-			message.Payload,
-		}
-
-		err := conn.WriteJSON(wrapper)
+		err := sendMessage(message, conn)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -102,15 +93,20 @@ func sendMessage(message SocketMessage) []error {
 	return errors
 }
 
+func sendMessage(message SocketMessage, conn *websocket.Conn) error {
+	return conn.WriteJSON(message)
+}
+
 func sendTestMessage() {
 	time.AfterFunc(10*time.Second, func() {
-		payload := make(map[string]string)
-		payload["message"] = "Hello, browser"
+		payload := map[string]string{
+			"message": "Hello, browser!",
+		}
 
 		m := &SocketMessage{
 			Payload: payload,
 		}
-		log.Println("Sending Message")
+
 		m.Send()
 	})
 }
