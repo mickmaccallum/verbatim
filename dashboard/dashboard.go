@@ -51,16 +51,16 @@ const (
 type EncoderState int
 
 const (
-	// Connected Connected
-	Connected EncoderState = iota
-	// Connecting not connected yet...
-	Connecting
-	// AuthFailure wrong credentials...
-	AuthFailure
-	// Faulted write failures happening, backing off.
-	Faulted
-	// Disconnected Disconnected (default state)
-	Disconnected
+	// EncoderConnected Connected
+	EncoderConnected EncoderState = iota
+	// EncoderConnecting not connected yet...
+	EncoderConnecting
+	// EncoderAuthFailure wrong credentials...
+	EncoderAuthFailure
+	// EncoderFaulted write failures happening, backing off.
+	EncoderFaulted
+	// EncoderDisconnected Disconnected (default state)
+	EncoderDisconnected
 )
 
 // EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
