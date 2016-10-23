@@ -37,7 +37,7 @@
 
     <tbody>
     {{range $index, $element := .Encoders }}
-      <tr data-encoder-id="{{ $element.ID }}">
+      <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
         <th scope=row>{{ inc $index }}</th>
         <td><span>{{ $element.Name.Value }}</span></td>
         <td><span>{{ $element.IPAddress }}</span></td>
@@ -127,5 +127,9 @@
 {{ end }}
 
 {{ define "scripts"}}
+<script>
+  var socketURL = "{{ .SocketURL }}";
+</script>
+<script src="/js/websocket.js"></script>
 <script src="/js/networks.js"></script>
 {{ end }}
