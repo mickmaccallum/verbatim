@@ -7,8 +7,11 @@ import (
 
 func notifyEncoderStateChange(encoder model.Encoder, state EncoderState) {
 	message := websocket.SocketMessage{
-		Payload: map[websocket.NotificationType]EncoderState{
-			websocket.EncoderState: state,
+		Payload: map[websocket.NotificationType]interface{}{
+			websocket.EncoderState: map[string]interface{}{
+				"state":      int(state),
+				"encoder_id": encoder.ID,
+			},
 		},
 	}
 
