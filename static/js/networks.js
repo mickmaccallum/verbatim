@@ -4,7 +4,42 @@ $(function() {
   addEditEncoderHandler();
   addDeleteEncoderHandler();
   configureEditing();
+  startWebSocket();
+  autoStopWebSocket();
 });
+
+function changeEncoderState(encoderState) {
+  var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
+}
+
+function startWebSocket() {
+  socketRocket.start(socketURL).then(function(webSocket) {
+    webSocket.onNewMessage = function(message) {
+      var encoderState = message['encoderState'];
+      if (typeof encoderState !== 'undefined') {
+        changeEncoderState(encoderState);
+      }
+      
+      console.log('Got new message');
+      console.log(message);
+    };
+
+    webSocket.onerror = function(event) {
+      console.log("ERROR: " + event.data);
+    };
+  }).catch(function(event) {
+    console.log(event);
+  });
+};
+
+function autoStopWebSocket() {
+  $(window).on("beforeunload", function() {
+    socketRocket.stop(function() {
+      console.log("finished closing.");
+    });
+  });
+};
+
 
 function recountEncoders() {
   var body = $('#encoder-selection-table > tbody');
@@ -29,7 +64,8 @@ function addEncoder(encoder) {
 
   var count = body.children().length;
 
-  var row = $('<tr></tr>');
+  var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
+
   row.append('<th scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + encoder.IPAddress + '</td>');
   row.append('<td>' + encoder.Name + '</td>');

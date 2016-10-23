@@ -4,11 +4,9 @@ import (
 	"net/http"
 
 	"github.com/0x7fffffff/verbatim/model"
-	"github.com/gorilla/sessions"
-
-	// Passing lint
 	"github.com/0x7fffffff/verbatim/persist"
 	// "github.com/gorilla/csrf"
+	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
 
@@ -41,17 +39,31 @@ func Start() {
 	}
 }
 
+// CaptionerState CaptionerState
+type CaptionerState int
+
+const (
+	// CaptionerConnected connected
+	CaptionerConnected CaptionerState = iota
+)
+
 // EncoderState EncoderState
 type EncoderState int
 
 const (
-	// Connected Connected
-	Connected EncoderState = iota
-	// Disconnected Disconnected
-	Disconnected
+	// EncoderConnected Connected
+	EncoderConnected EncoderState = iota
+	// EncoderConnecting not connected yet...
+	EncoderConnecting
+	// EncoderAuthFailure wrong credentials...
+	EncoderAuthFailure
+	// EncoderFaulted write failures happening, backing off.
+	EncoderFaulted
+	// EncoderDisconnected Disconnected (default state)
+	EncoderDisconnected
 )
 
 // EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
 func EncoderStateChanged(encoder model.Encoder, state EncoderState) {
-
+	notifyEncoderStateChange(encoder, state)
 }

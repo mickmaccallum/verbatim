@@ -10,6 +10,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type NotificationType string
+
+const (
+	EncoderState   NotificationType = "encoderState"
+	CaptionerState NotificationType = "captionerState"
+)
+
 var messages = make(chan SocketMessage, 10)
 var replies = make(chan reply, 10)
 
