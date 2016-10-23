@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-	// "sync/atomic"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -31,7 +30,6 @@ func Start(router *mux.Router) {
 	router.HandleFunc("/socket", openSocket)
 
 	go spin()
-	// sendTestMessage()
 }
 
 func openSocket(writer http.ResponseWriter, request *http.Request) {
@@ -56,6 +54,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 			break
 		}
 
+		// Echo
 		err = conn.WriteMessage(messageType, message)
 		if err != nil {
 			log.Println(err)
@@ -68,14 +67,12 @@ func connectionDidOpen(conn *websocket.Conn) {
 	connMutex.Lock()
 	connections[conn] = struct{}{}
 	connMutex.Unlock()
-	log.Println(connections)
 }
 
 func connectionDidClose(conn *websocket.Conn) {
 	connMutex.Lock()
 	delete(connections, conn)
 	connMutex.Unlock()
-	log.Println(connections)
 }
 
 func spin() {
@@ -89,7 +86,9 @@ func spin() {
 	}
 }
 
-func sendMessage(message SocketMessage) {
+func sendMessage(message SocketMessage) []error {
+	var errors []error
+
 	for conn := range connections {
 		wrapper := struct {
 			Payload interface{}
@@ -99,9 +98,11 @@ func sendMessage(message SocketMessage) {
 
 		err := conn.WriteJSON(wrapper)
 		if err != nil {
-			log.Println(err)
+			errors = append(errors, err)
 		}
 	}
+
+	return errors
 }
 
 func sendTestMessage() {
