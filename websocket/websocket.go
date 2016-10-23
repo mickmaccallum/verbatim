@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 	// "sync/atomic"
@@ -21,8 +20,9 @@ var connMutex = &sync.Mutex{}
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		components := strings.Split(r.RemoteAddr, ":")
-		return components[0] == "127.0.0.1"
+		// components := strings.Split(r.RemoteAddr, ":")
+		// return components[0] == "127.0.0.1"
+		return r.Header.Get("Origin") == "http://"+r.Host
 	},
 }
 
