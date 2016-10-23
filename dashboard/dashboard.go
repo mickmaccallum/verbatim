@@ -46,7 +46,7 @@ type EncoderState int
 
 const (
 	// Connected Connected
-	Connected int = iota
+	Connected EncoderState = iota
 	// Disconnected Disconnected
 	Disconnected
 )
