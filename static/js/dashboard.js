@@ -116,7 +116,7 @@ function startWebSocket() {
   });
 };
 
-function stopWebSocket() {
+function autoStopWebSocket() {
   $(window).on("beforeunload", function() {
     socketRocket.stop(function() {
       console.log("finished closing.");
@@ -129,5 +129,5 @@ $(function () {
   deleteNetworkListListeners();
   addNetworkCreationListener();
   startWebSocket();
-  stopWebSocket();
+  autoStopWebSocket();
 });
