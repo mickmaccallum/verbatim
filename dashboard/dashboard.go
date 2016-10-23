@@ -51,7 +51,7 @@ const (
 	Disconnected
 )
 
-// EncoderDidChangeState notify the dashboard that an encoder just changed to a new state.
-func EncoderDidChangeState(encoder model.Encoder, state EncoderState) {
+// EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
+func EncoderStateChanged(encoder model.Encoder, state EncoderState) {
 
 }
