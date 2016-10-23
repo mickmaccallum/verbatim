@@ -39,7 +39,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	connectionDidOpen(conn)
+	connectionOpened(conn)
 
 	defer conn.Close()
 	for {
@@ -47,7 +47,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
-				connectionDidClose(conn)
+				connectionClosed(conn)
 			}
 
 			log.Println(err)
@@ -63,13 +63,13 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func connectionDidOpen(conn *websocket.Conn) {
+func connectionOpened(conn *websocket.Conn) {
 	connMutex.Lock()
 	connections[conn] = struct{}{}
 	connMutex.Unlock()
 }
 
-func connectionDidClose(conn *websocket.Conn) {
+func connectionClosed(conn *websocket.Conn) {
 	connMutex.Lock()
 	delete(connections, conn)
 	connMutex.Unlock()
