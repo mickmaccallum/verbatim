@@ -3,7 +3,6 @@ package websocket
 import (
 	"log"
 	"net/http"
-	"runtime"
 	"sync"
 	"time"
 
@@ -81,8 +80,6 @@ func spin() {
 		case message := <-messages:
 			sendMessage(message)
 		}
-
-		runtime.Gosched()
 	}
 }
 
