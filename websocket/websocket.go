@@ -11,6 +11,7 @@ import (
 )
 
 var messages = make(chan SocketMessage, 10)
+var replies = make(chan reply, 10)
 
 // TODO: Figure out how to remove conns on disconnect.
 var connections = make(map[*websocket.Conn]struct{})
@@ -54,8 +55,14 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 			break
 		}
 
-		// Echo
-		message.Send()
+		reply{
+			conn:    conn,
+			message: message,
+			response: response{
+				Error:   nil,
+				Message: "Received Message",
+			},
+		}.send()
 	}
 }
 
@@ -76,8 +83,19 @@ func spin() {
 		select {
 		case message := <-messages:
 			broadcastMessage(message)
+		case r := <-replies:
+			sendReply(r)
 		}
 	}
+}
+
+func sendReply(r reply) error {
+	newMessage := SocketMessage{
+		Reference: r.message.Reference,
+		Payload:   r.response,
+	}
+
+	return sendMessage(newMessage, r.conn)
 }
 
 func broadcastMessage(message SocketMessage) []error {
