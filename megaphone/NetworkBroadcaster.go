@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+type AddEncoderResult int
+
+const (
+	encoderDidExist AddEncoderResult = iota
+	encoderDidNotExist
+)
+
 type encoderChan struct {
 	id      EncoderID
 	channel chan []byte
@@ -17,6 +24,7 @@ type encoderIdPair struct {
 type NetworkBroadcaster struct {
 	id             NetworkID
 	writeChan      chan []byte
+	encoderExisted chan bool
 	addEncoder     chan encoderChan
 	rmEncoder      chan EncoderID
 	faultedEncoder chan EncoderID
@@ -29,6 +37,7 @@ func makeBroadcaster(n NetworkID, restartEncoder chan encoderIdPair) *NetworkBro
 	return &NetworkBroadcaster{
 		id:             n,
 		writeChan:      make(chan []byte, 10),
+		encoderExisted: make(chan bool),
 		addEncoder:     make(chan encoderChan),
 		rmEncoder:      make(chan EncoderID),
 		encoders:       make(map[EncoderID]chan []byte),
@@ -47,8 +56,10 @@ func (n NetworkBroadcaster) removeEncoder(id EncoderID) {
 	n.rmEncoder <- id
 }
 
-func (n NetworkBroadcaster) registerEncoderChan(id EncoderID, dest chan []byte) {
+// If it returns true, the encoder was added, otherwise it was already running
+func (n NetworkBroadcaster) registerEncoderChan(id EncoderID, dest chan []byte) bool {
 	n.addEncoder <- encoderChan{id, dest}
+	return <-n.encoderExisted
 }
 
 func (n NetworkBroadcaster) destroy() {
@@ -65,7 +76,14 @@ func (n *NetworkBroadcaster) serveConnection() {
 				dest <- buf
 			}
 		case dest := <-n.addEncoder:
-			n.encoders[dest.id] = dest.channel
+			// Only add an encoder if it hasn't been added already
+			if enc, found := n.encoders[dest.id]; found {
+				n.encoderExisted <- true
+				continue
+			} else {
+				n.encoders[dest.id] = dest.channel
+				n.encoderExisted <- false
+			}
 			// backoffs[dest.id] = 1 * time.Microsecond
 		case id := <-n.faultedEncoder:
 			close(n.encoders[id])

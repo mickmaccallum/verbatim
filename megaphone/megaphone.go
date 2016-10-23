@@ -27,7 +27,7 @@ type MegaphoneListener interface {
 	LoginFailed(enc model.Encoder)
 	// Writing to an encoder failed for some reason
 	UnexpectedDisconnect(enc model.Encoder)
-	// An encoder was logged out of
+	// An encoder was logged out
 	Logout(enc model.Encoder)
 }
 
@@ -133,7 +133,10 @@ func daemonOfAwesome(broadcasters map[NetworkID]*NetworkBroadcaster, encoderFaul
 		case restartEnc := <-encoderFaulted:
 			if b, found := broadcasters[restartEnc.network]; found {
 				inbound := make(chan []byte)
-				b.registerEncoderChan(restartEnc.encoder, inbound)
+				// If the encoder is already running, don't try to start it again
+				if b.registerEncoderChan(restartEnc.encoder, inbound) == encoderDidExist {
+					continue
+				}
 				// Refresh the info from the database
 				enc, err := persist.GetEncoder(int(restartEnc.encoder))
 				if err != nil {
@@ -143,20 +146,23 @@ func daemonOfAwesome(broadcasters map[NetworkID]*NetworkBroadcaster, encoderFaul
 				}
 				// Remove the encoder from the broadcaster if it dies
 				go handleEncoder(*enc, inbound, b)
-			} else {
-
 			}
 		case newEnc, ok := <-encoderAdded:
 			if !ok {
 				log.Print("Closed network addition channel!")
 				return
 			}
-			// If we are asked to add an existing encoder, then do nothing
+
+			// Make sure we're adding to a network that exists
 			if b, found := broadcasters[NetworkID(newEnc.NetworkID)]; !found {
 				inbound := make(chan []byte)
-				b.registerEncoderChan(encId(newEnc), inbound)
-				// Remove the encoder from the broadcaster if it dies
-				go handleEncoder(newEnc, inbound, b)
+				// If we are asked to add an existing encoder, then do nothing
+				if b.registerEncoderChan(encId(newEnc), inbound) == encoderDidNotExist {
+					// Remove the encoder from the broadcaster if it dies
+					go handleEncoder(newEnc, inbound, b)
+				} else {
+					close(inbound)
+				}
 			}
 		}
 	}
@@ -220,6 +226,7 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					// Try to restart
 					l.UnexpectedDisconnect(enc)
 					n.faultedEncoder <- encId(enc)
+					return
 				}
 			} else {
 				conn.Close()
