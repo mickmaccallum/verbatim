@@ -172,12 +172,14 @@ func handleNetworksPage(router *mux.Router) {
 
 		template := templateOnBase("templates/_network.html")
 		data := struct {
-			Network  model.Network
-			Encoders []model.Encoder
+			Network   model.Network
+			Encoders  []model.Encoder
+			SocketURL string
 			// TemplateTag template.HTML
 		}{
 			*network,
 			encoders,
+			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
 			// csrf.TemplateField(request),
 		}
 
