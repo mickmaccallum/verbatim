@@ -10,6 +10,7 @@ $(function() {
 
 function changeEncoderState(encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
+  
 }
 
 function startWebSocket() {
