@@ -6,16 +6,18 @@ import (
 )
 
 type MuteCell struct {
+	id          CaptionerID
 	isMute      bool
-	cellMux     sync.Mutex
+	cellMux     *sync.Mutex
 	broadcaster *megaphone.NetworkBroadcaster
 }
 
-func makeMuteCell(b *megaphone.NetworkBroadcaster) *MuteCell {
-	&MuteCell{
+func makeMuteCell(b *megaphone.NetworkBroadcaster, id CaptionerID) *MuteCell {
+	return &MuteCell{
 		isMute:      false,
 		cellMux:     &sync.Mutex{},
 		broadcaster: b,
+		id:          id,
 	}
 }
 

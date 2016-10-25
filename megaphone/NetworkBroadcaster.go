@@ -57,9 +57,13 @@ func (n NetworkBroadcaster) removeEncoder(id EncoderID) {
 }
 
 // If it returns true, the encoder was added, otherwise it was already running
-func (n NetworkBroadcaster) registerEncoderChan(id EncoderID, dest chan []byte) bool {
+func (n NetworkBroadcaster) registerEncoderChan(id EncoderID, dest chan []byte) AddEncoderResult {
 	n.addEncoder <- encoderChan{id, dest}
-	return <-n.encoderExisted
+	if <-n.encoderExisted {
+		return encoderDidExist
+	} else {
+		return encoderDidNotExist
+	}
 }
 
 func (n NetworkBroadcaster) destroy() {
@@ -77,7 +81,7 @@ func (n *NetworkBroadcaster) serveConnection() {
 			}
 		case dest := <-n.addEncoder:
 			// Only add an encoder if it hasn't been added already
-			if enc, found := n.encoders[dest.id]; found {
+			if _, found := n.encoders[dest.id]; found {
 				n.encoderExisted <- true
 				continue
 			} else {

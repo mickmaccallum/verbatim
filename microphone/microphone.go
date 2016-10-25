@@ -2,19 +2,20 @@ package microphone
 
 import (
 	"fmt"
-	"github.com/0x7fffffff/verbatim/megaphone"
 	"log"
 	"math"
 	"net"
 	"time"
 
+	"github.com/0x7fffffff/verbatim/megaphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 )
 
 type CaptionerID struct {
-	IPAddr  string
-	NumConn int
+	IPAddr    string
+	NumConn   int
+	NetworkID NetworkID
 }
 
 type NetworkID int
@@ -36,12 +37,24 @@ type CaptionerStatus struct {
 
 // These are the events that the server using this will be notified of
 type CaptionListener interface {
+
 	// When a captioner connects
 	Connected(ci CaptionerInfo)
+
 	// Report that a captioner has been disconnected
 	Disconnected(ci CaptionerInfo)
+
+	// Report that a given network was unable to listen to a given port
+	NetworkListenFailed(network model.Network)
+
+	// Report that the server for the network was able to listen
+	NetworkListenSucceeded(network model.Network)
+
 	// Report that a captioner has been successfully muted
 	Muted(ci CaptionerInfo)
+
+	// Report that a captioner has been successfully unmuted
+	Unmuted(ci CaptionerInfo)
 
 	// Ask the relay server for a network writer
 	GetBroadcaster(network model.Network) megaphone.NetworkBroadcaster
@@ -50,21 +63,17 @@ type CaptionListener interface {
 // This is our reference to the delegate methods from the relay server
 var relay CaptionListener
 
-// Get the listener status for the entire contigent of listeners
-func GetListnerStatus() map[model.Network]map[CaptionerInfo]struct{} {
-	askStatus <- struct{}{}
-	return <-getStatus
-}
-
 // Listen for TCP connections
 func Start(listener CaptionListener) error {
+	// Get this ready first
+	go maintainListenerState()
 	relay = listener
 	networks, err := persist.GetNetworks()
 	if err != nil {
 		return err
 	}
 	for _, n := range networks {
-		go listenForNetwork(n)
+		addNetwork <- n
 	}
 	return nil
 }
@@ -72,78 +81,101 @@ func Start(listener CaptionListener) error {
 // TODO: Error handling here?
 func AddNetwork(n model.Network) {
 	// Hrm...
-	go listenForNetwork(n)
+	// go listenForNetwork(n)
 }
 
 func MuteCaptioner(n model.Network, captionerId int) {
-
 }
 
 // Paired channels
 var (
-	addNetworkChan   = make(chan model.Network, 10)
-	rmNetworkChan    = make(chan model.Network, 10)
-	addListenerChan  = make(chan CaptionerInfo, 10)
-	rmListenerChan   = make(chan CaptionerInfo, 10)
-	muteListenChan   = make(chan CaptionerInfo, 10)
-	unmuteListenChan = make(chan CaptionerInfo, 10)
+	addNetwork          = make(chan model.Network, 10)
+	networkWasAdded     = make(chan NetworkListener, 10)
+	networkListenFailed = make(chan NetworkID, 10)
+	rmNetwork           = make(chan model.Network, 10)
+	addCaptioner        = make(chan MuteCell, 10)
+	rmCaptioner         = make(chan MuteCell, 10)
+	muteCaptioner       = make(chan CaptionerID, 10)
+	unmuteCaptioner     = make(chan CaptionerID, 10)
 )
+
+// Listeners by network
+type NetworkListener struct {
+	id       NetworkID
+	listener *net.Listener
+}
 
 var askStatus = make(chan struct{})
 var getStatus = make(chan map[model.Network]map[CaptionerInfo]struct{})
 
 // This function is the sole arbiter of state for these stats
 func maintainListenerState() {
-	networks := make(map[model.Network]map[CaptionerInfo]struct{})
-	writers := make(map[CaptionerID]MuteCell)
+	// Networks
+	networks := make(map[NetworkID]NetworkListener)
+	// Caption listeners
+
+	// TODO: Uncomment this, and use it in the code below
+	// writers := make(map[CaptionerID]MuteCell)
+
 	for {
 		select {
-		case n := <-addNetworkChan:
-			networks[n] = make(map[CaptionerInfo]struct{})
-		case l := <-addListenerChan:
-			network := networks[l.network]
-			network[l] = struct{}{}
-			relay.Connected(l, l.network)
-		case n := <-rmNetworkChan:
-			delete(networks, n)
-		case l := <-rmListenerChan:
-			delete(networks[l.network], l)
-			relay.Disconnected(l, l.network)
-		case m := <-muteListenChan:
-
-		case <-askStatus:
-			// Copy all the current status and send it off to the relay server,
-			// to avoid coherency isues
-			cp := make(map[model.Network]map[CaptionerInfo]struct{})
-			for key, value := range networks {
-				cp[key] = make(map[CaptionerInfo]struct{})
-				for ik, iv := range value {
-					cp[key][ik] = iv
-				}
+		case n := <-addNetwork:
+			if ln, err := attemptListen(n); err != nil {
+				go listenForNetwork(n, ln)
+				networks[NetworkID(n.ID)] = NetworkListener{NetworkID(n.ID), &ln}
+				relay.NetworkListenSucceeded(n)
+			} else {
+				relay.NetworkListenFailed(n)
 			}
-			getStatus <- cp
+			/*
+				case l := <-addCaptioner:
+					network := networks[l.]
+					network[l] = struct{}{}
+					relay.Connected(l, l.network)
+
+				case n := <-rmNetwork:
+					if nln, found := networks[n.ID]; found {
+						nln.listener.Close()
+					} else {
+
+					}
+					delete(networks, n)
+
+				case l := <-rmCaptioner:
+					delete(networks[l.network], l)
+					relay.Disconnected(l, l.network)
+
+				case m := <-muteCaptioner:
+			*/
+
 		}
 	}
 }
 
+func attemptListen(n model.Network) (net.Listener, error) {
+	return net.Listen("tcp", fmt.Sprint(":", n.ListeningPort))
+}
+
 // TODO A way to report failed listers?
-func listenForNetwork(n model.Network) {
+func listenForNetwork(n model.Network, ln net.Listener) {
 	var connsPerIP = make(map[string]int)
-	ln, err := net.Listen("tcp", fmt.Sprint(":", n.ListeningPort))
-	if err != nil {
-		// What to do, try to reconnect with exponential backoff, or
-		// let the user decide what to do?
-		log.Fatal(err)
-	}
 	// Add the network to the list of networks in use.
-	addNetworkChan <- n
+	addNetwork <- n
+	broadcaster := relay.GetBroadcaster(n)
 	for {
-		conn, err := ln.Accept()
+		conn, er := ln.Accept()
+		err := er.(net.Error)
 		if err != nil {
-			log.Println(err)
-			continue
+			if err.Temporary() {
+				log.Println(err)
+				continue
+			} else {
+				// TODO: Signal this listener has been closed
+				return
+			}
 		}
 
+		// Make sure that a given captioner has a way of being identified
 		key := conn.RemoteAddr().String()
 		if val, found := connsPerIP[key]; found {
 			connsPerIP[key] = (val + 1) % math.MaxInt32
@@ -151,19 +183,19 @@ func listenForNetwork(n model.Network) {
 			connsPerIP[key] = 1
 		}
 		val := connsPerIP[key]
-		go handleCaptioner(conn, n, val)
+		writer := makeMuteCell(&broadcaster, CaptionerID{
+			NumConn:   val,
+			IPAddr:    conn.RemoteAddr().String(),
+			NetworkID: NetworkID(n.ID),
+		})
+		go handleCaptioner(conn, writer)
 	}
 }
 
 // Basic demoable state.
-func handleCaptioner(c net.Conn, network model.Network, writer *MuteCell, numConn int) {
+func handleCaptioner(c net.Conn, writer *MuteCell) {
 	// Notify that we have a new listener
-	capInfo := CaptionerInfo{
-		numConn: numConn,
-		IPAddr:  c.RemoteAddr().String(),
-		network: network,
-	}
-	addListenerChan <- capInfo
+	// addListenerChan <-
 	// Keep a buffer of 1KiB per captioner
 	buf := make([]byte, 1024)
 	for {
@@ -171,7 +203,7 @@ func handleCaptioner(c net.Conn, network model.Network, writer *MuteCell, numCon
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
 			c.Close()
-			rmListenerChan <- capInfo
+			rmCaptioner <- *writer
 			log.Println(err.Error())
 			break
 		}
@@ -179,7 +211,8 @@ func handleCaptioner(c net.Conn, network model.Network, writer *MuteCell, numCon
 		// byte slice doesn't get changed under the encoder sending
 		// it out.
 		message := make([]byte, n)
-		copy(message, bug[0:n])
+		copy(message, buf[0:n])
+		writer.Write(message)
 		// Send any recieved bytes to the relay server
 	}
 	log.Printf("Connection from %v closed.", c.RemoteAddr())
