@@ -1,0 +1,48 @@
+{
+	"cars": [{
+		"make": "Honda",
+		"model": "Civic SI",
+		"price": 30000.0,
+		"year": 2016
+	}, {
+		"make": "BMW",
+		"model": "M4",
+		"price": 85000.0,
+		"year": 2017
+	}, {
+		"make": "Honda",
+		"model": "S2000",
+		"price": 20000.0,
+		"year": 2001
+	}, {
+		"make": "Nissan",
+		"model": "Xterra",
+		"price": 5000.0,
+		"year": 2005
+	}, {
+		"make": "Nissan",
+		"model": "GTR",
+		"price": 85000.0,
+		"year": 2014
+	}, {
+		"make": "Kia",
+		"model": "Forte Koup",
+		"price": -15000.0,
+		"year": 2016
+	}, {
+		"make": "Geo",
+		"model": "Tracker",
+		"price": 425.0,
+		"year": 1998
+	}, {
+		"make": "Mclaren",
+		"model": "P1",
+		"price": 1600000.0,
+		"year": 2014
+	}, {
+		"make": "Porsche",
+		"model": "911 GT3 RS",
+		"price": 200000.0,
+		"year": 2016
+	}]
+}
