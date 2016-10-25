@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -295,6 +296,24 @@ func generalNotFound(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func handleJohnEchoRoute(router *mux.Router) {
+	router.HandleFunc("/john/echo", func(writer http.ResponseWriter, request *http.Request) {
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		bytes, err := json.Marshal(request.Form)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		// fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, bytes)
+	}).Methods("POST")
+}
+
 func login(writer http.ResponseWriter, request *http.Request) {
 
 }
@@ -306,6 +325,7 @@ func addRoutes() {
 	handleDashboardPage(router)
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
+	handleJohnEchoRoute(router)
 	websocket.Start(router)
 
 	serveStaticFolder("/css/", router)
