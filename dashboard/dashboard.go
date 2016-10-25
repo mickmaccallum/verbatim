@@ -3,6 +3,7 @@ package dashboard
 import (
 	"net/http"
 
+	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	// "github.com/gorilla/csrf"
@@ -62,6 +63,10 @@ const (
 	// EncoderDisconnected Disconnected (default state)
 	EncoderDisconnected
 )
+
+func CaptionerStateChanged(captioner microphone.CaptionerStatus, state CaptionerState) {
+	notifyCaptionerStateChange(captioner, state)
+}
 
 // EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
 func EncoderStateChanged(encoder model.Encoder, state EncoderState) {
