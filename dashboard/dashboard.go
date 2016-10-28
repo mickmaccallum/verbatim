@@ -7,6 +7,7 @@ import (
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
 	// "github.com/gorilla/csrf"
+	// "github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
@@ -64,10 +65,12 @@ var relay RelayListener
 // Start starts the HTTP server
 func Start(l RelayListener) {
 	relay = l
+	// store.Codecs = securecookie.CodecsFromPairs(securecookie.GenerateRandomKey(32))
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400,
 		HttpOnly: true,
+		Secure:   true,
 	}
 
 	addRoutes()
