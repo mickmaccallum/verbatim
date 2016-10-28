@@ -6,6 +6,7 @@ import (
 	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/states"
 	// "github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
@@ -21,8 +22,31 @@ func init() {
 	}
 }
 
+// Functions for communicating with the relay server
+type RelayListener interface {
+	// Add network to database and relay-based servers
+	AddNetwork(n model.Network)
+	// Remove a network and *all* of it's encoders from the
+	// database and traffic
+	RemoveNetwork(id model.NetworkID)
+	// Add encoder to it's network
+	AddEncoder(enc model.Encoder)
+	// Logout encoder
+	LogoutEncoder(id model.EncoderID)
+	// Remove encoder from database and from encoder
+	DeleteEncoder(id model.EncoderID)
+
+	// Mute a captioner to keep them from being able to
+	// send data to the encoders
+	MuteCaptioner(id model.CaptionerID)
+	UnmuteCaptioner(id model.CaptionerID)
+}
+
+var relay RelayListener
+
 // Start starts the HTTP server
-func Start() {
+func Start(l RelayListener) {
+	relay = l
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400,
@@ -40,36 +64,17 @@ func Start() {
 	}
 }
 
-// CaptionerState CaptionerState
-type CaptionerState int
-
-const (
-	// CaptionerConnected connected
-	CaptionerConnected CaptionerState = iota
-)
-
-// EncoderState EncoderState
-type EncoderState int
-
-const (
-	// EncoderConnected Connected
-	EncoderConnected EncoderState = iota
-	// EncoderConnecting not connected yet...
-	EncoderConnecting
-	// EncoderAuthFailure wrong credentials...
-	EncoderAuthFailure
-	// EncoderFaulted write failures happening, backing off.
-	EncoderFaulted
-	// EncoderDisconnected Disconnected (default state)
-	EncoderDisconnected
-)
+// Port listener state changed
+func NetworkPortStateChanged(network model.Network, state states.Network) {
+	// TODO: Fill this out
+}
 
 // CaptionerStateChanged lint
-func CaptionerStateChanged(captioner microphone.CaptionerStatus, state CaptionerState) {
+func CaptionerStateChanged(captioner microphone.CaptionerStatus, state states.Captioner) {
 	notifyCaptionerStateChange(captioner, state)
 }
 
 // EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
-func EncoderStateChanged(encoder model.Encoder, state EncoderState) {
+func EncoderStateChanged(encoder model.Encoder, state states.Encoder) {
 	notifyEncoderStateChange(encoder, state)
 }

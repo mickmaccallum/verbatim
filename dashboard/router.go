@@ -155,7 +155,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoder.ID = *id
+		encoder.ID = model.EncoderID(*id)
 		err = persist.UpdateEncoder(*encoder)
 		if err != nil {
 			serverError(writer, err)

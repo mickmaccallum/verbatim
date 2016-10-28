@@ -7,9 +7,11 @@ import (
 	"strconv"
 )
 
+type EncoderID int
+
 // Encoder represents a single downstream encoder for a given network
 type Encoder struct {
-	ID        int
+	ID        EncoderID
 	IPAddress string
 	Port      int
 	Name      sql.NullString

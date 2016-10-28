@@ -5,7 +5,11 @@ import (
 	"log"
 	"net"
 
+	"github.com/0x7fffffff/verbatim/dashboard"
+	"github.com/0x7fffffff/verbatim/megaphone"
+	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
+
 	// Lint
 	_ "os"
 	"sync"
@@ -64,6 +68,9 @@ func doBackendScheduledConnectAndDisconnect() {
 
 // Start I'm a stub.
 func Start() {
+	go dashboard.Start(nil)
+	go microphone.Start(nil)
+	go megaphone.Start(nil)
 
 }
 
