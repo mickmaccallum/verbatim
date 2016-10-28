@@ -39,6 +39,52 @@ func handleLogin(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		handles := request.Form["handle"]
+		passwords := request.Form["password"]
+		log.Println(handles)
+		log.Println(passwords)
+
+		if len(handles) != 1 || len(passwords) != 1 {
+			clientError(writer, errors.New("Malformed Credentials"))
+			return
+		}
+
+		handle := handles[0]
+		password := passwords[0]
+
+		_, err := persist.GetAdminForCredentials(handle, password)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusUnprocessableEntity)
+			return
+		}
+
+		session, err := store.Get(request, handle)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		session.Save(request, writer)
+		writer.WriteHeader(http.StatusOK)
+
+		// // Get a session. We're ignoring the error resulted from decoding an
+		// // existing session: Get() always returns a session, even if empty.
+		// session, err := store.Get(r, "session-name")
+		// if err != nil {
+		//     http.Error(w, err.Error(), http.StatusInternalServerError)
+		//     return
+		// }
+
+		// // Set some session values.
+		// session.Values["foo"] = "bar"
+		// session.Values[42] = 43
+		// // Save it before we write to the response/return from the handler.
+		// session.Save(r, w)
 
 	}).Methods("POST")
 }
@@ -116,7 +162,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		http.Error(writer, "Encoder Updated", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
 	// Delete Encoder
@@ -253,9 +299,7 @@ func handleDashboardPage(router *mux.Router) {
 		network, err := persist.GetNetwork(*networkID)
 		log.Println(network)
 		log.Println(err)
-
-		// http.Error(writer, err.Error(), http.StatusBadRequest)
-		http.Error(writer, "", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
 	// Delete Network
