@@ -7,7 +7,6 @@ import (
 	"github.com/0x7fffffff/verbatim/megaphone"
 	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
-	"github.com/0x7fffffff/verbatim/states"
 )
 
 // ActivityType The type of a given activity
