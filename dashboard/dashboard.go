@@ -15,7 +15,13 @@ var store *sqlitestore.SqliteStore
 
 func init() {
 	var err error
-	store, err = sqlitestore.NewSqliteStoreFromConnection(persist.DB, "session", "/", 86400, []byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+	store, err = sqlitestore.NewSqliteStoreFromConnection(
+		persist.DB,
+		"session",
+		"/",
+		86400,
+		[]byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+
 	if err != nil {
 		panic(err)
 	}
