@@ -1,6 +1,8 @@
 package dashboard
 
 import (
+	// "crypto/sha512"
+	// "encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,8 +48,6 @@ func handleLogin(router *mux.Router) {
 
 		handles := request.Form["handle"]
 		passwords := request.Form["password"]
-		log.Println(handles)
-		log.Println(passwords)
 
 		if len(handles) != 1 || len(passwords) != 1 {
 			clientError(writer, errors.New("Malformed Credentials"))
@@ -63,11 +63,20 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
-		session, err := store.Get(request, handle)
-		if err != nil {
-			serverError(writer, err)
-			return
-		}
+		// hasher := sha512.New()
+		// _, err = hasher.Write([]byte(handle))
+		// if err != nil {
+		// 	serverError(writer, errors.New("Internal Server Error"))
+		// 	return
+		// }
+
+		// checksum := hasher.Sum(nil)
+		// cookie := base64.URLEncoding.EncodeToString(checksum)
+		// session, err := store.Get(request, cookie)
+		// if err != nil {
+		// 	serverError(writer, err)
+		// 	return
+		// }
 
 		session.Save(request, writer)
 		writer.WriteHeader(http.StatusOK)
