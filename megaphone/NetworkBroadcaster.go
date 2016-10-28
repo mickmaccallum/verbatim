@@ -1,6 +1,7 @@
 package megaphone
 
 import (
+	"github.com/0x7fffffff/verbatim/model"
 	"time"
 )
 
@@ -12,37 +13,37 @@ const (
 )
 
 type encoderChan struct {
-	id      EncoderID
+	id      model.EncoderID
 	channel chan []byte
 }
 
 type encoderIdPair struct {
-	network NetworkID
-	encoder EncoderID
+	network model.NetworkID
+	encoder model.EncoderID
 }
 
 type NetworkBroadcaster struct {
-	id             NetworkID
+	id             model.NetworkID
 	writeChan      chan []byte
 	encoderExisted chan bool
 	addEncoder     chan encoderChan
-	rmEncoder      chan EncoderID
-	faultedEncoder chan EncoderID
+	rmEncoder      chan model.EncoderID
+	faultedEncoder chan model.EncoderID
 	restartEncoder chan encoderIdPair
 	die            chan struct{}
-	encoders       map[EncoderID]chan []byte
+	encoders       map[model.EncoderID]chan []byte
 }
 
-func makeBroadcaster(n NetworkID, restartEncoder chan encoderIdPair) *NetworkBroadcaster {
+func makeBroadcaster(n model.NetworkID, restartEncoder chan encoderIdPair) *NetworkBroadcaster {
 	return &NetworkBroadcaster{
 		id:             n,
 		writeChan:      make(chan []byte, 10),
 		encoderExisted: make(chan bool),
 		addEncoder:     make(chan encoderChan),
-		rmEncoder:      make(chan EncoderID),
-		encoders:       make(map[EncoderID]chan []byte),
+		rmEncoder:      make(chan model.EncoderID),
+		encoders:       make(map[model.EncoderID]chan []byte),
 		die:            make(chan struct{}),
-		faultedEncoder: make(chan EncoderID),
+		faultedEncoder: make(chan model.EncoderID),
 		restartEncoder: restartEncoder,
 	}
 }
@@ -52,12 +53,12 @@ func (n NetworkBroadcaster) Write(buf []byte) {
 	n.writeChan <- buf
 }
 
-func (n NetworkBroadcaster) removeEncoder(id EncoderID) {
+func (n NetworkBroadcaster) removeEncoder(id model.EncoderID) {
 	n.rmEncoder <- id
 }
 
 // If it returns true, the encoder was added, otherwise it was already running
-func (n NetworkBroadcaster) registerEncoderChan(id EncoderID, dest chan []byte) AddEncoderResult {
+func (n NetworkBroadcaster) registerEncoderChan(id model.EncoderID, dest chan []byte) AddEncoderResult {
 	n.addEncoder <- encoderChan{id, dest}
 	if <-n.encoderExisted {
 		return encoderDidExist

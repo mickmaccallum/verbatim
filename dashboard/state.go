@@ -1,12 +1,12 @@
 package dashboard
 
 import (
-	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
+	"github.com/0x7fffffff/verbatim/states"
 	"github.com/0x7fffffff/verbatim/websocket"
 )
 
-func notifyCaptionerStateChange(captioner microphone.CaptionerStatus, state CaptionerState) {
+func notifyCaptionerStateChange(captioner model.CaptionerID, state states.Captioner) {
 	message := websocket.SocketMessage{
 		Payload: map[websocket.NotificationType]interface{}{
 			websocket.CaptionerState: map[string]interface{}{
@@ -19,7 +19,7 @@ func notifyCaptionerStateChange(captioner microphone.CaptionerStatus, state Capt
 	message.Send()
 }
 
-func notifyEncoderStateChange(encoder model.Encoder, state EncoderState) {
+func notifyEncoderStateChange(encoder model.Encoder, state states.Encoder) {
 	message := websocket.SocketMessage{
 		Payload: map[websocket.NotificationType]interface{}{
 			websocket.EncoderState: map[string]interface{}{
