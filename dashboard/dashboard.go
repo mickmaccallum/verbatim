@@ -64,6 +64,7 @@ const (
 	EncoderDisconnected
 )
 
+// CaptionerStateChanged lint
 func CaptionerStateChanged(captioner microphone.CaptionerStatus, state CaptionerState) {
 	notifyCaptionerStateChange(captioner, state)
 }
