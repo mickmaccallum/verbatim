@@ -331,6 +331,7 @@ func addRoutes() {
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
 	serveStaticFolder("/fonts/", router)
+	serveStaticFolder("/json/", router)
 
 	router.NotFoundHandler = http.HandlerFunc(generalNotFound)
 	http.Handle("/", router)
