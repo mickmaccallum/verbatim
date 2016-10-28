@@ -40,17 +40,17 @@ type Network int
 
 const (
 	// Network is in the process of connecting to a port
-	Connecting Network = iota
+	NetworkConnecting Network = iota
 
 	// Network has successfully connected to a port
-	Listening
+	NetworkListening
 
 	// Network failed to listen on a port
-	Failed
+	NetworkListenFailed
 
 	// Network was told to stop listening
-	Closed
+	NetworkClosed
 
 	// Network was deleted
-	Deleted
+	NetworkDeleted
 )

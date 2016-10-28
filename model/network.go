@@ -21,7 +21,7 @@ func (c CaptionerID) String() string {
 
 // Network represents a downstream network
 type Network struct {
-	ID            int
+	ID            NetworkID
 	ListeningPort int
 	Name          string
 }

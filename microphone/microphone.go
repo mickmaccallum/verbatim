@@ -43,7 +43,7 @@ type RelayListener interface {
 	Unmuted(ci model.CaptionerID)
 
 	// Ask the relay server for a network writer
-	GetBroadcaster(network model.Network) megaphone.NetworkBroadcaster
+	GetBroadcaster(network model.Network) *megaphone.NetworkBroadcaster
 }
 
 // This is our reference to the delegate methods from the relay server
@@ -137,8 +137,13 @@ func maintainListenerState() {
 			listeners[model.CaptionerID(cl.cell.id)] = cl
 			if arr, found := listenersByNetwork[model.NetworkID(cl.NetId)]; found {
 				arr = append(arr, cl)
+				if len(arr) == 1 {
+					cl.cell.Unmute()
+					relay.Unmuted(cl.cell.id)
+				}
 			} else {
 				arr = []CaptionListener{cl}
+				cl.cell.Unmute()
 			}
 			relay.Connected(cl.cell.id)
 		case rmId := <-rmCaptioner:
@@ -146,6 +151,10 @@ func maintainListenerState() {
 				cl.cell.Mute()
 				cl.conn.Close()
 				relay.Disconnected(rmId)
+				if arr, found := listenersByNetwork[cl.NetId]; found && len(arr) == 1 {
+					// Make sure the remaining captioner is unmuted
+					arr[0].cell.Unmute()
+				}
 			}
 		case rmId := <-rmNetwork:
 			if network, found := networks[rmId]; found {
@@ -206,7 +215,7 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 			connsPerIP[key] = 1
 		}
 		val := connsPerIP[key]
-		writer := makeMuteCell(&broadcaster, model.CaptionerID{
+		writer := makeMuteCell(broadcaster, model.CaptionerID{
 			NumConn:   val,
 			IPAddr:    conn.RemoteAddr().String(),
 			NetworkID: model.NetworkID(n.ID),

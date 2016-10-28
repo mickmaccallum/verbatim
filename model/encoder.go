@@ -17,7 +17,7 @@ type Encoder struct {
 	Name      sql.NullString
 	Handle    string
 	Password  string
-	NetworkID int
+	NetworkID NetworkID
 }
 
 // FormValuesToEncoder validates that an Encoder can be created
@@ -74,7 +74,7 @@ func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 		Name:      sql.NullString{String: name, Valid: true},
 		Handle:    handle,
 		Password:  password,
-		NetworkID: networkID,
+		NetworkID: NetworkID(networkID),
 	}
 
 	return &encoder, nil

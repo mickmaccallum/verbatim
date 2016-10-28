@@ -3,7 +3,6 @@ package dashboard
 import (
 	"net/http"
 
-	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
@@ -26,20 +25,29 @@ func init() {
 type RelayListener interface {
 	// Add network to database and relay-based servers
 	AddNetwork(n model.Network)
+
 	// Remove a network and *all* of it's encoders from the
 	// database and traffic
 	RemoveNetwork(id model.NetworkID)
+
 	// Add encoder to it's network
 	AddEncoder(enc model.Encoder)
+
 	// Logout encoder
 	LogoutEncoder(id model.EncoderID)
+
 	// Remove encoder from database and from encoder
 	DeleteEncoder(id model.EncoderID)
 
 	// Mute a captioner to keep them from being able to
 	// send data to the encoders
 	MuteCaptioner(id model.CaptionerID)
+
+	// Unmute a captioner, allowing them to send data to encoders
 	UnmuteCaptioner(id model.CaptionerID)
+
+	// Remove a captioner, forcibly disconnecting them
+	RemoveCaptioner(id model.CaptionerID)
 }
 
 var relay RelayListener
@@ -70,7 +78,7 @@ func NetworkPortStateChanged(network model.Network, state states.Network) {
 }
 
 // CaptionerStateChanged lint
-func CaptionerStateChanged(captioner microphone.CaptionerStatus, state states.Captioner) {
+func CaptionerStateChanged(captioner model.CaptionerID, state states.Captioner) {
 	notifyCaptionerStateChange(captioner, state)
 }
 

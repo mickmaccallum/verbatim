@@ -54,7 +54,7 @@ func EncoderToJSON(encoder model.Encoder) ([]byte, error) {
 		Name      string
 		Handle    string
 		Password  string
-		NetworkID int
+		NetworkID model.NetworkID
 	}{
 		encoder.ID,
 		encoder.IPAddress,

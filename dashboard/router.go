@@ -119,7 +119,7 @@ func handleNetworksPage(router *mux.Router) {
 		}
 
 		var network *model.Network
-		network, err = persist.GetNetwork(encoder.NetworkID)
+		network, err = persist.GetNetwork(int(encoder.NetworkID))
 		if err != nil {
 			clientError(writer, err)
 			return

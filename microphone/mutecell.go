@@ -15,7 +15,7 @@ type MuteCell struct {
 
 func makeMuteCell(b *megaphone.NetworkBroadcaster, id model.CaptionerID) *MuteCell {
 	return &MuteCell{
-		isMute:      false,
+		isMute:      true,
 		cellMux:     &sync.Mutex{},
 		broadcaster: b,
 		id:          id,
