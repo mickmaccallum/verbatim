@@ -34,17 +34,20 @@ type CaptionerStatus struct {
 // These are the events that the server using this will be notified of
 type RelayListener interface {
 
-	// When a captioner connects
-	Connected(ci CaptionerID)
-
-	// Report that a captioner has been disconnected
-	Disconnected(ci CaptionerID)
-
 	// Report that a given network was unable to listen to a given port
 	NetworkListenFailed(network model.Network)
 
 	// Report that the server for the network was able to listen
 	NetworkListenSucceeded(network model.Network)
+
+	// Network disconnected
+	NetworkRemoved(network NetworkID)
+
+	// When a captioner connects
+	Connected(ci CaptionerID)
+
+	// Report that a captioner has been disconnected
+	Disconnected(ci CaptionerID)
 
 	// Report that a captioner has been successfully muted
 	Muted(ci CaptionerID)
@@ -158,7 +161,7 @@ func maintainListenerState() {
 				relay.Disconnected(rmId)
 			}
 		case rmId := <-rmNetwork:
-			if network, found := networks[NetworkID(rmId)]; found {
+			if network, found := networks[rmId]; found {
 				// Tear down all the caption side stuff when a network is to be removed
 				// Keep from getting new connections
 				network.listener.Close()
@@ -170,6 +173,7 @@ func maintainListenerState() {
 					captioner.conn.Close()
 				}
 				delete(listenersByNetwork, rmId)
+				relay.NetworkRemoved(rmId)
 			}
 		case muteId := <-muteCaptioner:
 			if cl, found := listeners[muteId]; found {
