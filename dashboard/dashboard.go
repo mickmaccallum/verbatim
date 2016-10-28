@@ -22,6 +22,9 @@ func init() {
 }
 
 // Functions for communicating with the relay server
+// Recommend firing off these calls in a goroutine
+// as they will return their results asyncrounsly.
+// so that you don't have to keep them around
 type RelayListener interface {
 	// Add network to database and relay-based servers
 	AddNetwork(n model.Network)
@@ -34,10 +37,10 @@ type RelayListener interface {
 	AddEncoder(enc model.Encoder)
 
 	// Logout encoder
-	LogoutEncoder(id model.EncoderID)
+	LogoutEncoder(id model.Encoder)
 
 	// Remove encoder from database and from encoder
-	DeleteEncoder(id model.EncoderID)
+	DeleteEncoder(id model.Encoder)
 
 	// Mute a captioner to keep them from being able to
 	// send data to the encoders

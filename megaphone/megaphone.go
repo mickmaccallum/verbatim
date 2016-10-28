@@ -21,6 +21,11 @@ func netId(n model.Network) model.NetworkID {
 }
 
 type MegaphoneListener interface {
+	// Notify that the network has been added to the megaphone
+	// NetworkAdded(net model.Network)
+	// Notify that the network has been removed, along with all it's effects, from the megaphone
+	// NetworkRemoved(net model.NetworkID)
+
 	// Logged into encoder properly
 	LoginSucceeded(enc model.Encoder)
 	// Logged into encoder properly
@@ -35,7 +40,7 @@ func NotifyNetworkAdded(n model.Network) {
 	networkAdded <- n
 }
 
-func NotifyNetworkRemoved(n model.Network) {
+func NotifyNetworkRemoved(n model.NetworkID) {
 	networkRemoved <- n
 }
 
@@ -51,17 +56,17 @@ func NotifyEncoderLogout(enc model.Encoder) {
 	encoderRemoved <- enc
 }
 
-var l MegaphoneListener
+var relay MegaphoneListener
 
 func Start(ml MegaphoneListener) error {
-	l = ml
+	relay = ml
 	return setupEncoders()
 }
 
 // Crud notifications
 var (
 	networkAdded   = make(chan model.Network, 10)
-	networkRemoved = make(chan model.Network, 10)
+	networkRemoved = make(chan model.NetworkID, 10)
 	encoderRemoved = make(chan model.Encoder, 10)
 	encoderAdded   = make(chan model.Encoder, 10)
 	encoderLogout  = make(chan model.Encoder, 10)
@@ -119,9 +124,10 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 				go b.serveConnection()
 			}
 		case killNet := <-networkRemoved:
-			if b, found := broadcasters[model.NetworkID(killNet.ID)]; found {
+			if b, found := broadcasters[killNet]; found {
 				b.destroy()
-				delete(broadcasters, model.NetworkID(killNet.ID))
+				delete(broadcasters, killNet)
+
 			}
 
 		case enc := <-encoderRemoved:
@@ -204,11 +210,11 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 		n.removeEncoder(encId(enc))
 		// And then notify that login failed for the encoder
 		// Allowing the user to try to relogin
-		l.LoginFailed(enc)
+		relay.LoginFailed(enc)
 		conn.Close()
 		return
 	}
-	l.LoginSucceeded(enc)
+	relay.LoginSucceeded(enc)
 	for {
 		select {
 
@@ -221,13 +227,13 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					// Signal to the broadcaster that we have an error
 					// and will need to be restarted
 					// Try to restart
-					l.UnexpectedDisconnect(enc)
+					relay.UnexpectedDisconnect(enc)
 					n.faultedEncoder <- encId(enc)
 					return
 				}
 			} else {
 				conn.Close()
-				l.Logout(enc)
+				relay.Logout(enc)
 				//
 				return
 			}
