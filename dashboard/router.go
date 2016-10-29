@@ -91,6 +91,17 @@ func handleLogin(router *mux.Router) {
 
 		http.Redirect(writer, request, "/", http.StatusSeeOther)
 	}).Methods("POST")
+
+	router.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
+		defer redirectLogin(writer, request)
+
+		session, err := store.Get(request, "session")
+		if err != nil {
+			return
+		}
+
+		_ = store.Delete(request, writer, session)
+	}).Methods("POST")
 }
 
 func handleCaptionersPage(router *mux.Router) {
