@@ -63,7 +63,7 @@ func handleLogin(router *mux.Router) {
 		passwords := request.Form["password"]
 
 		if len(handles) != 1 || len(passwords) != 1 {
-			clientError(writer, errors.New("Malformed Credentials"))
+			redirectLogin(writer, request)
 			return
 		}
 
@@ -72,42 +72,24 @@ func handleLogin(router *mux.Router) {
 
 		_, err := persist.GetAdminForCredentials(handle, password)
 		if err != nil {
-			http.Error(writer, err.Error(), http.StatusUnprocessableEntity)
+			redirectLogin(writer, request)
 			return
 		}
 
-		// hasher := sha512.New()
-		// _, err = hasher.Write([]byte(handle))
-		// if err != nil {
-		// 	serverError(writer, errors.New("Internal Server Error"))
-		// 	return
-		// }
+		session, err := store.Get(request, "session")
+		if err != nil {
+			redirectLogin(writer, request)
+			return
+		}
 
-		// checksum := hasher.Sum(nil)
-		// cookie := base64.URLEncoding.EncodeToString(checksum)
-		// session, err := store.Get(request, cookie)
-		// if err != nil {
-		// 	serverError(writer, err)
-		// 	return
-		// }
+		log.Println(session.IsNew)
 
-		session.Save(request, writer)
-		writer.WriteHeader(http.StatusOK)
+		if err = session.Save(request, writer); err != nil {
+			redirectLogin(writer, request)
+			return
+		}
 
-		// // Get a session. We're ignoring the error resulted from decoding an
-		// // existing session: Get() always returns a session, even if empty.
-		// session, err := store.Get(r, "session-name")
-		// if err != nil {
-		//     http.Error(w, err.Error(), http.StatusInternalServerError)
-		//     return
-		// }
-
-		// // Set some session values.
-		// session.Values["foo"] = "bar"
-		// session.Values[42] = 43
-		// // Save it before we write to the response/return from the handler.
-		// session.Save(r, w)
-
+		http.Redirect(writer, request, "/", http.StatusSeeOther)
 	}).Methods("POST")
 }
 
