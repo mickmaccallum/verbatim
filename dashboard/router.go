@@ -30,6 +30,19 @@ func templateOnBase(path string) *template.Template {
 	))
 }
 
+func checkSessionValidity(request *http.Request) bool {
+	session, err := store.Get(request, "session")
+	if err != nil {
+		return false
+	}
+
+	return !session.IsNew
+}
+
+func redirectLogin(writer http.ResponseWriter, request *http.Request) {
+	http.Redirect(writer, request, "/login", http.StatusSeeOther)
+}
+
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := struct{}{}
