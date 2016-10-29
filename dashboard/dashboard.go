@@ -63,11 +63,9 @@ type RelayListener interface {
 var relay RelayListener
 
 // Start starts the HTTP server
-func Start(l *RelayListener) {
-	// TODO: Remove pointer here.
-	if l != nil {
-		relay = *l
-	}
+func Start(l RelayListener) {
+	relay = l
+
 	// store.Codecs = securecookie.CodecsFromPairs(securecookie.GenerateRandomKey(32))
 	store.Options = &sessions.Options{
 		Path:     "/",
