@@ -113,6 +113,11 @@ func handleLogin(router *mux.Router) {
 
 func handleCaptionersPage(router *mux.Router) {
 	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
 		data := struct {
 			// Networks []persist.Network
 		}{
@@ -129,6 +134,11 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -164,6 +174,10 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Update Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		id := identifierFromRequest("encoder_id", request)
 		if id == nil {
@@ -189,6 +203,10 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Delete Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		id := identifierFromRequest("encoder_id", request)
 		if id == nil {
@@ -213,6 +231,10 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
 
 		id := identifierFromRequest("network_id", request)
 		if id == nil {
@@ -261,6 +283,11 @@ func handleNetworksPage(router *mux.Router) {
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
 		networks, err := persist.GetNetworks()
 
 		if err != nil {
@@ -284,6 +311,11 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Add Network
 	router.HandleFunc("/network/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -312,6 +344,11 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		networkID := identifierFromRequest("id", request)
 		if networkID == nil {
 			clientError(writer, errors.New("Invalid Network ID"))
@@ -326,6 +363,10 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Delete Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		networkID := identifierFromRequest("id", request)
 		if networkID == nil {
