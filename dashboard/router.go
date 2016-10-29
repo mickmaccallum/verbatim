@@ -407,7 +407,7 @@ func login(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func addRoutes() {
+func addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
 	handleLogin(router)
@@ -424,6 +424,8 @@ func addRoutes() {
 
 	router.NotFoundHandler = http.HandlerFunc(generalNotFound)
 	http.Handle("/", router)
+
+	return router
 }
 
 func serveStaticFolder(folder string, router *mux.Router) {
