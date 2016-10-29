@@ -19,8 +19,7 @@ func NotifyPortAdded(portNum int, n model.Network) {
 
 // Start I'm a stub.
 func Start() {
-	go dashboard.Start(nil)
-	go microphone.Start(micListener{})
 	go megaphone.Start(encoderListener{})
-
+	go microphone.Start(micListener{})
+	dashboard.Start(dashboardListener{})
 }
