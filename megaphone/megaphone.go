@@ -211,7 +211,7 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 		// And then notify that login failed for the encoder
 		// Allowing the user to try to relogin
 		relay.LoginFailed(enc)
-		conn.Close()
+		// conn.Close()
 		return
 	}
 	relay.LoginSucceeded(enc)
