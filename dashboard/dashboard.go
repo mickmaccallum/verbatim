@@ -28,7 +28,7 @@ func init() {
 	}
 }
 
-// Functions for communicating with the relay server
+// RelayListener Functions for communicating with the relay server
 // Recommend firing off these calls in a goroutine
 // as they will return their results asyncrounsly.
 // so that you don't have to keep them around
@@ -87,7 +87,7 @@ func Start(l *RelayListener) {
 	}
 }
 
-// Port listener state changed
+// NetworkPortStateChanged Port listener state changed
 func NetworkPortStateChanged(network model.Network, state states.Network) {
 	// TODO: Fill this out
 }
