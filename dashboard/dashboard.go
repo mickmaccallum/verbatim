@@ -28,7 +28,7 @@ func init() {
 	}
 }
 
-// Functions for communicating with the relay server
+// RelayListener Functions for communicating with the relay server
 // Recommend firing off these calls in a goroutine
 // as they will return their results asyncrounsly.
 // so that you don't have to keep them around
@@ -63,8 +63,11 @@ type RelayListener interface {
 var relay RelayListener
 
 // Start starts the HTTP server
-func Start(l RelayListener) {
-	relay = l
+func Start(l *RelayListener) {
+	// TODO: Remove pointer here.
+	if l != nil {
+		relay = *l
+	}
 	// store.Codecs = securecookie.CodecsFromPairs(securecookie.GenerateRandomKey(32))
 	store.Options = &sessions.Options{
 		Path:     "/",
@@ -73,7 +76,7 @@ func Start(l RelayListener) {
 		Secure:   true,
 	}
 
-	addRoutes()
+	_ = addRoutes()
 
 	// Switch these lines for production
 	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
@@ -84,7 +87,7 @@ func Start(l RelayListener) {
 	}
 }
 
-// Port listener state changed
+// NetworkPortStateChanged Port listener state changed
 func NetworkPortStateChanged(network model.Network, state states.Network) {
 	// TODO: Fill this out
 }
