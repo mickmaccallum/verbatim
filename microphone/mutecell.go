@@ -2,19 +2,20 @@ package microphone
 
 import (
 	"github.com/0x7fffffff/verbatim/megaphone"
+	"github.com/0x7fffffff/verbatim/model"
 	"sync"
 )
 
 type MuteCell struct {
-	id          CaptionerID
+	id          model.CaptionerID
 	isMute      bool
 	cellMux     *sync.Mutex
 	broadcaster *megaphone.NetworkBroadcaster
 }
 
-func makeMuteCell(b *megaphone.NetworkBroadcaster, id CaptionerID) *MuteCell {
+func makeMuteCell(b *megaphone.NetworkBroadcaster, id model.CaptionerID) *MuteCell {
 	return &MuteCell{
-		isMute:      false,
+		isMute:      true,
 		cellMux:     &sync.Mutex{},
 		broadcaster: b,
 		id:          id,

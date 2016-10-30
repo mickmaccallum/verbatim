@@ -13,6 +13,7 @@ import (
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
 func templateOnBase(path string) *template.Template {
@@ -28,6 +29,67 @@ func templateOnBase(path string) *template.Template {
 	))
 }
 
+func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
+	someID, ok := session.Values["admin"]
+	if !ok {
+		return nil, errors.New("Invalid Session")
+	}
+
+	id, ok := someID.(int)
+	if !ok {
+		return nil, errors.New("Invalid Session")
+	}
+
+	return persist.GetAdminForID(id)
+}
+
+func checkSessionValidity(request *http.Request) bool {
+	session, err := store.Get(request, "session")
+	if err != nil {
+		return false
+	}
+
+	return !session.IsNew
+}
+
+func redirectLogin(writer http.ResponseWriter, request *http.Request) {
+	http.Redirect(writer, request, "/login", http.StatusSeeOther)
+}
+
+func handleAccounts(router *mux.Router) {
+	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
+		session, err := store.Get(request, "session")
+		if err != nil {
+			redirectLogin(writer, request)
+			return
+		}
+
+		admin, err := fetchAdminForSession(session)
+		if err != nil {
+			clientError(writer, err)
+		}
+		data := struct {
+			Admin model.Admin
+		}{
+			*admin,
+		}
+
+		template := templateOnBase("templates/_account.html")
+		if err := template.Execute(writer, data); err != nil {
+			serverError(writer, err)
+		}
+	}).Methods("GET")
+
+	router.HandleFunc("", func(writer http.ResponseWriter, request *http.Request) {
+
+	})
+}
+
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := struct{}{}
@@ -39,12 +101,63 @@ func handleLogin(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
 
+		handles := request.Form["handle"]
+		passwords := request.Form["password"]
+
+		if len(handles) != 1 || len(passwords) != 1 {
+			redirectLogin(writer, request)
+			return
+		}
+
+		handle := handles[0]
+		password := passwords[0]
+
+		admin, err := persist.GetAdminForCredentials(handle, password)
+		if err != nil {
+			redirectLogin(writer, request)
+			return
+		}
+
+		session, err := store.Get(request, "session")
+		if err != nil {
+			redirectLogin(writer, request)
+			return
+		}
+
+		session.Values["admin"] = admin.ID
+
+		if err = session.Save(request, writer); err != nil {
+			redirectLogin(writer, request)
+			return
+		}
+
+		http.Redirect(writer, request, "/", http.StatusSeeOther)
+	}).Methods("POST")
+
+	router.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
+		defer redirectLogin(writer, request)
+
+		session, err := store.Get(request, "session")
+		if err != nil {
+			return
+		}
+
+		_ = store.Delete(request, writer, session)
 	}).Methods("POST")
 }
 
 func handleCaptionersPage(router *mux.Router) {
 	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
 		data := struct {
 			// Networks []persist.Network
 		}{
@@ -61,6 +174,11 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -73,7 +191,7 @@ func handleNetworksPage(router *mux.Router) {
 		}
 
 		var network *model.Network
-		network, err = persist.GetNetwork(encoder.NetworkID)
+		network, err = persist.GetNetwork(int(encoder.NetworkID))
 		if err != nil {
 			clientError(writer, err)
 			return
@@ -85,17 +203,23 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddEncoder(*newEncoder)
+
 		bytes, err := persist.EncoderToJSON(*newEncoder)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		id := identifierFromRequest("encoder_id", request)
 		if id == nil {
@@ -109,18 +233,22 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoder.ID = *id
+		encoder.ID = model.EncoderID(*id)
 		err = persist.UpdateEncoder(*encoder)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
-		http.Error(writer, "Encoder Updated", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
 	// Delete Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		id := identifierFromRequest("encoder_id", request)
 		if id == nil {
@@ -140,11 +268,17 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		relay.DeleteEncoder(*encoder)
+
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
 
 		id := identifierFromRequest("network_id", request)
 		if id == nil {
@@ -193,6 +327,11 @@ func handleNetworksPage(router *mux.Router) {
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
 		networks, err := persist.GetNetworks()
 
 		if err != nil {
@@ -216,6 +355,11 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Add Network
 	router.HandleFunc("/network/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -233,17 +377,24 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddNetwork(*newNetwork)
+
 		bytes, err := persist.NetworkToJSON(*newNetwork)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		networkID := identifierFromRequest("id", request)
 		if networkID == nil {
 			clientError(writer, errors.New("Invalid Network ID"))
@@ -253,13 +404,15 @@ func handleDashboardPage(router *mux.Router) {
 		network, err := persist.GetNetwork(*networkID)
 		log.Println(network)
 		log.Println(err)
-
-		// http.Error(writer, err.Error(), http.StatusBadRequest)
-		http.Error(writer, "", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
 	// Delete Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		networkID := identifierFromRequest("id", request)
 		if networkID == nil {
@@ -279,7 +432,8 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		http.Error(writer, "Deleted Network", http.StatusOK)
+		relay.RemoveNetwork(*network)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 }
 
@@ -309,16 +463,11 @@ func handleJohnEchoRoute(router *mux.Router) {
 			return
 		}
 
-		// fmt.Fprint(writer, template.JSStr(bytes))
-		fmt.Fprint(writer, bytes)
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 }
 
-func login(writer http.ResponseWriter, request *http.Request) {
-
-}
-
-func addRoutes() {
+func addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
 	handleLogin(router)
@@ -326,15 +475,19 @@ func addRoutes() {
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
 	handleJohnEchoRoute(router)
-	websocket.Start(router)
+	handleAccounts(router)
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
 	serveStaticFolder("/fonts/", router)
 	serveStaticFolder("/json/", router)
 
+	websocket.Start(router)
+
 	router.NotFoundHandler = http.HandlerFunc(generalNotFound)
 	http.Handle("/", router)
+
+	return router
 }
 
 func serveStaticFolder(folder string, router *mux.Router) {

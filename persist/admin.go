@@ -1,0 +1,61 @@
+package persist
+
+import (
+	"errors"
+	"github.com/0x7fffffff/verbatim/model"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// GetAdminForID Looks up an admin by their ID.
+func GetAdminForID(id int) (*model.Admin, error) {
+	query := `
+		SELECT id, handle, hashed_password
+		FROM admin
+		WHERE id = ?
+	`
+
+	row := DB.QueryRow(query, id)
+	if row == nil {
+		return nil, errors.New("Invalid Admin")
+	}
+
+	var admin model.Admin
+	if err := row.Scan(
+		&admin.ID,
+		&admin.Handle,
+		&admin.HashedPassword,
+	); err != nil {
+		return nil, errors.New("Invalid Admin")
+	}
+
+	return &admin, nil
+}
+
+// GetAdminForCredentials Looks up an admin by their login credentials.
+func GetAdminForCredentials(handle string, password string) (*model.Admin, error) {
+	query := `
+		SELECT id, handle, hashed_password
+		FROM admin
+		WHERE handle = ?
+	`
+
+	row := DB.QueryRow(query, handle)
+	if row == nil {
+		return nil, errors.New("Invalid Credentials")
+	}
+
+	var admin model.Admin
+	if err := row.Scan(
+		&admin.ID,
+		&admin.Handle,
+		&admin.HashedPassword,
+	); err != nil {
+		return nil, errors.New("Invalid Credentials")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.HashedPassword), []byte(password)); err != nil {
+		return nil, errors.New("Incorrect Password")
+	}
+
+	return &admin, nil
+}

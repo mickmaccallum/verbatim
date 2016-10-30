@@ -41,7 +41,6 @@ function autoStopWebSocket() {
   });
 };
 
-
 function recountEncoders() {
   var body = $('#encoder-selection-table > tbody');
   var count = body.children().length;
@@ -106,7 +105,7 @@ function addAddEncoderHandler() {
         if (addEncoder(encoder)) {
           recountEncoders();
         } else {
-
+          
         }
 
         $('#encoder-form-ip').val('');

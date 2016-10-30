@@ -3,10 +3,11 @@ package dashboard
 import (
 	"net/http"
 
-	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/states"
 	// "github.com/gorilla/csrf"
+	// "github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
@@ -15,21 +16,65 @@ var store *sqlitestore.SqliteStore
 
 func init() {
 	var err error
-	store, err = sqlitestore.NewSqliteStoreFromConnection(persist.DB, "session", "/", 86400, []byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+	store, err = sqlitestore.NewSqliteStoreFromConnection(
+		persist.DB,
+		"session",
+		"/",
+		86400,
+		[]byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+
 	if err != nil {
 		panic(err)
 	}
 }
 
+// RelayListener Functions for communicating with the relay server
+// Recommend firing off these calls in a goroutine
+// as they will return their results asyncrounsly.
+// so that you don't have to keep them around
+type RelayListener interface {
+	// Add network to database and relay-based servers
+	AddNetwork(n model.Network)
+
+	// Remove a network and *all* of it's encoders from the
+	// database and traffic
+	RemoveNetwork(id model.Network)
+
+	// Add encoder to it's network
+	AddEncoder(enc model.Encoder)
+
+	// Logout encoder
+	LogoutEncoder(id model.Encoder)
+
+	// Remove encoder from database and from encoder
+	DeleteEncoder(id model.Encoder)
+
+	// Mute a captioner to keep them from being able to
+	// send data to the encoders
+	MuteCaptioner(id model.CaptionerID)
+
+	// Unmute a captioner, allowing them to send data to encoders
+	UnmuteCaptioner(id model.CaptionerID)
+
+	// Remove a captioner, forcibly disconnecting them
+	RemoveCaptioner(id model.CaptionerID)
+}
+
+var relay RelayListener
+
 // Start starts the HTTP server
-func Start() {
+func Start(l RelayListener) {
+	relay = l
+
+	// store.Codecs = securecookie.CodecsFromPairs(securecookie.GenerateRandomKey(32))
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400,
 		HttpOnly: true,
+		Secure:   true,
 	}
 
-	addRoutes()
+	_ = addRoutes()
 
 	// Switch these lines for production
 	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
@@ -40,35 +85,17 @@ func Start() {
 	}
 }
 
-// CaptionerState CaptionerState
-type CaptionerState int
+// NetworkPortStateChanged Port listener state changed
+func NetworkPortStateChanged(network model.Network, state states.Network) {
+	// TODO: Fill this out
+}
 
-const (
-	// CaptionerConnected connected
-	CaptionerConnected CaptionerState = iota
-)
-
-// EncoderState EncoderState
-type EncoderState int
-
-const (
-	// EncoderConnected Connected
-	EncoderConnected EncoderState = iota
-	// EncoderConnecting not connected yet...
-	EncoderConnecting
-	// EncoderAuthFailure wrong credentials...
-	EncoderAuthFailure
-	// EncoderFaulted write failures happening, backing off.
-	EncoderFaulted
-	// EncoderDisconnected Disconnected (default state)
-	EncoderDisconnected
-)
-
-func CaptionerStateChanged(captioner microphone.CaptionerStatus, state CaptionerState) {
+// CaptionerStateChanged lint
+func CaptionerStateChanged(captioner model.CaptionerID, state states.Captioner) {
 	notifyCaptionerStateChange(captioner, state)
 }
 
 // EncoderStateChanged notify the dashboard that an encoder just changed to a new state.
-func EncoderStateChanged(encoder model.Encoder, state EncoderState) {
+func EncoderStateChanged(encoder model.Encoder, state states.Encoder) {
 	notifyEncoderStateChange(encoder, state)
 }

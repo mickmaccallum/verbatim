@@ -1,5 +1,3 @@
 #! /bin/bash
 
-go build
-
-./verbatim
+go build && ./verbatim

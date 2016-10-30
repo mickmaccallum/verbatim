@@ -29,7 +29,7 @@ func AddEncoder(encoder model.Encoder, network model.Network) (*model.Encoder, e
 	}
 
 	newEncoder := model.Encoder{
-		ID:        int(rowID),
+		ID:        model.EncoderID(rowID),
 		IPAddress: encoder.IPAddress,
 		Port:      encoder.Port,
 		Name:      encoder.Name,
@@ -48,13 +48,13 @@ func EncoderToJSON(encoder model.Encoder) ([]byte, error) {
 	}
 
 	newEncoder := struct {
-		ID        int
+		ID        model.EncoderID
 		IPAddress string
 		Port      int
 		Name      string
 		Handle    string
 		Password  string
-		NetworkID int
+		NetworkID model.NetworkID
 	}{
 		encoder.ID,
 		encoder.IPAddress,

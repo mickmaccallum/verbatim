@@ -201,7 +201,7 @@ func AddNetwork(network model.Network) (*model.Network, error) {
 	}
 
 	newNetwork := model.Network{
-		ID:            int(rowID),
+		ID:            model.NetworkID(rowID),
 		Name:          network.Name,
 		ListeningPort: network.ListeningPort,
 	}
