@@ -22,10 +22,10 @@ func (dl dashboardListener) AddNetwork(n model.Network) {
 
 // Remove a network and *all* of it's encoders from the
 // database and traffic
-func (dl dashboardListener) RemoveNetwork(id model.NetworkID) {
+func (dl dashboardListener) RemoveNetwork(network model.Network) {
 	// Remove the network first from listening, and then from sending
-	microphone.RemoveNetwork(id)
-	megaphone.NotifyNetworkRemoved(id)
+	microphone.RemoveNetwork(network.ID)
+	megaphone.NotifyNetworkRemoved(network.ID)
 }
 
 // Add encoder to it's network
