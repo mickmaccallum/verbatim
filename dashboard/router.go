@@ -409,13 +409,8 @@ func handleJohnEchoRoute(router *mux.Router) {
 			return
 		}
 
-		// fmt.Fprint(writer, template.JSStr(bytes))
 		fmt.Fprint(writer, bytes)
 	}).Methods("POST")
-}
-
-func login(writer http.ResponseWriter, request *http.Request) {
-
 }
 
 func addRoutes() *mux.Router {
