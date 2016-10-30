@@ -67,7 +67,7 @@ function addNetworkCreationListener() {
       type: 'POST',
       dataType: 'json',
       data: data,
-    }).done(function() {
+    }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
       } else {
