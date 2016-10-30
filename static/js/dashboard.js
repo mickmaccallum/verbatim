@@ -31,7 +31,7 @@ function addNetworkListListeners() {
 
 function deleteNetworkListListeners() {
   $('.delete-button').click(function(event) {
-    event.stopPropagation();\
+    event.stopPropagation();
 
     var row = $(this).closest('tr');
     var networkId = row.attr('data-network-id');
