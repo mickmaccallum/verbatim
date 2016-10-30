@@ -176,6 +176,8 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddEncoder(*newEncoder)
+
 		bytes, err := persist.EncoderToJSON(*newEncoder)
 		if err != nil {
 			serverError(writer, err)
@@ -238,6 +240,8 @@ func handleNetworksPage(router *mux.Router) {
 			serverError(writer, err)
 			return
 		}
+
+		relay.DeleteEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
@@ -346,6 +350,8 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddNetwork(*newNetwork)
+
 		bytes, err := persist.NetworkToJSON(*newNetwork)
 		if err != nil {
 			serverError(writer, err)
@@ -398,6 +404,8 @@ func handleDashboardPage(router *mux.Router) {
 			serverError(writer, err)
 			return
 		}
+
+		relay.RemoveNetwork(*network)
 
 		http.Error(writer, "Deleted Network", http.StatusOK)
 	}).Methods("DELETE")
