@@ -182,7 +182,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Encoder
@@ -356,7 +356,7 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Network
@@ -435,7 +435,7 @@ func handleJohnEchoRoute(router *mux.Router) {
 			return
 		}
 
-		fmt.Fprint(writer, bytes)
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 }
 
