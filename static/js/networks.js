@@ -106,7 +106,7 @@ function addAddEncoderHandler() {
         if (addEncoder(encoder)) {
           recountEncoders();
         } else {
-
+          
         }
 
         $('#encoder-form-ip').val('');

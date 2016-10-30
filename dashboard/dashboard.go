@@ -38,7 +38,7 @@ type RelayListener interface {
 
 	// Remove a network and *all* of it's encoders from the
 	// database and traffic
-	RemoveNetwork(id model.NetworkID)
+	RemoveNetwork(id model.Network)
 
 	// Add encoder to it's network
 	AddEncoder(enc model.Encoder)
