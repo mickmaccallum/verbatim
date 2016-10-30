@@ -433,8 +433,7 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		relay.RemoveNetwork(*network)
-
-		http.Error(writer, "Deleted Network", http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 }
 
