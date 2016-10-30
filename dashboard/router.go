@@ -43,6 +43,26 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	http.Redirect(writer, request, "/login", http.StatusSeeOther)
 }
 
+func handleAccounts(router *mux.Router) {
+	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			redirectLogin(writer, request)
+			return
+		}
+
+		data := struct{}{}
+
+		template := templateOnBase("templates/_account.html")
+		if err := template.Execute(writer, data); err != nil {
+			serverError(writer, err)
+		}
+	}).Methods("GET")
+
+	router.HandleFunc("", func(writer http.ResponseWriter, request *http.Request) {
+
+	})
+}
+
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := struct{}{}
@@ -421,12 +441,14 @@ func addRoutes() *mux.Router {
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
 	handleJohnEchoRoute(router)
-	websocket.Start(router)
+	handleAccounts(router)
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
 	serveStaticFolder("/fonts/", router)
 	serveStaticFolder("/json/", router)
+
+	websocket.Start(router)
 
 	router.NotFoundHandler = http.HandlerFunc(generalNotFound)
 	http.Handle("/", router)
