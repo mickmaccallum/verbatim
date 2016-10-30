@@ -61,7 +61,6 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 				connectionClosed(conn)
 			}
 
-			log.Println(err)
 			break
 		}
 
