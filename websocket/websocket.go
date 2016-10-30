@@ -10,10 +10,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// NotificationType lint
 type NotificationType string
 
 const (
-	EncoderState   NotificationType = "encoderState"
+	// EncoderState lint
+	EncoderState NotificationType = "encoderState"
+	// CaptionerState lint
 	CaptionerState NotificationType = "captionerState"
 )
 
