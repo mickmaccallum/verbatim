@@ -1,8 +1,6 @@
 package dashboard
 
 import (
-	// "crypto/sha512"
-	// "encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -176,13 +174,15 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddEncoder(*newEncoder)
+
 		bytes, err := persist.EncoderToJSON(*newEncoder)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Encoder
@@ -238,6 +238,8 @@ func handleNetworksPage(router *mux.Router) {
 			serverError(writer, err)
 			return
 		}
+
+		relay.DeleteEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
@@ -346,13 +348,15 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
+		relay.AddNetwork(*newNetwork)
+
 		bytes, err := persist.NetworkToJSON(*newNetwork)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
-		fmt.Fprint(writer, template.JSStr(bytes))
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
 	// Update Network
@@ -399,6 +403,8 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
+		relay.RemoveNetwork(*network)
+
 		http.Error(writer, "Deleted Network", http.StatusOK)
 	}).Methods("DELETE")
 }
@@ -429,7 +435,7 @@ func handleJohnEchoRoute(router *mux.Router) {
 			return
 		}
 
-		fmt.Fprint(writer, bytes)
+		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 }
 
