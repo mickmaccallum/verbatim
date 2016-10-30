@@ -30,21 +30,24 @@ function addNetworkListListeners() {
 };
 
 function deleteNetworkListListeners() {
-  $('#network-selection-table > tbody > tr').click(function(event) {
-    var that = $(this);
-    var networkId = that.attr('data-network-id');
-    console.log('The network ID of the clicked row is: ' + encoderId);
+  $('.delete-button').click(function(event) {
+    event.stopPropagation();\
+
+    var row = $(this).closest('tr');
+    var networkId = row.attr('data-network-id');
+    var networkName = row.attr('data-network-name');
+
+    if (!confirm('Are you sure you want to delete the network: ' + networkName)) {
+      return;
+    }
 
     $.ajax({
       url: '/network/' + networkId,
       type: 'DELETE',
-      dataType: 'json',
-      success: function(network) {
-        that.remove();
-      },
-      error: function() {
-        alert("Failed to remove network from list.")
-      }
+    }).done(function() {
+      row.remove();
+    }).fail(function() {
+      alert("Failed to remove network from list.");
     });
   });
 }
@@ -64,23 +67,18 @@ function addNetworkCreationListener() {
       type: 'POST',
       dataType: 'json',
       data: data,
-      success: function(network) {
-        if (addNetwork(network)) {
-          addNetworkListListeners();
-        } else {
-          // Maybe prompt to refresh? IDK
-        }
-
-        $('#network-form-port').val('');
-        $('#network-form-name').val('');
-      },
-      error: function (xhr, ajaxOptions, thrownError) {
-        console.log('++++++++++++++++++++++++++++++++');
-        console.log(xhr);
-        console.log(ajaxOptions);
-        console.log(thrownError);
-        console.log('--------------------------------');
+    }).done(function() {
+      if (addNetwork(network)) {
+        addNetworkListListeners();
+      } else {
+        // Maybe prompt to refresh? IDK
       }
+
+      $('#network-form-port').val('');
+      $('#network-form-name').val('');
+    }).fail(function() {
+      console.log("error");
+      console.log(this);
     });
   });
 };
