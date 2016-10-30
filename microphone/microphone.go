@@ -125,7 +125,7 @@ func maintainListenerState() {
 	for {
 		select {
 		case n := <-addNetwork:
-			if ln, err := attemptListen(n); err != nil {
+			if ln, err := attemptListen(n); err == nil {
 				networks[model.NetworkID(n.ID)] = NetworkListener{model.NetworkID(n.ID), ln}
 				go listenForNetwork(n, ln)
 				relay.NetworkListenSucceeded(n)

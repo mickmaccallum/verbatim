@@ -13,6 +13,7 @@ import (
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 )
 
 func templateOnBase(path string) *template.Template {
@@ -26,6 +27,20 @@ func templateOnBase(path string) *template.Template {
 		"templates/_base.html",
 		path,
 	))
+}
+
+func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
+	someID, ok := session.Values["admin"]
+	if !ok {
+		return nil, errors.New("Invalid Session")
+	}
+
+	id, ok := someID.(int)
+	if !ok {
+		return nil, errors.New("Invalid Session")
+	}
+
+	return persist.GetAdminForID(id)
 }
 
 func checkSessionValidity(request *http.Request) bool {
@@ -48,7 +63,21 @@ func handleAccounts(router *mux.Router) {
 			return
 		}
 
-		data := struct{}{}
+		session, err := store.Get(request, "session")
+		if err != nil {
+			redirectLogin(writer, request)
+			return
+		}
+
+		admin, err := fetchAdminForSession(session)
+		if err != nil {
+			clientError(writer, err)
+		}
+		data := struct {
+			Admin model.Admin
+		}{
+			*admin,
+		}
 
 		template := templateOnBase("templates/_account.html")
 		if err := template.Execute(writer, data); err != nil {
@@ -88,7 +117,7 @@ func handleLogin(router *mux.Router) {
 		handle := handles[0]
 		password := passwords[0]
 
-		_, err := persist.GetAdminForCredentials(handle, password)
+		admin, err := persist.GetAdminForCredentials(handle, password)
 		if err != nil {
 			redirectLogin(writer, request)
 			return
@@ -100,7 +129,7 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
-		log.Println(session.IsNew)
+		session.Values["admin"] = admin.ID
 
 		if err = session.Save(request, writer); err != nil {
 			redirectLogin(writer, request)
