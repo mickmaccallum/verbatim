@@ -196,14 +196,15 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 	broadcaster := relay.GetBroadcaster(n)
 	for {
 		conn, er := ln.Accept()
-		err := er.(net.Error)
-		if err != nil {
-			if err.Temporary() {
-				log.Println(err)
-				continue
-			} else {
-				// TODO: Signal this listener has been closed
-				return
+		if er != nil {
+			if err := er.(net.Error); err != nil {
+				if err.Temporary() {
+					log.Println(err)
+					continue
+				} else {
+					// TODO: Signal this listener has been closed
+					return
+				}
 			}
 		}
 
