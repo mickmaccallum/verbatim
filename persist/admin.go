@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// GetAdmins gets all of the administrators.
 func GetAdmins() ([]model.Admin, error) {
 	query := `
 		SELECT id, handle, hashed_password
