@@ -158,14 +158,12 @@ function addDeleteEncoderHandler() {
     $.ajax({
       url: '/encoder/' + encoderId,
       type: 'DELETE',
-      success: function(msg) {
-        row.remove();
-        recountEncoders();
-      },
-      error: function (xhr, ajaxOptions, thrownError) {
-        alert(thrownError);
-      }
-    });
+    }).done(function() {
+      row.remove();
+      recountEncoders();
+    }).fail(function(error) {
+      alert(error);
+    });    
   });
 };
 
