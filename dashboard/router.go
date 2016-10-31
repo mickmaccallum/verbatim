@@ -154,14 +154,14 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
-		defer redirectLogin(writer, request)
-
 		session, err := store.Get(request, "session")
 		if err != nil {
+			redirectLogin(writer, request)
 			return
 		}
 
 		_ = store.Delete(request, writer, session)
+		redirectLogin(writer, request)
 	}).Methods("POST")
 }
 
