@@ -12,6 +12,7 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/websocket"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -27,6 +28,19 @@ func templateOnBase(path string) *template.Template {
 		"templates/_base.html",
 		path,
 	))
+}
+
+func templateParamsOnBase(new map[string]interface{}, request *http.Request) map[string]interface{} {
+	base := map[string]interface{}{
+		"LogoutField": csrf.TemplateField(request),
+		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+	}
+
+	for k, v := range base {
+		new[k] = v
+	}
+
+	return new
 }
 
 func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
