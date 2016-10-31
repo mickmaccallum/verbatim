@@ -58,6 +58,8 @@
 <div>
   <div class="row">
     <form id="add-network-form" method="POST" accept-charset="UTF-8">
+      {{ .AddNetworkField }}
+
       <input id="add-network-element" type="hidden" class="form-control">
       <div class="col-lg-5">
         <div class="input-group">
@@ -65,7 +67,7 @@
             Name
           </span>
 
-          <input id="network-form-name" type="text" class="form-control" placeholder="C-SPAN">
+          <input name="name" id="network-form-name" type="text" class="form-control" placeholder="C-SPAN">
         </div>
       </div>
 
@@ -75,7 +77,7 @@
             Port
           </span>
 
-          <input id="network-form-port" type="text" class="form-control" placeholder="4000">
+          <input name="listening_port" id="network-form-port" type="text" class="form-control" placeholder="4000">
 
           <span class="input-group-btn">
             <button id="submit-network" class="btn btn-default" type="button">Add Network</button>
