@@ -86,15 +86,15 @@ func handleAccounts(router *mux.Router) {
 		admin, err := fetchAdminForSession(session)
 		if err != nil {
 			clientError(writer, err)
+			return
 		}
-		data := struct {
-			Admin model.Admin
-		}{
-			*admin,
+
+		data := map[string]interface{}{
+			"Admin": *admin,
 		}
 
 		template := templateOnBase("templates/_account.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -106,10 +106,10 @@ func handleAccounts(router *mux.Router) {
 
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		data := struct{}{}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_login.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -120,10 +120,13 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
+		// fmt.Fprintf(writer, "%v\n", request.PostForm)
+
 		handles := request.Form["handle"]
 		passwords := request.Form["password"]
 
 		if len(handles) != 1 || len(passwords) != 1 {
+			log.Println("incorrect length")
 			redirectLogin(writer, request)
 			return
 		}
@@ -133,12 +136,15 @@ func handleLogin(router *mux.Router) {
 
 		admin, err := persist.GetAdminForCredentials(handle, password)
 		if err != nil {
+			log.Println("failed to lookup admin with credentials")
 			redirectLogin(writer, request)
 			return
 		}
 
 		session, err := store.Get(request, "session")
 		if err != nil {
+			log.Println(err.Error())
+			log.Println("couldn't get session")
 			redirectLogin(writer, request)
 			return
 		}
