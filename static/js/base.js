@@ -1,5 +1,5 @@
 $(function() {
   $('#logout-button').click(function(event) {
-  	$(this).closest('form').submit()
+  	$(this).closest('form').submit();
   });
 });

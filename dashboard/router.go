@@ -106,7 +106,9 @@ func handleAccounts(router *mux.Router) {
 
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		data := map[string]interface{}{}
+		data := map[string]interface{}{
+			"LoginField": csrf.TemplateField(request),
+		}
 
 		template := templateOnBase("templates/_login.html")
 		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
@@ -119,8 +121,6 @@ func handleLogin(router *mux.Router) {
 			clientError(writer, err)
 			return
 		}
-
-		// fmt.Fprintf(writer, "%v\n", request.PostForm)
 
 		handles := request.Form["handle"]
 		passwords := request.Form["password"]
@@ -260,7 +260,7 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Encoder
-	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/encoder/{encoder_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -284,10 +284,10 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.DeleteEncoder(*encoder)
+		// relay.DeleteEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
-	}).Methods("DELETE")
+	}).Methods("POST")
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
@@ -345,8 +345,9 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"AddNetworkField": csrf.TemplateField(request),
-			"Networks":        networks,
+			"AddNetworkField":    csrf.TemplateField(request),
+			"DeleteNetworkField": csrf.TemplateField(request),
+			"Networks":           networks,
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
@@ -410,7 +411,7 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Network
-	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/network/{id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -436,7 +437,7 @@ func handleDashboardPage(router *mux.Router) {
 
 		relay.RemoveNetwork(*network)
 		writer.WriteHeader(http.StatusOK)
-	}).Methods("DELETE")
+	}).Methods("POST")
 }
 
 func generalNotFound(writer http.ResponseWriter, request *http.Request) {

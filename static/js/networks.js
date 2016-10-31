@@ -140,13 +140,14 @@ function addDeleteEncoderHandler() {
     }
 
     $.ajax({
-      url: '/encoder/' + encoderId,
-      type: 'DELETE',
-      data: $(this).closest('form').serialize()
+      url: '/encoder/' + encoderId + '/delete',
+      type: 'POST',
+      data: $('#delete-encoder-form').serialize()
     }).done(function() {
       row.remove();
       recountEncoders();
     }).fail(function(error) {
+      console.log('error');
       console.log(error);
     });    
   });
