@@ -36,25 +36,29 @@
       </tr>
     </thead>
 
-    <tbody>
-    {{range $index, $element := .Encoders }}
-      <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
-        <th scope=row>{{ inc $index }}</th>
-        <td><span>{{ $element.Name.Value }}</span></td>
-        <td><span>{{ $element.IPAddress }}</span></td>
-        <td><span>{{ $element.Port }}</span></td>
-        <td><span>{{ $element.Handle }}</span></td>
-        <td><span>{{ $element.Password }}</span></td>
-        <td>
-          <p data-placement="top" data-toggle="tooltip" title="Delete">
-            <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
-              <span class="glyphicon glyphicon-trash"></span>
-            </button>
-          </p>
-        </td>
-      </tr>
-    {{ end }}
-    </tbody>
+    <form id="delete-encoder-form" method="POST" accept-charset="UTF-8">
+      {{ .DeleteEncoderField }}
+
+      <tbody>
+        {{range $index, $element := .Encoders }}
+        <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
+          <th scope=row>{{ inc $index }}</th>
+          <td><span>{{ $element.Name.Value }}</span></td>
+          <td><span>{{ $element.IPAddress }}</span></td>
+          <td><span>{{ $element.Port }}</span></td>
+          <td><span>{{ $element.Handle }}</span></td>
+          <td><span>{{ $element.Password }}</span></td>
+          <td>
+            <p data-placement="top" data-toggle="tooltip" title="Delete">
+              <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
+                <span class="glyphicon glyphicon-trash"></span>
+              </button>
+            </p>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </form>
   </table>
 </div>
 
@@ -65,14 +69,15 @@
 <div>
   <div class="row">
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
-      <input id="add-encoder-network-element" type="hidden" class="form-control" value="{{ .Network.ID }}">
+      {{ .AddEncoderField }}
+      <input name="network_id" type="hidden" class="form-control" value="{{ .Network.ID }}">
       <div class="col-lg-4">
         <div class="input-group">
           <span class="input-group-addon">
             IP Address
           </span>
 
-          <input id="encoder-form-ip" type="text" class="form-control" placeholder="192.168.1.1">
+          <input name="ip_address" id="encoder-form-ip" type="text" class="form-control" placeholder="192.168.1.1">
         </div>
       </div>
 
@@ -82,7 +87,7 @@
             Name
           </span>
 
-          <input id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
+          <input name="name" id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
         </div>
       </div>
 
@@ -92,7 +97,7 @@
             Port
           </span>
 
-          <input id="encoder-form-port" type="text" class="form-control" placeholder="23" value="23">
+          <input name="port" id="encoder-form-port" type="text" class="form-control" placeholder="23" value="23">
         </div>
       </div>
 
@@ -102,7 +107,7 @@
             Handle
           </span>
 
-          <input id="encoder-form-handle" type="text" class="form-control" placeholder="user123">
+          <input name="handle" id="encoder-form-handle" type="text" class="form-control" placeholder="user123">
         </div>
       </div>
 
@@ -112,7 +117,7 @@
             Password
           </span>
 
-          <input id="encoder-form-password" type="text" class="form-control" placeholder="********">
+          <input name="password" id="encoder-form-password" type="text" class="form-control" placeholder="********">
 
 
           <span class="input-group-btn">

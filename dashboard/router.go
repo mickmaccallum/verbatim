@@ -12,6 +12,7 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/websocket"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -27,6 +28,19 @@ func templateOnBase(path string) *template.Template {
 		"templates/_base.html",
 		path,
 	))
+}
+
+func templateParamsOnBase(new map[string]interface{}, request *http.Request) map[string]interface{} {
+	base := map[string]interface{}{
+		"LogoutField": csrf.TemplateField(request),
+		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+	}
+
+	for k, v := range base {
+		new[k] = v
+	}
+
+	return new
 }
 
 func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
@@ -72,15 +86,15 @@ func handleAccounts(router *mux.Router) {
 		admin, err := fetchAdminForSession(session)
 		if err != nil {
 			clientError(writer, err)
+			return
 		}
-		data := struct {
-			Admin model.Admin
-		}{
-			*admin,
+
+		data := map[string]interface{}{
+			"Admin": *admin,
 		}
 
 		template := templateOnBase("templates/_account.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -92,10 +106,12 @@ func handleAccounts(router *mux.Router) {
 
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		data := struct{}{}
+		data := map[string]interface{}{
+			"LoginField": csrf.TemplateField(request),
+		}
 
 		template := templateOnBase("templates/_login.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -110,6 +126,7 @@ func handleLogin(router *mux.Router) {
 		passwords := request.Form["password"]
 
 		if len(handles) != 1 || len(passwords) != 1 {
+			log.Println("incorrect length")
 			redirectLogin(writer, request)
 			return
 		}
@@ -119,12 +136,15 @@ func handleLogin(router *mux.Router) {
 
 		admin, err := persist.GetAdminForCredentials(handle, password)
 		if err != nil {
+			log.Println("failed to lookup admin with credentials")
 			redirectLogin(writer, request)
 			return
 		}
 
 		session, err := store.Get(request, "session")
 		if err != nil {
+			log.Println(err.Error())
+			log.Println("couldn't get session")
 			redirectLogin(writer, request)
 			return
 		}
@@ -140,14 +160,14 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
-		defer redirectLogin(writer, request)
-
 		session, err := store.Get(request, "session")
 		if err != nil {
+			redirectLogin(writer, request)
 			return
 		}
 
 		_ = store.Delete(request, writer, session)
+		redirectLogin(writer, request)
 	}).Methods("POST")
 }
 
@@ -158,14 +178,10 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		data := struct {
-			// Networks []persist.Network
-		}{
-		// networks,
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_captioners.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -244,7 +260,7 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Encoder
-	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/encoder/{encoder_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -268,10 +284,10 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.DeleteEncoder(*encoder)
+		// relay.DeleteEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
-	}).Methods("DELETE")
+	}).Methods("POST")
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
@@ -298,27 +314,16 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		// t.ExecuteTemplate(w, "signup_form.tmpl", map[string]interface{}{
-		// 	csrf.TemplateTag: csrf.TemplateField(r),
-		// })
-		// csrf.TemplateTag.
-
-		// csrf.TemplateField(r)
-
-		template := templateOnBase("templates/_network.html")
-		data := struct {
-			Network   model.Network
-			Encoders  []model.Encoder
-			SocketURL string
-			// TemplateTag template.HTML
-		}{
-			*network,
-			encoders,
-			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
-			// csrf.TemplateField(request),
+		data := map[string]interface{}{
+			"Network":            *network,
+			"Encoders":           encoders,
+			"AddEncoderField":    csrf.TemplateField(request),
+			"EditEncoderField":   csrf.TemplateField(request),
+			"DeleteEncoderField": csrf.TemplateField(request),
 		}
 
-		if err := template.Execute(writer, data); err != nil {
+		template := templateOnBase("templates/_network.html")
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -339,16 +344,14 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		data := struct {
-			Networks  []model.Network
-			SocketURL string
-		}{
-			networks,
-			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		data := map[string]interface{}{
+			"AddNetworkField":    csrf.TemplateField(request),
+			"DeleteNetworkField": csrf.TemplateField(request),
+			"Networks":           networks,
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
-		if err = template.Execute(writer, data); err != nil {
+		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -408,7 +411,7 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Network
-	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/network/{id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -434,18 +437,16 @@ func handleDashboardPage(router *mux.Router) {
 
 		relay.RemoveNetwork(*network)
 		writer.WriteHeader(http.StatusOK)
-	}).Methods("DELETE")
+	}).Methods("POST")
 }
 
 func generalNotFound(writer http.ResponseWriter, request *http.Request) {
-	data := struct {
-		Location string
-	}{
-		request.URL.RequestURI(),
+	data := map[string]interface{}{
+		"Location": request.URL.RequestURI(),
 	}
 
 	template := templateOnBase("templates/error/_404.html")
-	if err := template.Execute(writer, data); err != nil {
+	if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 		serverError(writer, err)
 	}
 }

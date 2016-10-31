@@ -99,3 +99,5 @@ vendor/
 verbatim
 verbatim.exe
 verbatim.exe~
+
+dashboard/production.go
