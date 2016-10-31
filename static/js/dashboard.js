@@ -54,19 +54,11 @@ function deleteNetworkListListeners() {
 
 function addNetworkCreationListener() {
   $('#submit-network').click(function (event) {
-    var port = $('#network-form-port').val().trim();
-    var name = $('#network-form-name').val().trim();
-
-    var data = {
-      'listening_port': port,
-      'name': name
-    }
-
     $.ajax({
       url: '/network/add',
       type: 'POST',
       dataType: 'json',
-      data: data,
+      data: $(this).closest('form').serialize(),
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();

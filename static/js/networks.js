@@ -79,28 +79,12 @@ function addEncoder(encoder) {
 };
 
 function addAddEncoderHandler() {
-  $('#submit-encoder').click(function (e) {
-    var ip       = $('#encoder-form-ip').val().trim();
-    var name     = $('#encoder-form-name').val().trim();
-    var port     = $('#encoder-form-port').val().trim();
-    var handle   = $('#encoder-form-handle').val().trim();
-    var password = $('#encoder-form-password').val().trim();
-    var network  = $('#add-encoder-network-element').val().trim();
-
-    var data = {
-      'ip_address': ip,
-      'name': name,
-      'port': port,
-      'handle': handle,
-      'password': password,
-      'network_id': network
-    }
-
+  $('#submit-encoder').click(function (event) {
     $.ajax({
       url: '/encoder/add',
       type: 'POST',
       dataType: 'json',
-      data: data,
+      data: $(this).closest('form').serialize(),
       success: function(encoder) {
         if (addEncoder(encoder)) {
           recountEncoders();
@@ -158,11 +142,12 @@ function addDeleteEncoderHandler() {
     $.ajax({
       url: '/encoder/' + encoderId,
       type: 'DELETE',
+      data: $(this).closest('form').serialize()
     }).done(function() {
       row.remove();
       recountEncoders();
     }).fail(function(error) {
-      alert(error);
+      console.log(error);
     });    
   });
 };
