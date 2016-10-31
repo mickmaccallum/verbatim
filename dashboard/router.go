@@ -178,14 +178,10 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		data := struct {
-			// Networks []persist.Network
-		}{
-		// networks,
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_captioners.html")
-		if err := template.Execute(writer, data); err != nil {
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -318,27 +314,16 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		// t.ExecuteTemplate(w, "signup_form.tmpl", map[string]interface{}{
-		// 	csrf.TemplateTag: csrf.TemplateField(r),
-		// })
-		// csrf.TemplateTag.
-
-		// csrf.TemplateField(r)
-
-		template := templateOnBase("templates/_network.html")
-		data := struct {
-			Network   model.Network
-			Encoders  []model.Encoder
-			SocketURL string
-			// TemplateTag template.HTML
-		}{
-			*network,
-			encoders,
-			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
-			// csrf.TemplateField(request),
+		data := map[string]interface{}{
+			"Network":            *network,
+			"Encoders":           encoders,
+			"AddEncoderField":    csrf.TemplateField(request),
+			"EditEncoderField":   csrf.TemplateField(request),
+			"DeleteEncoderField": csrf.TemplateField(request),
 		}
 
-		if err := template.Execute(writer, data); err != nil {
+		template := templateOnBase("templates/_network.html")
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -359,16 +344,13 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		data := struct {
-			Networks  []model.Network
-			SocketURL string
-		}{
-			networks,
-			"ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		data := map[string]interface{}{
+			"AddNetworkField": csrf.TemplateField(request),
+			"Networks":        networks,
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
-		if err = template.Execute(writer, data); err != nil {
+		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -458,14 +440,12 @@ func handleDashboardPage(router *mux.Router) {
 }
 
 func generalNotFound(writer http.ResponseWriter, request *http.Request) {
-	data := struct {
-		Location string
-	}{
-		request.URL.RequestURI(),
+	data := map[string]interface{}{
+		"Location": request.URL.RequestURI(),
 	}
 
 	template := templateOnBase("templates/error/_404.html")
-	if err := template.Execute(writer, data); err != nil {
+	if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 		serverError(writer, err)
 	}
 }
