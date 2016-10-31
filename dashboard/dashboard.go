@@ -21,7 +21,7 @@ func init() {
 		"session",
 		"/",
 		86400,
-		[]byte("7Yw2M)QQ0!7Qz=84BO,4M7eSd'#ZhU"))
+		[]byte(cookieSeed))
 
 	if err != nil {
 		panic(err)
@@ -70,22 +70,19 @@ func Start(l RelayListener) {
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400,
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   true,
 	}
 
-	_ = addRoutes()
+	router := addRoutes()
+	csrfHandle := csrfProtect(router) // func call conditional to build "prod" tag.
 
-	// Switch these lines for production
-	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"))(router)
-	// protected := csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"), csrf.Secure(false))(router)
-
-	if err := http.ListenAndServe("127.0.0.1:4000", nil /*protected*/); err != nil {
+	if err := http.ListenAndServe("127.0.0.1:4000", csrfHandle); err != nil {
 		panic(err)
 	}
 }
 
-// NetworkPortStateChanged Port listener state changed
+// NetworkPortStateChanged Port listener state changed (Inbound network listener)
 func NetworkPortStateChanged(network model.Network, state states.Network) {
 	// TODO: Fill this out
 }
