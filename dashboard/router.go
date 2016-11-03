@@ -22,6 +22,13 @@ func templateOnBase(path string) *template.Template {
 		"inc": func(i int) int {
 			return i + 1
 		},
+		"simplePlural": func(word string, length int) string {
+			if length == 1 {
+				return word
+			}
+
+			return word + "s"
+		},
 	}
 
 	return template.Must(template.New("_base.html").Funcs(funcMap).ParseFiles(
