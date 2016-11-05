@@ -9,16 +9,16 @@ If you're using one of the listed platforms below, there may be a precompiled Ve
 
 ### Windows
 
-1. Visit [golang.org/dl](https://golang.org/doc/install?download=go1.7.3.windows-amd64.msi) to download a copy of the Go installer for Windows.
+1. Visit [golang.org/dl](https://golang.org/dl) to download a copy of the Go installer for Windows.
 2. Run the MSI installer file downloaded in the previous step.
 3. Close and reopen any command prompts for changes to environmental variables to take effect.
-4. Change to the workspace directory in which you'd like to clone Verbatim.
+4. Change to the (workspace) directory in which you'd like to clone Verbatim.
 5. Set your `GOPATH` environmental variable to your workspace directory.
 
 	```{batchfile}
 	set GOPATH=C:\workspace_dir
 	```
-6. Open Git Bash and clone Verbatim. If you don't have Git installed, you can download Verbatim's [source as a zip](https://github.com/0x7fffffff/verbatim/archive/master.zip) file instead.
+6. Open Git Bash and clone Verbatim. If you don't have Git installed, you can either [install it](https://git-scm.com/download/), or download Verbatim's [source as a zip](https://github.com/0x7fffffff/verbatim/archive/master.zip) file instead.
 
 	```{shell}
 	git clone https://github.com/0x7fffffff/verbatim
