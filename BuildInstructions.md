@@ -1,6 +1,11 @@
 ## Build Instructions
 
 
+Listed below are build instructions for [Windows](#windows), [macOS](#macos) & [Linux](#linux). Verbatim is capable of running any platform/architecture that both [Go](https://golang.org) and [GCC](https://gcc.gnu.org) are available on. If your platform isn't listed below, please visit [golang.org/doc/install/source](https://golang.org/doc/install/source) and [gcc.gnu.org/install](https://gcc.gnu.org/install/) for detailed install instructions on building Go and GCC from source for your platform.
+
+If you're using one of the listed platforms below, there may be a precompiled Verbatim binary available on [Verbatim's release page](https://github.com/0x7fffffff/verbatim/releases). If downloading a binary, be sure to download the latest stable version.
+
+**Note:** When Go is referenced in this document, it is assumed to mean Go version 1.7.3 or higher.
 
 ### Windows
 
@@ -44,5 +49,4 @@ Visit [golang.org/dl]()
 
 ### Other Platforms
 
-If you're running on a platform not listed above, there's still a chance that you can build Verbatim. Visit the [installing Go from source](https://golang.org/doc/install/source?download=go1.7.3.src.tar.gz) page on [golang.org](https://golang.org) for specific instructions on how to build Go on your platform.
 
