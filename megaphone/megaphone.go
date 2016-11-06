@@ -127,7 +127,6 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 			if b, found := broadcasters[killNet]; found {
 				b.destroy()
 				delete(broadcasters, killNet)
-
 			}
 
 		case enc := <-encoderRemoved:

@@ -202,7 +202,6 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 					log.Println(err)
 					continue
 				} else {
-					// TODO: Signal this listener has been closed
 					return
 				}
 			}
@@ -229,7 +228,6 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 	}
 }
 
-// Basic demoable state.
 func handleCaptioner(c net.Conn, writer *MuteCell) {
 	// Notify that we have a new listener
 	// addListenerChan <-
