@@ -43,6 +43,7 @@
       </tr>
       {{ end }}
     </tbody>
+
   </table>
 </div>
 
@@ -52,44 +53,39 @@
 
 <div class="row">
   <form id="add-admin-form" method="POST" accept-charset="UTF-8">
+    <!-- {{ .AddAdminField }} -->
     <input id="add-admin-element" type="hidden" class="form-control">
-      <div class="row">      
-        <div class="col-lg-5">
-          <div class="input-group">
-            <span class="input-group-addon">
-              Handle
-            </span>
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Handle
+        </span>
 
-            <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
-          
-          </div>
-        </div>
+        <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
       </div>
+    </div>
 
-    <div class="row">
-      <div class="col-lg-5">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Password
-          </span>
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Password
+        </span>
 
-          <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+        <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Confirm Password
+        </span>
+
+        <input id="admin-form-port" type="text" class="form-control" placeholder="********">
         
-        </div>
-      </div>
-
-      <div class="col-lg-5">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Confirm Password
-          </span>
-
-          <input id="admin-form-port" type="text" class="form-control" placeholder="********">
-          
-          <span class="input-group-btn">
-            <button id="submit-admin" class="btn btn-default" type="button">Add Admin</button>
-          </span>
-        </div>
+        <span class="input-group-btn">
+          <button id="submit-admin" class="btn btn-default" type="button">Add Admin</button>
+        </span>
       </div>
     </div>
   </form>
@@ -101,44 +97,40 @@
 
 <div class="row">
   <form id="add-admin-form" method="POST" accept-charset="UTF-8">
+    <!-- {{ .ChangePasswordField }} -->
     <input id="add-admin-element" type="hidden" class="form-control">
-      <div class="row">      
-        <div class="col-lg-5">
-          <div class="input-group">
-            <span class="input-group-addon">
-              Handle
-            </span>
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Handle
+        </span>
 
-            <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
-          
-          </div>
-        </div>
+        <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
+      
       </div>
+    </div>
 
-    <div class="row">
-      <div class="col-lg-5">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Password
-          </span>
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Password
+        </span>
 
-          <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+        <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Confirm Password
+        </span>
+
+        <input id="admin-form-port" type="text" class="form-control" placeholder="********">
         
-        </div>
-      </div>
-
-      <div class="col-lg-5">
-        <div class="input-group">
-          <span class="input-group-addon">
-            Confirm Password
-          </span>
-
-          <input id="admin-form-port" type="text" class="form-control" placeholder="********">
-          
-          <span class="input-group-btn">
-            <button id="submit-admin" class="btn btn-default" type="button">Change Password</button>
-          </span>
-        </div>
+        <span class="input-group-btn">
+          <button id="submit-admin" class="btn btn-default" type="button">Change Password</button>
+        </span>
       </div>
     </div>
   </form>
