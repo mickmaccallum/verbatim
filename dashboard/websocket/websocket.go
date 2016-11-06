@@ -10,14 +10,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// NotificationType lint
+// NotificationType use to switch over different types of notifications.
 type NotificationType string
 
 const (
-	// EncoderState lint
+	// EncoderState represents an event for an encoder changing state.
 	EncoderState NotificationType = "encoderState"
-	// CaptionerState lint
+	// CaptionerState represents an event for an captioner changing state.
 	CaptionerState NotificationType = "captionerState"
+	// NetworkState represents an event for a network changing state
+	NetworkState NotificationType = "networkState"
 )
 
 var messages = make(chan SocketMessage, 10)
@@ -52,10 +54,13 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 	connectionOpened(conn)
 
 	defer conn.Close()
+
+	// Spin and hold the web socket connection open to wait for messages.
 	for {
 		var message SocketMessage
 
 		err := conn.ReadJSON(&message)
+		// If an error message is received, disconnect the connection.
 		if err != nil {
 			if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
 				connectionClosed(conn)
@@ -64,6 +69,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 			break
 		}
 
+		// Wrap the message in a reply context and sent it back over the connection.
 		reply{
 			conn:    conn,
 			message: message,
@@ -75,18 +81,21 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// connectionOpened synchronizes adding of a connection to the connection pool
 func connectionOpened(conn *websocket.Conn) {
 	connMutex.Lock()
 	connections[conn] = struct{}{}
 	connMutex.Unlock()
 }
 
+// connectionClosed synchronizes removing of a connection to the connection pool
 func connectionClosed(conn *websocket.Conn) {
 	connMutex.Lock()
 	delete(connections, conn)
 	connMutex.Unlock()
 }
 
+// wait for message events, and sent them as they are received.
 func spin() {
 	for {
 		select {
@@ -98,6 +107,7 @@ func spin() {
 	}
 }
 
+// sendReply sends a message over a connection with a reply context attached.
 func sendReply(r reply) error {
 	newMessage := SocketMessage{
 		Reference: r.message.Reference,
@@ -107,23 +117,27 @@ func sendReply(r reply) error {
 	return sendMessage(newMessage, r.conn)
 }
 
-func broadcastMessage(message SocketMessage) []error {
-	var errors []error
+// broadcastMessage Sends the given message on every active web socket connection.
+func broadcastMessage(message SocketMessage) map[*websocket.Conn]error {
+	var errors map[*websocket.Conn]error
 
+	// enumerate all the active connections, and send the message.
 	for conn := range connections {
 		err := sendMessage(message, conn)
 		if err != nil {
-			errors = append(errors, err)
+			errors[conn] = err
 		}
 	}
 
 	return errors
 }
 
+// sendMessage Writes the given message over the given connection as JSON.
 func sendMessage(message SocketMessage, conn *websocket.Conn) error {
 	return conn.WriteJSON(message)
 }
 
+// sendTestMessage Not actively used. Just here for testing message sends.
 func sendTestMessage() {
 	time.AfterFunc(10*time.Second, func() {
 		payload := map[string]string{

@@ -1,5 +1,8 @@
 // +build !prod
 
+// Contents of this file are only compiled if the "prod" build tag
+// is omitted when compiling.
+
 package dashboard
 
 import (
