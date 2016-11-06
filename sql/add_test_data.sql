@@ -1,4 +1,3 @@
-
 -- Assumes that it is being run on an empty database
 
 Insert into network (name) values ('fox');
