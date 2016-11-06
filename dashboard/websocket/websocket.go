@@ -107,23 +107,27 @@ func sendReply(r reply) error {
 	return sendMessage(newMessage, r.conn)
 }
 
-func broadcastMessage(message SocketMessage) []error {
-	var errors []error
+// broadcastMessage Sends the given message on every active web socket connection.
+func broadcastMessage(message SocketMessage) map[*websocket.Conn]error {
+	var errors map[*websocket.Conn]error
 
+	// enumerate all the active connections, and send the message.
 	for conn := range connections {
 		err := sendMessage(message, conn)
 		if err != nil {
-			errors = append(errors, err)
+			errors[conn] = err
 		}
 	}
 
 	return errors
 }
 
+// sendMessage Writes the given message over the given connection as JSON.
 func sendMessage(message SocketMessage, conn *websocket.Conn) error {
 	return conn.WriteJSON(message)
 }
 
+// sendTestMessage Not actively used. Just here for testing message sends.
 func sendTestMessage() {
 	time.AfterFunc(10*time.Second, func() {
 		payload := map[string]string{
