@@ -4,7 +4,7 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">{{ .Network.Name }} <small>- <span id="encoder-count">{{ len .Encoders }}</span> encoder(s)</small></li>
+  <li class="active">{{ .Network.Name }} <small>- <span id="encoder-count">{{ len .Encoders }}</span> {{ simplePlural "encoder" (len .Encoders) }}</small></li>
 </ol>
 
 <div class="page-header">

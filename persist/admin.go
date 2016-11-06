@@ -2,7 +2,6 @@ package persist
 
 import (
 	"errors"
-	"log"
 
 	"github.com/0x7fffffff/verbatim/model"
 	"golang.org/x/crypto/bcrypt"
@@ -30,8 +29,7 @@ func GetAdmins() ([]model.Admin, error) {
 			&admin.Handle,
 			&admin.HashedPassword,
 		); err != nil {
-			log.Fatal(err)
-			continue
+			return nil, err
 		}
 
 		admins = append(admins, admin)
