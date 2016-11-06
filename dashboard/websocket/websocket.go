@@ -18,6 +18,8 @@ const (
 	EncoderState NotificationType = "encoderState"
 	// CaptionerState represents an event for an captioner changing state.
 	CaptionerState NotificationType = "captionerState"
+	// NetworkState represents an event for a network changing state
+	NetworkState NotificationType = "networkState"
 )
 
 var messages = make(chan SocketMessage, 10)
