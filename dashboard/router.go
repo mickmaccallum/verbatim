@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
-	"github.com/0x7fffffff/verbatim/websocket"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
