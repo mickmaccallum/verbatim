@@ -96,8 +96,15 @@ func handleAccounts(router *mux.Router) {
 			return
 		}
 
+		admins, err := persist.GetAdmins()
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
 		data := map[string]interface{}{
-			"Admin": *admin,
+			"Admin":  *admin,
+			"Admins": admins,
 		}
 
 		template := templateOnBase("templates/_account.html")
