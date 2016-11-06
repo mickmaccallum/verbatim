@@ -67,6 +67,7 @@ func Start(l RelayListener) {
 	relay = l
 
 	// store.Codecs = securecookie.CodecsFromPairs(securecookie.GenerateRandomKey(32))
+	// Configure session cookie options.
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400,
@@ -74,9 +75,13 @@ func Start(l RelayListener) {
 		Secure:   true,
 	}
 
+	// Add all web page routes to the router.
 	router := addRoutes()
-	csrfHandle := csrfProtect(router) // func call conditional to build "prod" tag.
 
+	// insert middleware for CSRF protection.
+	csrfHandle := csrfProtect(router) // func call conditional to the build "prod" tag.
+
+	// Start the HTTP server
 	if err := http.ListenAndServe("127.0.0.1:4000", csrfHandle); err != nil {
 		panic(err)
 	}
@@ -84,7 +89,7 @@ func Start(l RelayListener) {
 
 // NetworkPortStateChanged Port listener state changed (Inbound network listener)
 func NetworkPortStateChanged(network model.Network, state states.Network) {
-	// TODO: Fill this out
+	notifyNetworkPortStateChanged(network, state)
 }
 
 // CaptionerStateChanged lint
