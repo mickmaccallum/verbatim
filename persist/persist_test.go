@@ -160,7 +160,14 @@ func TestAddEncoder(t *testing.T) {
 }
 
 func TestUpdateEncoder(t *testing.T) {
+	encoder, _ := GetEncoder(1)
+	encoder.IPAddress = "127.21.33.134"
 
+	err := UpdateEncoder(*encoder)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
 }
 
 func TestDeleteEncoder(t *testing.T) {

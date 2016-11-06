@@ -1,9 +1,9 @@
 package dashboard
 
 import (
+	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/states"
-	"github.com/0x7fffffff/verbatim/websocket"
 )
 
 func notifyCaptionerStateChange(captioner model.CaptionerID, state states.Captioner) {
