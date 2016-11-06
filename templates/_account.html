@@ -2,9 +2,146 @@
 
 {{ define "content" }}
 
-{{ . }}
+<ol class="breadcrumb">
+  <li><a href="/">Dashboard</a></li>
+  <li class="active">Account ({{ .Admin.Handle }})</li>
+</ol>
+
+<div class="page-header">
+  <div>
+    <div>
+      <h3>{{ .Admin.Handle }} <small>(Handle)</small></h3>
+    </div>
+  </div>
+</div>
+
+<div class="table-responsive panel panel-default">
+  <div class="panel-heading">Current Admins</div>
+
+  <table class="table table-hover" id="admin-selection-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Admin Handle</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {{ range $index, $element := .Admins }}
+      <tr data-network-id="{{ $element.ID }}" data-network-name="{{ $element.Handle }}">
+        <th class="col-md-1" scope=row>{{ inc $index }}</th>
+        <td class="col-md-10">{{ $element.Handle }}</td>
+
+        <td class="col-md-1">
+          <p data-placement="top" data-toggle="tooltip" title="Delete">
+            <button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" data-toggle="modal" data-target="#delete">
+              <span class="glyphicon glyphicon-trash"></span>
+            </button>
+          </p>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+
+  </table>
+</div>
+
+<div class="page-header">
+  <h3>Add an Admin</h3>
+</div>
+
+<div class="row">
+  <form id="add-admin-form" method="POST" accept-charset="UTF-8">
+    <!-- {{ .AddAdminField }} -->
+    <input id="add-admin-element" type="hidden" class="form-control">
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Handle
+        </span>
+
+        <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Password
+        </span>
+
+        <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Confirm Password
+        </span>
+
+        <input id="admin-form-port" type="text" class="form-control" placeholder="********">
+        
+        <span class="input-group-btn">
+          <button id="submit-admin" class="btn btn-default" type="button">Add Admin</button>
+        </span>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="page-header">
+  <h3>Change Password</h3>
+</div>
+
+<div class="row">
+  <form id="add-admin-form" method="POST" accept-charset="UTF-8">
+    <!-- {{ .ChangePasswordField }} -->
+    <input id="add-admin-element" type="hidden" class="form-control">
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Handle
+        </span>
+
+        <input id="admin-form-name" type="text" class="form-control" placeholder="admin123">
+      
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Password
+        </span>
+
+        <input id="admin-form-name" type="text" class="form-control" placeholder="********">
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="input-group">
+        <span class="input-group-addon">
+          Confirm Password
+        </span>
+
+        <input id="admin-form-port" type="text" class="form-control" placeholder="********">
+        
+        <span class="input-group-btn">
+          <button id="submit-admin" class="btn btn-default" type="button">Change Password</button>
+        </span>
+      </div>
+    </div>
+  </form>
+</div>
 
 {{ end }}
 
 {{ define "scripts"}}
+<script>
+  var socketURL = "{{ .SocketURL }}";
+</script>
+<script src="/js/websocket.js"></script>
+<script src="/js/networks.js"></script>
 {{ end }}

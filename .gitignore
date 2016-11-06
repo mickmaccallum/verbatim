@@ -93,9 +93,10 @@ _testmain.go
 *.out
 
 # external packages folder
-vendor/
 *.db
 
 verbatim
 verbatim.exe
 verbatim.exe~
+
+dashboard/production.go

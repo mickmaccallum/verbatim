@@ -1,0 +1,44 @@
+
+
+participant Captioner
+participant Caption Listener
+participant Relay Server
+participant Dashboard Server
+participant Dashboard UI
+participant Encoder Router 
+
+
+
+Caption Listener -> Relay Server: GetBroadcaster()
+
+Relay Server -> Encoder Router: GetBroadcasterForNetwork()
+
+Encoder Router --> Caption Listener: Return Broadcaster
+
+Captioner -> Caption Listener: handleCaptioner()
+Caption Listener --> Captioner: Establish Connection
+
+
+Caption Listener -> Relay Server: Connected()
+Relay Server -> Dashboard Server: CaptionerStateChanged()
+Dashboard Server -> Dashboard UI: notifyCaptionerStateChange()
+
+
+Captioner -> Caption Listener: Type on keyboard
+
+
+Caption Listener -> Encoder Router: Write()
+
+Captioner -> Caption Listener: Disconnect()
+
+Caption Listener -> Relay Server: Disconnected()
+
+Relay Server -> Dashboard Server: CaptionerStateChanged()
+
+Dashboard Server -> Dashboard UI: notifyCaptionerStateChange()
+
+Caption Listener --> Captioner: Drop Connection
+
+
+
+
