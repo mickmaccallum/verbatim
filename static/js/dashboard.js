@@ -76,11 +76,26 @@ function addNetworkCreationListener() {
   });
 };
 
+      // encoderState, captionerState, networkState
+
+function receiveSocketMessage(message) {
+  if (message['encoderState'] != null) {
+
+  } else if (message['captionerState'] != null) {
+
+  } else if (message['networkState'] != null) {
+
+  } else {
+    console.log('socket received unknown message');
+  }
+};
+
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
       console.log('Got new message');
       console.log(message);
+      receiveSocketMessage(message);
     };
 
     webSocket.onerror = function(event) {
