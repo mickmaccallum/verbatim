@@ -95,3 +95,14 @@ func GetAdminForCredentials(handle string, password string) (*model.Admin, error
 
 	return &admin, nil
 }
+
+// DeleteAdmin deletes the specified administrator.
+func DeleteAdmin(admin model.Admin) error {
+	query := `
+		DELETE from admin
+		WHERE id = ?
+	`
+
+	_, err := DB.Exec(query, admin.ID)
+	return err
+}
