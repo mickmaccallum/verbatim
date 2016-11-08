@@ -102,20 +102,20 @@ function startWebSocket() {
       console.log("ERROR: " + event.data);
     };
 
-    setTimeout(function() {
-      console.log("sending message");
-      var payload = {
-        "message": "Hello, Servar."
-      };
+    // setTimeout(function() {
+    //   console.log("sending message");
+    //   var payload = {
+    //     "message": "Hello, Servar."
+    //   };
     
-      socketRocket.send(payload, function(reply) {
-        console.log(reply);
+    //   socketRocket.send(payload, function(reply) {
+    //     console.log(reply);
 
-        // socketRocket.stop(function() {
-        //   console.log("finished closing.");
-        // });
-      });
-    }, 2000);
+    //     // socketRocket.stop(function() {
+    //     //   console.log("finished closing.");
+    //     // });
+    //   });
+    // }, 2000);
 
   }).catch(function(event) {
     console.log(event);
