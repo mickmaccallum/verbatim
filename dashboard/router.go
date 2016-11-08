@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -112,9 +113,31 @@ func handleAccounts(router *mux.Router) {
 		}
 	}).Methods("GET")
 
-	router.HandleFunc("", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/account/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
-	})
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		admin, err := model.FormValuesToAdmin(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		bytes, err := json.Marshal(admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		fmt.Fprint(writer, string(bytes))
+	}).Methods("POST")
 }
 
 func handleLogin(router *mux.Router) {
