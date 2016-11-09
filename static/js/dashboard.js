@@ -76,31 +76,46 @@ function addNetworkCreationListener() {
   });
 };
 
+      // encoderState, captionerState, networkState
+
+function receiveSocketMessage(message) {
+  if (message['encoderState'] != null) {
+
+  } else if (message['captionerState'] != null) {
+
+  } else if (message['networkState'] != null) {
+
+  } else {
+    console.log('socket received unknown message');
+  }
+};
+
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
       console.log('Got new message');
       console.log(message);
+      receiveSocketMessage(message);
     };
 
     webSocket.onerror = function(event) {
       console.log("ERROR: " + event.data);
     };
 
-    setTimeout(function() {
-      console.log("sending message");
-      var payload = {
-        "message": "Hello, Servar."
-      };
+    // setTimeout(function() {
+    //   console.log("sending message");
+    //   var payload = {
+    //     "message": "Hello, Servar."
+    //   };
     
-      socketRocket.send(payload, function(reply) {
-        console.log(reply);
+    //   socketRocket.send(payload, function(reply) {
+    //     console.log(reply);
 
-        // socketRocket.stop(function() {
-        //   console.log("finished closing.");
-        // });
-      });
-    }, 2000);
+    //     // socketRocket.stop(function() {
+    //     //   console.log("finished closing.");
+    //     // });
+    //   });
+    // }, 2000);
 
   }).catch(function(event) {
     console.log(event);
