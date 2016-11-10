@@ -7,7 +7,7 @@ function addNetwork(network) {
   
   var deleteItem = '<td class="col-md-1">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
-        '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
+        '<button class="btn btn-danger btn-xs pull-right delete-encoder-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
           '<span class="glyphicon glyphicon-trash"></span>' +
         '</button>' +
       '</p>' +
