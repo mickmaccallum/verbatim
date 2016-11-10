@@ -6,19 +6,26 @@ $(function() {
   configureEditing();
   startWebSocket();
   autoStopWebSocket();
+  addMuteCaptionerListners();
+  addUnmuteCaptionerListners();
 });
 
 function changeEncoderState(encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
-  
+  console.log(row);
 }
 
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
       var encoderState = message['encoderState'];
+      var captionerState = message['captionerState'];
+
       if (typeof encoderState !== 'undefined') {
         changeEncoderState(encoderState);
+      } else if (typeof captionerState !== 'undefined') {
+        console.log('got captioner state change');
+        console.log(captionerState);
       }
       
       console.log('Got new message');
@@ -153,6 +160,52 @@ function addDeleteEncoderHandler() {
       console.log('error');
       console.log(error);
     });    
+  });
+};
+
+function addMuteCaptionerListners() {
+  $('.mute-captioner-button').click(function(event) {
+    event.preventDefault();
+
+    var row = $(this).closest('tr');
+    var data = $('#toggle-captioner-mute-form').serializeArray();
+    data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
+    data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
+    data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
+
+    $.ajax({
+      url: '/captioners/mute',
+      type: 'POST',
+      data: $.param(data)
+    }).done(function() {
+      console.log("success");
+    }).fail(function() {
+      console.log('error');
+      console.log(this);
+    });
+  });
+};
+
+function addUnmuteCaptionerListners() {
+  $('.unmute-captioner-button').click(function(event) {
+    event.preventDefault();
+
+    var row = $(this).closest('tr');
+    var data = $('#toggle-captioner-mute-form').serializeArray();
+    data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
+    data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
+    data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
+
+    $.ajax({
+      url: '/captioners/unmute',
+      type: 'POST',
+      data: $.param(data)
+    }).done(function() {
+      console.log("success");
+    }).fail(function() {
+      console.log('error');
+      console.log(this);
+    });
   });
 };
 
