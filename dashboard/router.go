@@ -248,6 +248,43 @@ func handleCaptionersPage(router *mux.Router) {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
+
+	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.MuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.UnmuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
 }
 
 func handleNetworksPage(router *mux.Router) {
