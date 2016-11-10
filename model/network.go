@@ -2,22 +2,11 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 )
 
 type NetworkID int
-
-type CaptionerID struct {
-	IPAddr    string
-	NumConn   int
-	NetworkID NetworkID
-}
-
-func (c CaptionerID) String() string {
-	return fmt.Sprint(c.IPAddr, ":", c.NumConn)
-}
 
 // Network represents a downstream network
 type Network struct {
