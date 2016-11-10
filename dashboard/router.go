@@ -138,6 +138,33 @@ func handleAccounts(router *mux.Router) {
 
 		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
+
+	router.HandleFunc("/account/{admin_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id := identifierFromRequest("admin_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing admin identifier"))
+			return
+		}
+
+		admin, err := persist.GetAdminForID(*id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		err = persist.DeleteAdmin(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
 }
 
 func handleLogin(router *mux.Router) {

@@ -7,6 +7,10 @@ function addNetwork(network) {
   var count = body.children().length;
 
   var row = $('<tr></tr>');
+
+  row.attr('data-network-id', network.ID + "");
+  row.attr('data-network-name', network.Name);
+
   row.append('<th scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + network.Name + '</td>');
   row.append('<td>' + network.ListeningPort + '</td>');
@@ -32,6 +36,7 @@ function addNetworkListListeners() {
 function deleteNetworkListListeners() {
   $('.delete-button').click(function(event) {
     event.stopPropagation();
+    event.preventDefault();
 
     var row = $(this).closest('tr');
     var networkId = row.attr('data-network-id');
@@ -63,6 +68,7 @@ function addNetworkCreationListener() {
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
+        deleteNetworkListListeners();
       } else {
         // Maybe prompt to refresh? IDK
       }
