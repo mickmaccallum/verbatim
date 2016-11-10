@@ -21,7 +21,7 @@ func (dl dashboardListener) AddNetwork(n model.Network) {
 }
 
 func (dl dashboardListener) GetConnectedCaptioners(n model.Network) []microphone.CaptionerStatus {
-	return microphone.GetCaptionerStatus(n)
+	return microphone.GetConnectedCaptioners(n)
 }
 
 // Remove a network and *all* of it's encoders from the

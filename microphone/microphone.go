@@ -2,6 +2,7 @@ package microphone
 
 import (
 	"fmt"
+	"github.com/0x7fffffff/verbatim/states"
 	"log"
 	"math"
 	"net"
@@ -15,7 +16,7 @@ import (
 // The connection information for a given captioner.
 type CaptionerStatus struct {
 	model.CaptionerID
-	lastActivity time.Time
+	states.Captioner
 }
 
 // These are the events that the server using this will be notified of
@@ -89,6 +90,11 @@ func UnmuteCaptioner(id model.CaptionerID) {
 	unmuteCaptioner <- id
 }
 
+func GetConnectedCaptioners(m model.Network) []CaptionerStatus {
+	askCaptioners <- m.ID
+	return <-captionerStats
+}
+
 // Paired channels
 var (
 	addNetwork      = make(chan model.Network, 10)
@@ -97,6 +103,8 @@ var (
 	rmCaptioner     = make(chan model.CaptionerID, 10)
 	muteCaptioner   = make(chan model.CaptionerID, 10)
 	unmuteCaptioner = make(chan model.CaptionerID, 10)
+	askCaptioners   = make(chan model.NetworkID, 10)
+	captionerStats  = make(chan []CaptionerStatus, 10)
 )
 
 // Listeners by network
@@ -118,9 +126,6 @@ func maintainListenerState() {
 	// Caption listeners
 	listeners := make(map[model.CaptionerID]CaptionListener)
 	listenersByNetwork := make(map[model.NetworkID][]CaptionListener)
-
-	// TODO: Uncomment this, and use it in the code below
-	// writers := make(map[CaptionerID]MuteCell)
 
 	for {
 		select {
@@ -170,6 +175,28 @@ func maintainListenerState() {
 				}
 				delete(listenersByNetwork, rmId)
 				relay.NetworkRemoved(rmId)
+			}
+		case netId := <-askCaptioners:
+			if cells, found := listenersByNetwork[netId]; found {
+				stats := make([]CaptionerStatus, 0)
+				for _, cl := range cells {
+					cl.cell.cellMux.Lock()
+					if cl.cell.isMute {
+						stats = append(stats, CaptionerStatus{
+							cl.cell.id,
+							states.CaptionerMuted,
+						})
+					} else {
+						stats = append(stats, CaptionerStatus{
+							cl.cell.id,
+							states.CaptionerUnmuted,
+						})
+					}
+					cl.cell.cellMux.Unlock()
+				}
+				captionerStats <- stats
+			} else {
+				captionerStats <- nil
 			}
 		case muteId := <-muteCaptioner:
 			if cl, found := listeners[muteId]; found {
@@ -237,7 +264,6 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 		c.SetReadDeadline(time.Now().Add(time.Minute * 10))
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
-			c.Close()
 			rmCaptioner <- writer.id
 			log.Println(err.Error())
 			break

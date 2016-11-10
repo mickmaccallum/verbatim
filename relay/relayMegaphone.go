@@ -6,7 +6,6 @@ import (
 	"github.com/0x7fffffff/verbatim/states"
 )
 
-// TODO: Track nasty big ball of state
 type encoderListener struct{}
 
 // Logged into encoder properly
