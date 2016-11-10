@@ -45,7 +45,7 @@ function changeCaptionerState(captioner, state) {
                       '<span class="glyphicon glyphicon-volume-up"></span>' + 
                     '</button>' + 
                   '</p>';
-    row.children('.mute-row').replaceWith(content);
+    row.children('.mute-row').children().replaceWith(content);
     addUnmuteCaptionerListners();
   } else if (state == 3) {
     var content = '<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
@@ -53,7 +53,7 @@ function changeCaptionerState(captioner, state) {
                       '<span class="glyphicon glyphicon-volume-off"></span>' + 
                     '</button>' + 
                   '</p>';
-    row.children('.mute-row').replaceWith(content);
+    row.children('.mute-row').children().replaceWith(content);
     addMuteCaptionerListners();
   }
 
