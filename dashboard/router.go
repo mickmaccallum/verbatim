@@ -425,6 +425,17 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		// connectedEncoders := relay.GetConnectedEncoders(*network)
+
+		// for _, encoder := range encoders {
+		// 	for _, connectedEncoderID := range connectedEncoders {
+		// 		if encoder.ID == connectedEncoderID {
+		// 			encoder.Status = 0 // TODO: Need to make constants for all states.
+		// 			break
+		// 		}
+		// 	}
+		// }
+
 		captioners := relay.GetConnectedCaptioners(*network)
 
 		// {
