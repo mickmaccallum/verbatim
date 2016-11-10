@@ -77,7 +77,7 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	http.Redirect(writer, request, "/login", http.StatusSeeOther)
 }
 
-func handleAccounts(router *mux.Router) {
+func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			redirectLogin(writer, request)
@@ -248,6 +248,43 @@ func handleCaptionersPage(router *mux.Router) {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
+
+	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.MuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.UnmuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
 }
 
 func handleNetworksPage(router *mux.Router) {
@@ -377,12 +414,25 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		captioners := relay.GetConnectedCaptioners(*network)
+
+		// {
+		// 	"CaptionerID": {
+		// 		"IPAddr": "192.168.1.1",
+		// 		"NumConn": 1, // dunno
+		// 		"NetworkID": 0
+		// 	},
+		// 	"Captioner": 0 // (0 = connected, 1 = disconnected, 2 = muted, 3 = unmuted)
+		// }
+
 		data := map[string]interface{}{
 			"Network":            *network,
 			"Encoders":           encoders,
+			"Captioners":         captioners,
 			"AddEncoderField":    csrf.TemplateField(request),
 			"EditEncoderField":   csrf.TemplateField(request),
 			"DeleteEncoderField": csrf.TemplateField(request),
+			"MuteCaptionerField": csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_network.html")
@@ -521,7 +571,7 @@ func addRoutes() *mux.Router {
 	handleDashboardPage(router)
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
-	handleAccounts(router)
+	handleAccountsPage(router)
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
