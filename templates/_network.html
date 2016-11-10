@@ -31,7 +31,7 @@
         <th width="15%">Port</th>
         <th width="15%">Handle</th>
         <th width="15%">Password</th>
-        <th width="15%">Password</th>
+        <th width="15%">Status</th>
         <th width="5%"></th>
       </tr>
     </thead>
@@ -48,6 +48,7 @@
           <td><span>{{ $element.Port }}</span></td>
           <td><span>{{ $element.Handle }}</span></td>
           <td><span>{{ $element.Password }}</span></td>
+          <td><span>{{ $element.Status }}</span></td>
           <td>
             <p data-placement="top" data-toggle="tooltip" title="Delete">
               <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
@@ -146,21 +147,46 @@
         <th width="31%">State</th>
       </tr>
     </thead>
+    <tbody>
+      {{range $index, $element := .Captioners }}
+        <tr class="captioner-row" 
+          data-captioner-ip="{{ $element.IPAddr }}"
+          data-captioner-num-conn="{{ $element.NumConn }}"
+          data-captioner-network-id="{{ $element.NetworkID }}">
 
-    <form id="mute-captioner-form" method="POST" accept-charset="UTF-8">
-      {{ .MuteCaptionerField }}
-
-      <tbody>
-        {{range $index, $element := .Captioners }}
-        <tr class="captioner-row">
           <th scope=row>{{ inc $index }}</th>
           <td>{{ $element.CaptionerID.IPAddr }}</td>
           <td>{{ $element.CaptionerID.NumConn }}</td>
-          <td>{{ $element.Captioner }}</td>
+          <td>{{ captionerStatus $element.Captioner }}</td>
+
+          <form id="toggle-captioner-mute-form" method="POST" accept-charset="UTF-8">
+            {{ $.ToggleCaptionerMuteField }}
+
+            {{ if or (eq $element.Captioner 2) (eq $element.Captioner 3) }} 
+              {{ if eq $element.Captioner 2 }}
+                <td>
+                  <p data-placement="top" data-toggle="tooltip" title="Unmute">
+                    <button class="btn btn-danger btn-xs unmute-captioner-button">
+                      <span class="glyphicon glyphicon-volume-up"></span>
+                    </button>
+                  </p>
+                </td>
+              {{ else }}
+                <td>
+                  <p data-placement="top" data-toggle="tooltip" title="Mute">
+                    <button class="btn btn-danger btn-xs mute-captioner-button">
+                      <span class="glyphicon glyphicon-volume-off"></span>
+                    </button>
+                  </p>
+                </td>
+              {{ end }}
+            {{ else }} 
+              <!-- stuff -->
+            {{ end }}
+          </form>
         </tr>
-        {{ end }}
-      </tbody>
-    </form>
+      {{ end }}
+    </tbody>
   </table>
 </div>
 
