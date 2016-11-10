@@ -157,29 +157,27 @@
           <th scope=row>{{ inc $index }}</th>
           <td>{{ $element.CaptionerID.IPAddr }}</td>
           <td>{{ $element.CaptionerID.NumConn }}</td>
-          <td>{{ captionerStatus $element.Captioner }}</td>
+          <td class="state-row">{{ captionerStatus $element.Captioner }}</td>
 
           <form id="toggle-captioner-mute-form" method="POST" accept-charset="UTF-8">
             {{ $.ToggleCaptionerMuteField }}
 
             {{ if or (eq $element.Captioner 2) (eq $element.Captioner 3) }} 
-              {{ if eq $element.Captioner 2 }}
-                <td>
+              <td class="mute-row">
+                {{ if eq $element.Captioner 2 }}
                   <p data-placement="top" data-toggle="tooltip" title="Unmute">
                     <button class="btn btn-danger btn-xs unmute-captioner-button">
                       <span class="glyphicon glyphicon-volume-up"></span>
                     </button>
                   </p>
-                </td>
-              {{ else }}
-                <td>
+                {{ else }}
                   <p data-placement="top" data-toggle="tooltip" title="Mute">
                     <button class="btn btn-danger btn-xs mute-captioner-button">
                       <span class="glyphicon glyphicon-volume-off"></span>
                     </button>
                   </p>
-                </td>
-              {{ end }}
+                {{ end }}
+              </td>
             {{ else }} 
               <!-- stuff -->
             {{ end }}
