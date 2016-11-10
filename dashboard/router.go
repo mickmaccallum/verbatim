@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
-	"github.com/0x7fffffff/verbatim/websocket"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -96,8 +96,15 @@ func handleAccounts(router *mux.Router) {
 			return
 		}
 
+		admins, err := persist.GetAdmins()
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
 		data := map[string]interface{}{
-			"Admin": *admin,
+			"Admin":  *admin,
+			"Admins": admins,
 		}
 
 		template := templateOnBase("templates/_account.html")
@@ -106,9 +113,31 @@ func handleAccounts(router *mux.Router) {
 		}
 	}).Methods("GET")
 
-	router.HandleFunc("", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/account/add", func(writer http.ResponseWriter, request *http.Request) {
+		if !checkSessionValidity(request) {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
-	})
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		admin, err := model.FormValuesToAdmin(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		bytes, err := json.Marshal(admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		fmt.Fprint(writer, string(bytes))
+	}).Methods("POST")
 }
 
 func handleLogin(router *mux.Router) {
@@ -458,23 +487,6 @@ func generalNotFound(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func handleJohnEchoRoute(router *mux.Router) {
-	router.HandleFunc("/john/echo", func(writer http.ResponseWriter, request *http.Request) {
-		if err := request.ParseForm(); err != nil {
-			clientError(writer, err)
-			return
-		}
-
-		bytes, err := json.Marshal(request.Form)
-		if err != nil {
-			serverError(writer, err)
-			return
-		}
-
-		fmt.Fprint(writer, string(bytes))
-	}).Methods("POST")
-}
-
 func addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
@@ -482,13 +494,11 @@ func addRoutes() *mux.Router {
 	handleDashboardPage(router)
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
-	handleJohnEchoRoute(router)
 	handleAccounts(router)
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
 	serveStaticFolder("/fonts/", router)
-	serveStaticFolder("/json/", router)
 
 	websocket.Start(router)
 

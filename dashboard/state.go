@@ -1,33 +1,33 @@
 package dashboard
 
 import (
+	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/states"
-	"github.com/0x7fffffff/verbatim/websocket"
 )
 
-func notifyCaptionerStateChange(captioner model.CaptionerID, state states.Captioner) {
-	message := websocket.SocketMessage{
-		Payload: map[websocket.NotificationType]interface{}{
-			websocket.CaptionerState: map[string]interface{}{
-				"state": int(state),
-				// "captionerId": captioner
-			},
-		},
-	}
+func notifyNetworkPortStateChanged(network model.Network, state states.Network) {
+	websocket.SocketMessage{
+		Payload: wrapState(websocket.NetworkState, state),
+	}.Send()
+}
 
-	message.Send()
+func notifyCaptionerStateChange(captioner model.CaptionerID, state states.Captioner) {
+	websocket.SocketMessage{
+		Payload: wrapState(websocket.CaptionerState, state),
+	}.Send()
 }
 
 func notifyEncoderStateChange(encoder model.Encoder, state states.Encoder) {
-	message := websocket.SocketMessage{
+	websocket.SocketMessage{
+		Payload: wrapState(websocket.EncoderState, state),
+	}.Send()
+}
+
+func wrapState(t websocket.NotificationType, s interface{}) websocket.SocketMessage {
+	return websocket.SocketMessage{
 		Payload: map[websocket.NotificationType]interface{}{
-			websocket.EncoderState: map[string]interface{}{
-				"state":     int(state),
-				"encoderId": encoder.ID,
-			},
+			t: s,
 		},
 	}
-
-	message.Send()
 }

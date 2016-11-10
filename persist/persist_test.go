@@ -25,24 +25,30 @@ func TestGetAdmins(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(admins)
 }
 
 func TestGetAdminByID(t *testing.T) {
-	_, err := GetAdminForID(1)
+	admin, err := GetAdminForID(1)
 
 	if err != nil {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(admin)
 }
 
 func TestGetAdminByCredentials(t *testing.T) {
-	_, err := GetAdminForCredentials("mick2", "abc123")
+	admin, err := GetAdminForCredentials("mick2", "abc123")
 
 	if err != nil {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(admin)
 }
 
 func TestGetNetworks(t *testing.T) {
@@ -57,18 +63,61 @@ func TestGetNetworks(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(networks)
 }
 
 func TestGetNetworkByID(t *testing.T) {
-	_, err := GetNetwork(1)
+	network, err := GetNetwork(1)
 
 	if err != nil {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(network)
 }
 
 // AddNetwork, UpdateNetwork, DeleteNetwork
+
+func TestAddNetwork(t *testing.T) {
+	newNetwork := model.Network{
+		Name:          "MSNBC",
+		ListeningPort: 4040,
+	}
+
+	network, err := AddNetwork(newNetwork)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(network)
+}
+
+func TestUpdateNetwork(t *testing.T) {
+	network, _ := GetNetwork(1)
+	network.ListeningPort = 6000
+
+	err := UpdateNetwork(*network)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(network)
+}
+
+func TestDeleteNetwork(t *testing.T) {
+	network, _ := GetNetwork(1)
+	err := DeleteNetwork(*network)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(network)
+}
 
 func TestGetEncoders(t *testing.T) {
 	encoders, err := GetEncoders()
@@ -82,6 +131,8 @@ func TestGetEncoders(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(encoders)
 }
 
 func TestGetEncoder(t *testing.T) {
@@ -96,6 +147,8 @@ func TestGetEncoder(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(encoder)
 }
 
 func TestGetEncodersForNetwork(t *testing.T) {
@@ -111,6 +164,8 @@ func TestGetEncodersForNetwork(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(encoders)
 }
 
 // AddEncoder, UpdateEncoder, DeleteEncoder
@@ -119,7 +174,7 @@ func TestAddEncoder(t *testing.T) {
 	encoder := model.Encoder{
 		IPAddress: "19.34.76.34",
 		Port:      3456,
-		Name:      sql.NullString{String: "cool encoder", Valid: true},
+		Name:      sql.NullString{String: "my encoder", Valid: true},
 		Handle:    "username",
 		Password:  "password1",
 	}
@@ -139,7 +194,7 @@ func TestAddEncoder(t *testing.T) {
 			t.Fail()
 		}
 
-		if enc.Name.Valid && enc.Name.String != "cool encoder" {
+		if enc.Name.Valid && enc.Name.String != "my encoder" {
 			t.Log("failed to properly save encoder ")
 			t.Fail()
 		}
@@ -157,10 +212,21 @@ func TestAddEncoder(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+
+	t.Log(newEncoder)
 }
 
 func TestUpdateEncoder(t *testing.T) {
+	encoder, _ := GetEncoder(1)
+	encoder.IPAddress = "127.21.33.134"
 
+	err := UpdateEncoder(*encoder)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(err)
 }
 
 func TestDeleteEncoder(t *testing.T) {
