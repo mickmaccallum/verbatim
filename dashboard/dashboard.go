@@ -63,6 +63,9 @@ type RelayListener interface {
 	// GetConnectedCaptioners gets all of the currently connected
 	// captioners for a given network.
 	GetConnectedCaptioners(n model.Network) []microphone.CaptionerStatus
+
+	// GetConnectedEncoders get all the currently connected encoders
+	GetConnectedEncoders(n model.Network) []model.EncoderID
 }
 
 var relay RelayListener

@@ -24,6 +24,10 @@ func (dl dashboardListener) GetConnectedCaptioners(n model.Network) []microphone
 	return microphone.GetConnectedCaptioners(n)
 }
 
+func (dl dashboardListener) GetConnectedEncoders(n model.Network) []model.EncoderID {
+	return megaphone.GetConnectedEncoders(n.ID)
+}
+
 // Remove a network and *all* of it's encoders from the
 // database and traffic
 func (dl dashboardListener) RemoveNetwork(network model.Network) {

@@ -74,8 +74,10 @@ var (
 
 // Doing lookups on broadcasters
 var (
-	askBroadcaster   = make(chan model.NetworkID)
-	giveBroadCasters = make(chan *NetworkBroadcaster)
+	askBroadcaster       = make(chan model.NetworkID)
+	giveBroadCasters     = make(chan *NetworkBroadcaster)
+	getConnectedEncoders = make(chan model.NetworkID)
+	connectedEncoders    = make(chan []model.EncoderID)
 )
 
 // Send notifications (coming from Relay server)
@@ -84,6 +86,11 @@ var networkBroadcasters = make(map[model.NetworkID]*NetworkBroadcaster)
 func GetBroadcasterForNetwork(id model.NetworkID) *NetworkBroadcaster {
 	askBroadcaster <- id
 	return <-giveBroadCasters
+}
+
+func GetConnectedEncoders(id model.NetworkID) []model.EncoderID {
+	getConnectedEncoders <- id
+	return <-connectedEncoders
 }
 
 func setupEncoders() error {
@@ -131,6 +138,12 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 				b.destroy()
 				delete(broadcasters, killNet)
 			}
+		case netId := <-getConnectedEncoders:
+			if b, found := broadcasters[netId]; found {
+				connectedEncoders <- b.getConnectedEncoderIds()
+			} else {
+				connectedEncoders <- nil
+			}
 		case enc := <-encoderRemoved:
 			broadcasters[model.NetworkID(enc.NetworkID)].removeEncoder(model.EncoderID(enc.ID))
 
@@ -157,11 +170,12 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 				return
 			}
 			// Make sure we're adding to a network that exists
-			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; !found {
+			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; found {
 				inbound := make(chan []byte)
 				// If we are asked to add an existing encoder, then do nothing
 				if b.registerEncoderChan(encId(newEnc), inbound) == encoderDidNotExist {
 					// Remove the encoder from the broadcaster if it dies
+					log.Println("Started new encoder")
 					go handleEncoder(newEnc, inbound, b)
 				} else {
 					close(inbound)
@@ -232,9 +246,9 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					return
 				}
 			} else {
+				log.Println("Encoder removed")
 				conn.Close()
 				relay.Logout(enc)
-				//
 				return
 			}
 		}

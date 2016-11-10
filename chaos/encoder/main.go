@@ -2,33 +2,69 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"flag"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
+	"log"
 	"net"
 	"strings"
 	"sync"
 )
 
 func main() {
-	defaults := flag.Bool("d", false, "Use default info")
-	portNum := flag.Int("port", 9642, "The port on which to listen")
-	username := flag.String("username", "mcs", "The user name to be required")
-	password := flag.String("password", "abc123", "The password to be required")
+	dbLocation := flag.String("db", "database.db", "The location of the database file used to spin up encoders")
 	flag.Parse()
-	if (portNum != nil && username != nil && password != nil) || (defaults != nil && *defaults) {
-		fmt.Println("Serving on port:", *portNum)
-		fmt.Println(*portNum, *username, *password, *defaults)
-		serve(*portNum, *username, *password)
-	} else {
-		flag.PrintDefaults()
+	db, err := sql.Open("sqlite3", *dbLocation)
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
+	rows, err := db.Query(`
+		Select 
+			port, 
+			handle, 
+			password, 
+			network.name 
+		from encoder 
+		inner join network 
+			on encoder.network_id = network.id 
+		where 
+			ip_address = '127.0.0.1' 
+			or ip_address = '::1' 
+			or ip_address = 'localhost';`)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	var wg = sync.WaitGroup{}
+	for rows.Next() {
+		var port int
+		var handle string
+		var password string
+		var network_name string
+		err := rows.Scan(&port, &handle, &password, &network_name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		wg.Add(1)
+		go serve(port, handle, password, network_name, wg)
+	}
+	wg.Wait()
 }
 
-var connCount = 0
-var connMux = &sync.Mutex{}
-
-func serve(port int, username, password string) {
+func serve(port int, username, password, networkName string, wg sync.WaitGroup) {
+	defer wg.Done()
+	var connCount = 0
+	var connMux = &sync.Mutex{}
+	disconnect := func(conn net.Conn) {
+		connMux.Lock()
+		conn.Close()
+		connCount = 0
+		connMux.Unlock()
+	}
 	var ln, err = net.Listen("tcp", fmt.Sprint(":", port))
+	log.Println("Listening for", networkName, "on", port)
 	if err != nil {
 		fmt.Println("Unable to bind to port", port, "!")
 		return
@@ -38,12 +74,12 @@ func serve(port int, username, password string) {
 		conn, err := ln.Accept()
 		if err == nil {
 			connMux.Lock()
-			fmt.Println(connCount)
+			// fmt.Println(connCount)
 			if connCount != 0 {
 				conn.Close()
 			} else {
 				connCount = 1
-				go workConn(conn, username, password)
+				go workConn(conn, username, password, networkName, disconnect)
 			}
 			connMux.Unlock()
 		}
@@ -51,14 +87,7 @@ func serve(port int, username, password string) {
 	}
 }
 
-func disconnect(conn net.Conn) {
-	connMux.Lock()
-	conn.Close()
-	connCount = 0
-	connMux.Unlock()
-}
-
-func workConn(conn net.Conn, username, password string) {
+func workConn(conn net.Conn, username, password, networkName string, disconnect func(conn net.Conn)) {
 	var reader = bufio.NewReader(conn)
 	userInput, err := reader.ReadString('\n')
 	passwordInput, err := reader.ReadString('\n')
@@ -68,15 +97,15 @@ func workConn(conn net.Conn, username, password string) {
 		disconnect(conn)
 		return
 	}
-	fmt.Println("Connected, dawg!")
+	fmt.Println("Connected for ", networkName)
 	buf := make([]byte, 512)
 	for {
 		if n, err := conn.Read(buf); err != nil {
-			fmt.Println("Disconnected!")
+			fmt.Println("Disconnected for", networkName)
 			disconnect(conn)
 			return
 		} else {
-			fmt.Print(string(buf[0:n]))
+			fmt.Print(networkName+":", string(buf[0:n]))
 		}
 	}
 }
