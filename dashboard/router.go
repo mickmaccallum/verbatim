@@ -320,7 +320,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		// relay.DeleteEncoder(*encoder)
+		relay.DeleteEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")

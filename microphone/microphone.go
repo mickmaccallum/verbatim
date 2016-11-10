@@ -224,11 +224,13 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 	for {
 		conn, er := ln.Accept()
 		if er != nil {
+			log.Println("Connection failed:", er.Error())
 			if err := er.(net.Error); err != nil {
 				if err.Temporary() {
 					log.Println(err)
 					continue
 				} else {
+					// TODO: Signal error here.
 					return
 				}
 			}
@@ -260,10 +262,12 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 	// addListenerChan <-
 	// Keep a buffer of 1KiB per captioner
 	buf := make([]byte, 1024)
+	log.Println("Am listening to captioner")
 	for {
 		c.SetReadDeadline(time.Now().Add(time.Minute * 10))
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
+			log.Println("Disconnected from Captioner")
 			rmCaptioner <- writer.id
 			log.Println(err.Error())
 			break
