@@ -414,12 +414,25 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		captioners := relay.GetConnectedCaptioners(*network)
+
+		// {
+		// 	"CaptionerID": {
+		// 		"IPAddr": "192.168.1.1",
+		// 		"NumConn": 1, // dunno
+		// 		"NetworkID": 0
+		// 	},
+		// 	"Captioner": 0 // (0 = connected, 1 = disconnected, 2 = muted, 3 = unmuted)
+		// }
+
 		data := map[string]interface{}{
 			"Network":            *network,
 			"Encoders":           encoders,
+			"Captioners":         captioners,
 			"AddEncoderField":    csrf.TemplateField(request),
 			"EditEncoderField":   csrf.TemplateField(request),
 			"DeleteEncoderField": csrf.TemplateField(request),
+			"MuteCaptionerField": csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_network.html")
