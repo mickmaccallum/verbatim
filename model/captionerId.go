@@ -24,9 +24,9 @@ func (c CaptionerID) String() string {
 // from the given form values and creates it.
 func FormValuesToCaptionerID(values url.Values) (*CaptionerID, error) {
 	ipAddress, numConnString, networkIDString :=
-		values.Get("ip_address"),
-		values.Get("num_conn"),
-		values.Get("network_id")
+		values.Get("ipAddress"),
+		values.Get("numConn"),
+		values.Get("networkId")
 
 	// Min length of IPv4, max length of IPv6.
 	if len(ipAddress) < 7 || len(ipAddress) > 45 {
