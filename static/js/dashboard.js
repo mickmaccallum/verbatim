@@ -68,6 +68,7 @@ function addNetworkCreationListener() {
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
+        deleteNetworkListListeners();
       } else {
         // Maybe prompt to refresh? IDK
       }
