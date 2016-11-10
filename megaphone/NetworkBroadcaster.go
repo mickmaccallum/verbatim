@@ -31,6 +31,8 @@ type NetworkBroadcaster struct {
 	faultedEncoder chan model.EncoderID
 	restartEncoder chan encoderIdPair
 	die            chan struct{}
+	getEncoders    chan struct{}
+	encoderIds     chan []model.EncoderID
 	encoders       map[model.EncoderID]chan []byte
 }
 
@@ -45,6 +47,7 @@ func makeBroadcaster(n model.NetworkID, restartEncoder chan encoderIdPair) *Netw
 		die:            make(chan struct{}),
 		faultedEncoder: make(chan model.EncoderID),
 		restartEncoder: restartEncoder,
+		getEncoders:    make(chan struct{}),
 	}
 }
 
@@ -65,6 +68,11 @@ func (n NetworkBroadcaster) registerEncoderChan(id model.EncoderID, dest chan []
 	} else {
 		return encoderDidNotExist
 	}
+}
+
+func (n NetworkBroadcaster) getConnectedEncoderIds() []model.EncoderID {
+	n.getEncoders <- struct{}{}
+	return <-n.encoderIds
 }
 
 func (n NetworkBroadcaster) destroy() {
@@ -100,8 +108,16 @@ func (n *NetworkBroadcaster) serveConnection() {
 				n.restartEncoder <- encoderIdPair{n.id, id}
 			}()
 		case id := <-n.rmEncoder:
-			close(n.encoders[id])
-			delete(n.encoders, id)
+			if _, found := n.encoders[id]; found {
+				close(n.encoders[id])
+				delete(n.encoders, id)
+			}
+		case <-n.getEncoders:
+			encoders := make([]model.EncoderID, 0)
+			for id, _ := range n.encoders {
+				encoders = append(encoders, id)
+			}
+			n.encoderIds <- encoders
 		case <-n.die:
 			// Close all the encoders hooked up to this broa
 			close(n.writeChan)

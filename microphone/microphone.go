@@ -146,9 +146,12 @@ func maintainListenerState() {
 					cl.cell.Unmute()
 					relay.Unmuted(cl.cell.id)
 				}
+				listenersByNetwork[cl.NetId] = arr
 			} else {
 				arr = []CaptionListener{cl}
 				cl.cell.Unmute()
+				// TODO: Mute other captioners?
+				listenersByNetwork[cl.NetId] = arr
 			}
 			relay.Connected(cl.cell.id)
 		case rmId := <-rmCaptioner:
@@ -177,6 +180,9 @@ func maintainListenerState() {
 				relay.NetworkRemoved(rmId)
 			}
 		case netId := <-askCaptioners:
+			log.Println("Check captioners for network:", netId)
+			log.Println(listeners)
+			log.Println(listenersByNetwork)
 			if cells, found := listenersByNetwork[netId]; found {
 				stats := make([]CaptionerStatus, 0)
 				for _, cl := range cells {
@@ -250,8 +256,9 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 			NetworkID: model.NetworkID(n.ID),
 		})
 		captionerAdded <- CaptionListener{
-			conn: conn,
-			cell: writer,
+			conn:  conn,
+			cell:  writer,
+			NetId: n.ID,
 		}
 		go handleCaptioner(conn, writer)
 	}
