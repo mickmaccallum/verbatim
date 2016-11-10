@@ -12,6 +12,7 @@ import (
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/states"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -28,6 +29,21 @@ func templateOnBase(path string) *template.Template {
 			}
 
 			return word + "s"
+		},
+		"captionerStatus": func(status states.Captioner) string {
+			// connected, disconnected, muted, unmuted
+			switch status {
+			case 0:
+				return "Connecting"
+			case 1:
+				return "Disconnecting"
+			case 2:
+				return "Muted"
+			case 3:
+				return "Unmuted"
+			default:
+				return "Disconnected"
+			}
 		},
 	}
 
