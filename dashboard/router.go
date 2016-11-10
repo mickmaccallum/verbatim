@@ -12,6 +12,7 @@ import (
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"github.com/0x7fffffff/verbatim/states"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -22,12 +23,27 @@ func templateOnBase(path string) *template.Template {
 		"inc": func(i int) int {
 			return i + 1
 		},
-		"simplePlural": func(word string, length int) string {
-			if length == 1 {
+		"simplePlural": func(word string, count int) string {
+			if count == 1 {
 				return word
 			}
 
 			return word + "s"
+		},
+		"captionerStatus": func(status states.Captioner) string {
+			// connected, disconnected, muted, unmuted
+			switch status {
+			case 0:
+				return "Connecting"
+			case 1:
+				return "Disconnecting"
+			case 2:
+				return "Muted"
+			case 3:
+				return "Unmuted"
+			default:
+				return "Disconnected"
+			}
 		},
 	}
 
@@ -263,14 +279,9 @@ func handleCaptionersPage(router *mux.Router) {
 
 		relay.MuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
-	})
+	}).Methods("POST")
 
 	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -284,7 +295,7 @@ func handleCaptionersPage(router *mux.Router) {
 
 		relay.UnmuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
-	})
+	}).Methods("POST")
 }
 
 func handleNetworksPage(router *mux.Router) {
@@ -414,6 +425,17 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		// connectedEncoders := relay.GetConnectedEncoders(*network)
+
+		// for _, encoder := range encoders {
+		// 	for _, connectedEncoderID := range connectedEncoders {
+		// 		if encoder.ID == connectedEncoderID {
+		// 			encoder.Status = 0 // TODO: Need to make constants for all states.
+		// 			break
+		// 		}
+		// 	}
+		// }
+
 		captioners := relay.GetConnectedCaptioners(*network)
 
 		// {
@@ -426,13 +448,13 @@ func handleNetworksPage(router *mux.Router) {
 		// }
 
 		data := map[string]interface{}{
-			"Network":            *network,
-			"Encoders":           encoders,
-			"Captioners":         captioners,
-			"AddEncoderField":    csrf.TemplateField(request),
-			"EditEncoderField":   csrf.TemplateField(request),
-			"DeleteEncoderField": csrf.TemplateField(request),
-			"MuteCaptionerField": csrf.TemplateField(request),
+			"Network":                  *network,
+			"Encoders":                 encoders,
+			"Captioners":               captioners,
+			"AddEncoderField":          csrf.TemplateField(request),
+			"EditEncoderField":         csrf.TemplateField(request),
+			"DeleteEncoderField":       csrf.TemplateField(request),
+			"ToggleCaptionerMuteField": csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_network.html")

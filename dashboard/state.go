@@ -13,9 +13,16 @@ func notifyNetworkPortStateChanged(network model.Network, state states.Network) 
 }
 
 func notifyCaptionerStateChange(captioner model.CaptionerID, state states.Captioner) {
-	websocket.SocketMessage{
-		Payload: wrapState(websocket.CaptionerState, state),
-	}.Send()
+	message := websocket.SocketMessage{
+		Payload: map[websocket.NotificationType]interface{}{
+			websocket.CaptionerState: map[string]interface{}{
+				"state":       int(state),
+				"captionerId": captioner,
+			},
+		},
+	}
+
+	message.Send()
 }
 
 func notifyEncoderStateChange(encoder model.Encoder, state states.Encoder) {
