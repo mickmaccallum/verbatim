@@ -77,7 +77,7 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	http.Redirect(writer, request, "/login", http.StatusSeeOther)
 }
 
-func handleAccounts(router *mux.Router) {
+func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
 		if !checkSessionValidity(request) {
 			redirectLogin(writer, request)
@@ -521,7 +521,7 @@ func addRoutes() *mux.Router {
 	handleDashboardPage(router)
 	handleNetworksPage(router)
 	handleCaptionersPage(router)
-	handleAccounts(router)
+	handleAccountsPage(router)
 
 	serveStaticFolder("/css/", router)
 	serveStaticFolder("/js/", router)
