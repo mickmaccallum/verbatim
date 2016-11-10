@@ -279,14 +279,9 @@ func handleCaptionersPage(router *mux.Router) {
 
 		relay.MuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
-	})
+	}).Methods("POST")
 
 	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
 		if !checkSessionValidity(request) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
@@ -300,7 +295,7 @@ func handleCaptionersPage(router *mux.Router) {
 
 		relay.UnmuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
-	})
+	}).Methods("POST")
 }
 
 func handleNetworksPage(router *mux.Router) {
