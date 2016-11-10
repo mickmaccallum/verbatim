@@ -67,8 +67,8 @@ function addEncoder(encoder) {
   var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
 
   row.append('<th scope=row>' + (count + 1) + '</th>');
-  row.append('<td>' + encoder.IPAddress + '</td>');
   row.append('<td>' + encoder.Name + '</td>');
+  row.append('<td>' + encoder.IPAddress + '</td>');
   row.append('<td>' + encoder.Port + '</td>');
   row.append('<td>' + encoder.Handle + '</td>');
   row.append('<td>' + encoder.Password + '</td>');
