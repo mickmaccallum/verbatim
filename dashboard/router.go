@@ -437,13 +437,13 @@ func handleNetworksPage(router *mux.Router) {
 		// }
 
 		data := map[string]interface{}{
-			"Network":            *network,
-			"Encoders":           encoders,
-			"Captioners":         captioners,
-			"AddEncoderField":    csrf.TemplateField(request),
-			"EditEncoderField":   csrf.TemplateField(request),
-			"DeleteEncoderField": csrf.TemplateField(request),
-			"MuteCaptionerField": csrf.TemplateField(request),
+			"Network":                  *network,
+			"Encoders":                 encoders,
+			"Captioners":               captioners,
+			"AddEncoderField":          csrf.TemplateField(request),
+			"EditEncoderField":         csrf.TemplateField(request),
+			"DeleteEncoderField":       csrf.TemplateField(request),
+			"ToggleCaptionerMuteField": csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_network.html")
