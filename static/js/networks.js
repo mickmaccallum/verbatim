@@ -15,21 +15,65 @@ function changeEncoderState(encoderState) {
   console.log(row);
 }
 
+function captionerStateToString(state) {
+  if (state == 0) {
+    return "Connecting";
+  } else if (state == 1) {
+    return "Disconnecting";
+  } else if (state == 2) {
+    return "Muted";
+  } else if (state == 3) {
+    return "Unmuted";
+  } else {
+    return "Disconnected";
+  }
+}
+
+function changeCaptionerState(captioner, state) {
+  console.log('Captioner with IP: ' + captioner.IPAddr + " changed state to: " + state);
+
+  var selector = '#captioner-selection-table > tbody > tr[data-captioner-ip="' 
+    + captioner.IPAddr + '"][data-captioner-num-conn="' + captioner.NumConn
+    + '"][data-captioner-network-id="' + captioner.NetworkID + '"]';
+
+  var row = $(selector);
+  row.children('.state-row').text(captionerStateToString(state));
+
+  if (state == 2) {
+    var content = '<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
+                    '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
+                      '<span class="glyphicon glyphicon-volume-up"></span>' + 
+                    '</button>' + 
+                  '</p>';
+    row.children('.mute-row').replaceWith(content);
+    addUnmuteCaptionerListners();
+  } else if (state == 3) {
+    var content = '<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
+                    '<button class="btn btn-danger btn-xs mute-captioner-button">' +
+                      '<span class="glyphicon glyphicon-volume-off"></span>' + 
+                    '</button>' + 
+                  '</p>';
+    row.children('.mute-row').replaceWith(content);
+    addMuteCaptionerListners();
+  }
+
+  console.log();
+};
+
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
+      console.log('SOCKET MESSAGE:');
+      console.log(message);
+
       var encoderState = message['encoderState'];
       var captionerState = message['captionerState'];
 
       if (typeof encoderState !== 'undefined') {
         changeEncoderState(encoderState);
       } else if (typeof captionerState !== 'undefined') {
-        console.log('got captioner state change');
-        console.log(captionerState);
-      }
-      
-      console.log('Got new message');
-      console.log(message);
+        changeCaptionerState(captionerState.captionerId, captionerState.state);
+      }      
     };
 
     webSocket.onerror = function(event) {
