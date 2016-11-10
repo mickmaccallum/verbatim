@@ -22,8 +22,8 @@ func templateOnBase(path string) *template.Template {
 		"inc": func(i int) int {
 			return i + 1
 		},
-		"simplePlural": func(word string, length int) string {
-			if length == 1 {
+		"simplePlural": func(word string, count int) string {
+			if count == 1 {
 				return word
 			}
 
