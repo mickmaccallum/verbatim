@@ -3,6 +3,7 @@ package dashboard
 import (
 	"net/http"
 
+	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
@@ -58,6 +59,10 @@ type RelayListener interface {
 
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
+
+	// GetConnectedCaptioners gets all of the currently connected
+	// captioners for a given network.
+	GetConnectedCaptioners(n model.Network) []microphone.CaptionerStatus
 }
 
 var relay RelayListener
