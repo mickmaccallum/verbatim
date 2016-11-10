@@ -75,6 +75,7 @@ function addEncoder(encoder) {
   row.append(deleteItem);
 
   body.append(row);
+
   return true;
 };
 
@@ -87,6 +88,8 @@ function addAddEncoderHandler() {
       data: $(this).closest('form').serialize(),
       success: function(encoder) {
         if (addEncoder(encoder)) {
+          addDeleteEncoderHandler();
+          configureEditing();
           recountEncoders();
         } else {
           

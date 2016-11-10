@@ -4,6 +4,15 @@ function addNetwork(network) {
   }
 
   var body = $('#network-selection-table > tbody');
+  
+  var deleteItem = '<td class="col-md-1">' +
+      '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
+        '<button class="btn btn-danger btn-xs pull-right delete-encoder-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
+          '<span class="glyphicon glyphicon-trash"></span>' +
+        '</button>' +
+      '</p>' +
+    '</td>';
+
   var count = body.children().length;
 
   var row = $('<tr></tr>');
@@ -14,8 +23,10 @@ function addNetwork(network) {
   row.append('<th scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + network.Name + '</td>');
   row.append('<td>' + network.ListeningPort + '</td>');
-  body.append(row);
+  row.append(deleteItem);
 
+  body.append(row);
+  
   return true;
 };
 
