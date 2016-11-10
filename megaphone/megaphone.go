@@ -157,11 +157,12 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 				return
 			}
 			// Make sure we're adding to a network that exists
-			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; !found {
+			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; found {
 				inbound := make(chan []byte)
 				// If we are asked to add an existing encoder, then do nothing
 				if b.registerEncoderChan(encId(newEnc), inbound) == encoderDidNotExist {
 					// Remove the encoder from the broadcaster if it dies
+					log.Println("Started new encoder")
 					go handleEncoder(newEnc, inbound, b)
 				} else {
 					close(inbound)
@@ -232,9 +233,9 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					return
 				}
 			} else {
+				log.Println("Encoder removed")
 				conn.Close()
 				relay.Logout(enc)
-				//
 				return
 			}
 		}
