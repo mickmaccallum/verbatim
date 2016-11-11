@@ -31,7 +31,7 @@ func (e micListener) Connected(ci model.CaptionerID) {
 }
 
 func (e micListener) Disconnected(ci model.CaptionerID) {
-	dashboard.CaptionerStateChanged(ci, states.CaptionerMuted)
+	dashboard.CaptionerStateChanged(ci, states.CaptionerDisconnected)
 }
 
 func (e micListener) Muted(ci model.CaptionerID) {
