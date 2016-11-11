@@ -429,7 +429,7 @@ func handleNetworksPage(router *mux.Router) {
 		for _, encoder := range encoders {
 			for _, connectedEncoderID := range connectedEncoders {
 				if encoder.ID == connectedEncoderID {
-					encoder.Status = states.EncoderConnected
+					encoder.Status = int(states.EncoderConnected)
 					break
 				}
 			}
