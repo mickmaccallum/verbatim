@@ -20,7 +20,7 @@ function addNetwork(network) {
   row.attr('data-network-id', network.ID + "");
   row.attr('data-network-name', network.Name);
 
-  row.append('<th scope=row>' + (count + 1) + '</th>');
+  row.append('<th class="row-number" scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + network.Name + '</td>');
   row.append('<td>' + network.ListeningPort + '</td>');
   row.append(deleteItem);

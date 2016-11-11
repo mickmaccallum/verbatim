@@ -12,7 +12,7 @@ $(function() {
 
 function changeEncoderState(encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
-  console.log(row);
+  // console.log(row);
 }
 
 function captionerStateToString(state) {
@@ -27,45 +27,86 @@ function captionerStateToString(state) {
   } else {
     return "Disconnected";
   }
-}
+};
 
-function changeCaptionerState(captioner, state) {
-  console.log('Captioner with IP: ' + captioner.IPAddr + " changed state to: " + state);
+function makeMuteButton() {
+  return '<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
+            '<button class="btn btn-danger btn-xs mute-captioner-button">' +
+              '<span class="glyphicon glyphicon-volume-off"></span>' + 
+            '</button>' + 
+          '</p>';
+};
 
-  var selector = '#captioner-selection-table > tbody > tr[data-captioner-ip="' 
-    + captioner.IPAddr + '"][data-captioner-num-conn="' + captioner.NumConn
-    + '"][data-captioner-network-id="' + captioner.NetworkID + '"]';
+function makeUnmuteButton() {
+  return '<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
+            '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
+              '<span class="glyphicon glyphicon-volume-up"></span>' + 
+            '</button>' + 
+          '</p>';
+};
 
-  var row = $(selector);
-  row.children('.state-row').text(captionerStateToString(state));
+function addCaptioner(captioner, tableId, state) {
+  var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
+    'data-captioner-ip="' + captioner.IPAddr + '" ' +
+    'data-captioner-num-conn="' + captioner.NumConn + '" ' +
+    'data-captioner-network-id="' + captioner.NetworkID + '">';
 
-  if (state == 2) {
-    var content = '<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
-                    '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
-                      '<span class="glyphicon glyphicon-volume-up"></span>' + 
-                    '</button>' + 
-                  '</p>';
-    row.children('.mute-row').children().replaceWith(content);
-    addUnmuteCaptionerListners();
-  } else if (state == 3) {
-    var content = '<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
-                    '<button class="btn btn-danger btn-xs mute-captioner-button">' +
-                      '<span class="glyphicon glyphicon-volume-off"></span>' + 
-                    '</button>' + 
-                  '</p>';
-    row.children('.mute-row').children().replaceWith(content);
-    addMuteCaptionerListners();
+  var headers = '<th class="row-number" scope=row>0</th>' + 
+    '<td>' + captioner.IPAddr + '</td>' + 
+    '<td>' + captioner.NumConn + '</td>' + 
+    '<td class="state-row">' + captionerStateToString(state) + '</td>';
+
+  var muteColumn = '';
+  if (state == 2 || state == 3) {
+    if (state == 2) {
+      muteColumn = makeUnmuteButton();
+    } else {
+      muteColumn = makeMuteButton();
+    }
+  } else {
+    // TODO: handle this.
   }
 
-  console.log();
+  var endRow = '</tr>';
+
+  var row = $(openRow + headers + muteColumn + endRow);
+  $('#captioner-selection-table > tbody').prepend(row);
+  recountCaptioners();
+};
+
+function changeCaptionerState(captioner, state) {
+  var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(":");
+
+  if (state == 0) { // connected
+    addCaptioner(captioner, tableId, state);
+
+  } else if (state == 1) { // disconnected
+    $(document.getElementById(tableId)).hide('slow', function(){ 
+      this.remove(); 
+    });
+
+  } else if (state == 2) { // muted
+    var row = $(document.getElementById(tableId));
+
+    row.children('.state-row').text(captionerStateToString(state));
+    row.children('.mute-row').children().replaceWith(makeUnmuteButton());
+    addUnmuteCaptionerListners();
+
+  } else if (state == 3) { // unmuted
+    var row = $(document.getElementById(tableId));
+
+    row.children('.state-row').text(captionerStateToString(state));
+    row.children('.mute-row').children().replaceWith(makeMuteButton());
+    addMuteCaptionerListners();
+
+  } else {
+
+  }
 };
 
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
-      console.log('SOCKET MESSAGE:');
-      console.log(message);
-
       var encoderState = message['encoderState'];
       var captionerState = message['captionerState'];
 
@@ -92,10 +133,20 @@ function autoStopWebSocket() {
   });
 };
 
+function recountCaptioners() {
+  $('#captioner-selection-table > tbody').children('tr').each(function(index, el) {
+    $(el).children('.row-number').text((index + 1) + "");
+  });
+}
+
 function recountEncoders() {
   var body = $('#encoder-selection-table > tbody');
-  var count = body.children().length;
-  $('#encoder-count').text(count);
+  var rows = body.children('tr');
+
+  $('#encoder-count').text(rows.length);
+  rows.each(function(index, el) {
+    $(el).children('.row-number').text((index + 1) + "");
+  });
 };
 
 function addEncoder(encoder) {
@@ -221,8 +272,6 @@ function addMuteCaptionerListners() {
       url: '/captioners/mute',
       type: 'POST',
       data: $.param(data)
-    }).done(function() {
-      console.log("success");
     }).fail(function() {
       console.log('error');
       console.log(this);
@@ -244,8 +293,6 @@ function addUnmuteCaptionerListners() {
       url: '/captioners/unmute',
       type: 'POST',
       data: $.param(data)
-    }).done(function() {
-      console.log("success");
     }).fail(function() {
       console.log('error');
       console.log(this);
