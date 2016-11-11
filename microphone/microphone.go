@@ -65,30 +65,56 @@ func Start(listener RelayListener) error {
 	return nil
 }
 
+var addNetwork = make(chan model.Network, 10)
+
 // Listen on this network's port, and track listeners over time
 func AddNetwork(n model.Network) {
 	addNetwork <- n
 }
+
+var rmNetwork = make(chan model.NetworkID, 10)
 
 // Stop listening for captioners on this network, frees up the port assigned to the network
 func RemoveNetwork(id model.NetworkID) {
 	rmNetwork <- id
 }
 
+var (
+	askNetworks = make(chan struct{})
+	gotNetworks = make(chan map[model.NetworkID]bool)
+)
+
+// Returns all the successfully connected networks
+func GetConnectedNetworks() map[model.NetworkID]bool {
+	askNetworks <- struct{}{}
+	return <-gotNetworks
+}
+
+var rmCaptioner = make(chan model.CaptionerID, 10)
+
 // Forcibly disconnect this captioner, so they cannot send captions.
 func RemoveCaptioner(id model.CaptionerID) {
 	rmCaptioner <- id
 }
+
+var muteCaptioner = make(chan model.CaptionerID, 10)
 
 // Mute the captioner with the associated id.
 func MuteCaptioner(id model.CaptionerID) {
 	muteCaptioner <- id
 }
 
+var unmuteCaptioner = make(chan model.CaptionerID, 10)
+
 // Unmute the captioner with the associated id.
 func UnmuteCaptioner(id model.CaptionerID) {
 	unmuteCaptioner <- id
 }
+
+var (
+	askCaptioners  = make(chan model.NetworkID, 10)
+	captionerStats = make(chan []CaptionerStatus, 10)
+)
 
 func GetConnectedCaptioners(m model.Network) []CaptionerStatus {
 	askCaptioners <- m.ID
@@ -97,14 +123,7 @@ func GetConnectedCaptioners(m model.Network) []CaptionerStatus {
 
 // Paired channels
 var (
-	addNetwork      = make(chan model.Network, 10)
-	rmNetwork       = make(chan model.NetworkID, 10)
-	captionerAdded  = make(chan CaptionListener, 10) // Notify a new captioner has been added
-	rmCaptioner     = make(chan model.CaptionerID, 10)
-	muteCaptioner   = make(chan model.CaptionerID, 10)
-	unmuteCaptioner = make(chan model.CaptionerID, 10)
-	askCaptioners   = make(chan model.NetworkID, 10)
-	captionerStats  = make(chan []CaptionerStatus, 10)
+	captionerAdded = make(chan CaptionListener, 10) // Notify a new captioner has been added
 )
 
 // Listeners by network
@@ -137,6 +156,27 @@ func maintainListenerState() {
 			} else {
 				relay.NetworkListenFailed(n)
 			}
+		case rmId := <-rmNetwork:
+			if network, found := networks[rmId]; found {
+				// Tear down all the caption side stuff when a network is to be removed
+				// Keep from getting new connections
+				network.listener.Close()
+				for _, captioner := range listenersByNetwork[rmId] {
+					delete(listeners, captioner.cell.id)
+					// Mute the cell
+					captioner.cell.Mute()
+					// Close the connection
+					captioner.conn.Close()
+				}
+				delete(listenersByNetwork, rmId)
+				relay.NetworkRemoved(rmId)
+			}
+		case <-askNetworks:
+			connectedNetworks := make(map[model.NetworkID]bool)
+			for _, n := range networks {
+				connectedNetworks[n.id] = true
+			}
+			gotNetworks <- connectedNetworks
 		case cl := <-captionerAdded:
 			// Note: This is only fired when the network listener wants to let us know we have a new captioner
 			listeners[model.CaptionerID(cl.cell.id)] = cl
@@ -163,21 +203,6 @@ func maintainListenerState() {
 					// Make sure the remaining captioner is unmuted
 					arr[0].cell.Unmute()
 				}
-			}
-		case rmId := <-rmNetwork:
-			if network, found := networks[rmId]; found {
-				// Tear down all the caption side stuff when a network is to be removed
-				// Keep from getting new connections
-				network.listener.Close()
-				for _, captioner := range listenersByNetwork[rmId] {
-					delete(listeners, captioner.cell.id)
-					// Mute the cell
-					captioner.cell.Mute()
-					// Close the connection
-					captioner.conn.Close()
-				}
-				delete(listenersByNetwork, rmId)
-				relay.NetworkRemoved(rmId)
 			}
 		case netId := <-askCaptioners:
 			log.Println("Check captioners for network:", netId)
@@ -271,7 +296,7 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 	buf := make([]byte, 1024)
 	log.Println("Am listening to captioner")
 	for {
-		c.SetReadDeadline(time.Now().Add(time.Minute * 10))
+		c.SetReadDeadline(time.Now().Add(time.Second * 1))
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
 			log.Println("Disconnected from Captioner")
