@@ -2,7 +2,6 @@ package megaphone
 
 import (
 	"github.com/0x7fffffff/verbatim/model"
-	"log"
 	"time"
 )
 
