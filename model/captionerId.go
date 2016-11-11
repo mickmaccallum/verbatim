@@ -16,8 +16,12 @@ type CaptionerID struct {
 	NetworkID NetworkID
 }
 
+func (c CaptionerID) TableID() string {
+	return fmt.Sprint(c.IPAddr, ":", c.NumConn, ":", c.NetworkID)
+}
+
 func (c CaptionerID) String() string {
-	return fmt.Sprint(c.IPAddr, ":", c.NumConn)
+	return fmt.Sprint(c.IPAddr, ":", c.NumConn, ":", c.NetworkID)
 }
 
 // FormValuesToCaptionerID validates that an CaptionerID can be created

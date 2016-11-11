@@ -89,7 +89,9 @@ func GetBroadcasterForNetwork(id model.NetworkID) *NetworkBroadcaster {
 }
 
 func GetConnectedEncoders(id model.NetworkID) []model.EncoderID {
+	log.Println("HXE")
 	getConnectedEncoders <- id
+	log.Println("XEHN")
 	return <-connectedEncoders
 }
 
@@ -119,7 +121,7 @@ func setupEncoders() error {
 		go handleEncoder(encoder, inbound, broadcaster)
 	}
 	daemonOfAwesome(networkBroadcasters, encoderFaulted)
-	return fmt.Errorf("Close the daemon of awesome for some reason")
+	return fmt.Errorf("Closed the daemon of awesome for some reason")
 }
 
 func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encoderFaulted chan encoderIdPair) {
@@ -142,7 +144,7 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 			if b, found := broadcasters[netId]; found {
 				connectedEncoders <- b.getConnectedEncoderIds()
 			} else {
-				connectedEncoders <- nil
+				connectedEncoders <- make([]model.EncoderID, 0)
 			}
 		case enc := <-encoderRemoved:
 			broadcasters[model.NetworkID(enc.NetworkID)].removeEncoder(model.EncoderID(enc.ID))
