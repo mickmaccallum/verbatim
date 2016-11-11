@@ -2,6 +2,7 @@ package megaphone
 
 import (
 	"github.com/0x7fffffff/verbatim/model"
+	"log"
 	"time"
 )
 
@@ -48,6 +49,7 @@ func makeBroadcaster(n model.NetworkID, restartEncoder chan encoderIdPair) *Netw
 		faultedEncoder: make(chan model.EncoderID),
 		restartEncoder: restartEncoder,
 		getEncoders:    make(chan struct{}),
+		encoderIds:     make(chan []model.EncoderID),
 	}
 }
 
