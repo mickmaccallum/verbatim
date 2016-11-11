@@ -150,6 +150,7 @@
     <tbody>
       {{range $index, $element := .Captioners }}
         <tr class="captioner-row" 
+          id="{{ $element.TableID }}"
           data-captioner-ip="{{ $element.IPAddr }}"
           data-captioner-num-conn="{{ $element.NumConn }}"
           data-captioner-network-id="{{ $element.NetworkID }}">
