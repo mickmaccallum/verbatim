@@ -1,3 +1,4 @@
+participant Admin
 participant Dashboard UI
 participant Dashboard Server
 participant Database Interface
@@ -7,6 +8,7 @@ participant Encoder Router
 
 
 
+Admin -> Dashboard UI: Click Login
 Dashboard UI -> Dashboard Server: POST /login
 Dashboard Server -> Database Interface: GetAdminForCredentials()
 
@@ -14,6 +16,7 @@ Database Interface --> Dashboard Server: Return Admin
 Dashboard Server --> Dashboard UI: Redirect /
 
 
+Admin -> Dashboard UI: Click Mute Captioner
 Dashboard UI -> Dashboard Server: POST /mute/id
 Dashboard Server -> Relay Server: MuteCaptioner()
 
@@ -22,7 +25,7 @@ Caption Listener -> Relay Server: Muted()
 Relay Server -> Dashboard Server: CaptionerStateChanged()
 Dashboard Server -> Dashboard UI: notifyCaptionerStateChange()
 
-
+Admin -> Dashboard UI: Click Unmute Captioner
 Dashboard UI -> Dashboard Server: POST /unmute/id
 Dashboard Server -> Relay Server: UnmuteCaptioner()
 Relay Server -> Caption Listener: UnmuteCaptioner()
@@ -30,7 +33,7 @@ Caption Listener -> Relay Server: Unmuted()
 Relay Server -> Dashboard Server: CaptionerStateChanged()
 Dashboard Server -> Dashboard UI: notifyCaptionerStateChange()
 
-
+Admin -> Dashboard UI: Visit localhost:4000
 Dashboard UI -> Dashboard Server: GET /
 
 Dashboard Server -> Database Interface: GetNetworks()
@@ -38,6 +41,7 @@ Database Interface --> Dashboard Server: Return Networks
 
 Dashboard Server --> Dashboard UI: Show Dashboard
 
+Admin -> Dashboard UI: Click Add Network
 Dashboard UI -> Dashboard Server: POST /network/add
 Dashboard Server -> Database Interface: AddNetwork()
 Database Interface --> Dashboard Server: Return Network
@@ -49,6 +53,7 @@ Caption Listener -> Relay Server: NetworkListenSucceeded()
 Relay Server -> Dashboard Server: NetworkPortStateChanged()
 Dashboard Server -> Dashboard UI: notifyNetworkPortStateChanged()
 
+Admin -> Dashboard UI: Click Delete Network
 Dashboard UI -> Dashboard Server: POST /network/id/delete
 Dashboard Server -> Database Interface: DeleteNetwork()
 Dashboard Server -> Relay Server: RemoveNetwork()
@@ -58,11 +63,13 @@ Caption Listener -> Relay Server: NetworkRemoved()
 Relay Server -> Dashboard Server: NetworkPortStateChanged()
 Dashboard Server -> Dashboard UI: notifyNetworkPortStateChanged()
 
+Admin -> Dashboard UI: Click on Network
 Dashboard UI -> Dashboard Server: GET /networks/id
 Dashboard Server -> Database Interface: GetEncodersForNetwork()
 Database Interface --> Dashboard Server: Return Encoders
 Dashboard Server --> Dashboard UI: Show Network Page
 
+Admin -> Dashboard UI: Click Add Encoder
 Dashboard UI -> Dashboard Server: POST /encoder/add
 Dashboard Server -> Database Interface: AddEncoder()
 Database Interface --> Dashboard Server: Return Encoder
@@ -73,6 +80,7 @@ Encoder Router -> Relay Server: LoginSucceeded()
 Relay Server -> Dashboard Server: EncoderStateChanged()
 Dashboard Server -> Dashboard UI: notifyEncoderStateChange()
 
+Admin -> Dashboard UI: Click Delete Encoder
 Dashboard UI -> Dashboard Server: POST /encoder/id/delete
 Dashboard Server -> Database Interface: DeleteEncoder()
 Dashboard Server -> Relay Server: DeleteEncoder()
@@ -82,11 +90,13 @@ Encoder Router -> Relay Server: Logout()
 Relay Server -> Dashboard Server: EncoderStateChanged()
 Dashboard Server -> Dashboard UI: notifyEncoderStateChange()
 
+Admin -> Dashboard UI: Click on Account
 Dashboard UI -> Dashboard Server: GET /account
 Dashboard Server -> Database Interface: GetAdmins()
 Database Interface --> Dashboard Server: Return Admins
 Dashboard Server --> Dashboard UI: 200 Success
 
+Admin -> Dashboard UI: Click Logout
 Dashboard UI -> Dashboard Server: POST /logout
 Dashboard Server --> Dashboard UI: Redirect /login
 
