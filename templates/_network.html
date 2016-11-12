@@ -149,10 +149,12 @@
   <table class="table table-hover" id="captioner-selection-table">
     <thead>
       <tr>
-        <th width="7%">#</th>
-        <th width="31%">IP Address</th>
-        <th width="31%">Number of Connections</th>
-        <th width="31%">State</th>
+        <th>#</th>
+        <th>IP Address</th>
+        <th>Number of Connections</th>
+        <th>State</th>
+        <td>Mute</td>
+        <td>Connect</td>
       </tr>
     </thead>
     <tbody>
@@ -167,14 +169,16 @@
             data-captioner-num-conn="{{ $element.NumConn }}"
             data-captioner-network-id="{{ $element.NetworkID }}">
 
-            <th class="row-number" scope=row>{{ inc $index }}</th>
-            <td>{{ $element.CaptionerID.IPAddr }}</td>
-            <td>{{ $element.CaptionerID.NumConn }}</td>
-            <td class="state-row">{{ captionerStatus $element.Captioner }}</td>
+            <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>{{ inc $index }}</th>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.IPAddr }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.NumConn }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3 state-row">{{ captionerStatus $element.Captioner }}</td>
 
+
+<!-- connected = 0, disconnected = 1, muted = 2, unmuted = 3 -->
 
             {{ if or (eq $element.Captioner 2) (eq $element.Captioner 3) }} 
-              <td class="mute-row">
+              <td class="col-xl-1 col-lg-1 col-md-1 mute-row">
                 {{ if eq $element.Captioner 2 }}
                   <p data-placement="top" data-toggle="tooltip" title="Unmute">
                     <button class="btn btn-danger btn-xs unmute-captioner-button">
@@ -189,8 +193,34 @@
                   </p>
                 {{ end }}
               </td>
+
+              <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
+                <p data-placement="top" data-toggle="tooltip" title="Disconnect">
+                  <button class="btn btn-danger btn-xs disconnect-captioner-button">
+                    <span class="glyphicon glyphicon-ban-circle"></span>
+                  </button>
+                </p>
+              </td>
             {{ else }} 
-              <!-- stuff -->
+              <td class="col-xl-1 col-lg-1 col-md-1 mute-row"></td>
+
+              {{ if eq $element.Captioner 0 }}
+                <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
+                  <p data-placement="top" data-toggle="tooltip" title="Disconnect">
+                    <button class="btn btn-danger btn-xs disconnect-captioner-button">
+                      <span class="glyphicon glyphicon-ban-circle"></span>
+                    </button>
+                  </p>
+                </td>
+              {{ else }}
+                <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
+                  <p data-placement="top" data-toggle="tooltip" title="Connect">
+                    <button class="btn btn-danger btn-xs connect-captioner-button">
+                      <span class="glyphicon glyphicon-ok-circle"></span>
+                    </button>
+                  </p>
+                </td>
+              {{ end }}
             {{ end }}
           </tr>
         {{ end }}
