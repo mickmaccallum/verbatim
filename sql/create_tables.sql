@@ -10,7 +10,8 @@ create table if not exists admin (
 create table if not exists network (
   id integer primary key,
   listening_port integer unique not null,
-  name text not null
+  name text not null,
+  timeout integer not null
 );
 
 /*drop table if exists encoder;*/
