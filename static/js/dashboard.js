@@ -93,8 +93,33 @@ function addNetworkCreationListener() {
   });
 };
 
-function changeNetworkState(network, state) {
+function networkStateToString(state) {
+  if (state == 0) {
+    return "Connecting"
+  } else if (state == 1) {
+    return "Listening"
+  } else if (state == 2) {
+    return "Listening Failed"
+  } else if (state == 3) {
+    return "Closed"
+  } else if (state == 4) {
+    return "Deleted"
+  } else {
+    return "Disconnected"
+  }
+};
 
+function changeNetworkState(network, state) {
+  if (state == 0) { // connecting
+    
+  } else if (state == 1 || state == 2 || state == 3) { // listening, listening failed, close
+    var row = $('tr[data-network-id=' + network.ID + ']');
+    row.children('.state-row').text(networkStateToString(state));
+  } else if (state == 4) { // deleted
+    
+  } else { // disconnected
+
+  }
 };
 
 function startWebSocket() {
