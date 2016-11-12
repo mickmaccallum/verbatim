@@ -305,7 +305,45 @@ function configureEditing() {
 
   $('.page-header > h1,h2,h3 > span').editable({
     mode: 'popup',
-    placement: 'right'
+    placement: 'right',
+    url: function(event) {
+      var d = new $.Deferred();
+      var id = $('#editing-page-header').attr('data-network-id');
+
+      var data = $('#edit-network-form').serializeArray();
+      $('.page-header > h1,h2,h3 > span').each(function(index, el) {
+        var obj = $(el);
+
+        if (event.name == obj.attr('data-name')) {
+          data.push({
+            name: obj.attr('name'),
+            value: event.value
+          });
+        } else {
+          data.push({
+            name: obj.attr('name'),
+            value: obj.text()
+          });          
+        }
+      });
+
+      console.log(data);
+      if (event.value === 'abc') {
+        return d.reject('error message');
+      } else {
+        $.ajax({
+          url: '/network/' + id,
+          type: 'POST',
+          data: $.param(data),
+        }).done(function() {
+          d.resolve(this);
+        }).fail(function() {
+          d.reject(this);
+        });
+
+        return d.promise();
+      }
+    }
   });
 
   $('#encoder-selection-table > tbody td').editable({
