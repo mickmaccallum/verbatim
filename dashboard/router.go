@@ -452,6 +452,7 @@ func handleNetworksPage(router *mux.Router) {
 			"Captioners":               captioners,
 			"AddEncoderField":          csrf.TemplateField(request),
 			"EditEncoderField":         csrf.TemplateField(request),
+			"EditNetworkField":         csrf.TemplateField(request),
 			"DeleteEncoderField":       csrf.TemplateField(request),
 			"ToggleCaptionerMuteField": csrf.TemplateField(request),
 		}
@@ -538,9 +539,27 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		network, err := persist.GetNetwork(*networkID)
-		log.Println(network)
-		log.Println(err)
+		hitNetwork, err := persist.GetNetwork(*networkID)
+		if err != nil {
+			clientError(writer, errors.New("The specified network does not exist."))
+			return
+		}
+
+		network, err := model.FormValuesToNetwork(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network.ID = hitNetwork.ID
+
+		err = persist.UpdateNetwork(*network)
+
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
