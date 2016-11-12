@@ -93,26 +93,18 @@ function addNetworkCreationListener() {
   });
 };
 
-      // encoderState, captionerState, networkState
+function changeNetworkState(network, state) {
 
-function receiveSocketMessage(message) {
-  if (message['encoderState'] != null) {
-
-  } else if (message['captionerState'] != null) {
-
-  } else if (message['networkState'] != null) {
-
-  } else {
-    console.log('socket received unknown message');
-  }
 };
 
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
-      console.log('Got new message');
-      console.log(message);
-      receiveSocketMessage(message);
+      var networkState = message['networkState'];
+
+      if (typeof networkState !== 'undefined') {
+        changeNetworkState(networkState.network, networkState.state);
+      }
     };
 
     webSocket.onerror = function(event) {
