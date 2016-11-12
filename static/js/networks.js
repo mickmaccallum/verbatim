@@ -127,9 +127,7 @@ function startWebSocket() {
 
 function autoStopWebSocket() {
   $(window).on("beforeunload", function() {
-    socketRocket.stop(function() {
-      console.log("finished closing.");
-    });
+    socketRocket.stop();
   });
 };
 
