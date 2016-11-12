@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// NetworkID lint
 type NetworkID int
 
 // Network represents a downstream network

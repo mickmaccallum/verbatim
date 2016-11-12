@@ -70,7 +70,7 @@ function deleteNetworkListListeners() {
 }
 
 function addNetworkCreationListener() {
-  $('#submit-network').click(function (event) {
+  $('#submit-network').click(function(event) {
     $.ajax({
       url: '/network/add',
       type: 'POST',
