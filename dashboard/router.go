@@ -473,10 +473,20 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		networks, err := persist.GetNetworks()
-
 		if err != nil {
 			serverError(writer, err)
 			return
+		}
+
+		connectedNetworks := relay.GetConnectedNetworks()
+		for _, network := range networks {
+			if connectedNetworks[network.ID] {
+				// TODO: Going to need revised. states.NetworkConnecting is
+				// already the 0 state and will be set by default. Need a
+				// connected state.
+				network.State = states.NetworkConnecting
+				continue
+			}
 		}
 
 		data := map[string]interface{}{
