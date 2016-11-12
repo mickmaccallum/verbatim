@@ -10,7 +10,7 @@ import (
 // GetNetwork gets the Network for a given id.
 func GetNetwork(id int) (*model.Network, error) {
 	query := `
-		SELECT id, listening_port, name
+		SELECT id, listening_port, name, timeout
 		FROM network
 		WHERE id = ?
 	`
