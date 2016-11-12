@@ -24,21 +24,19 @@ func init() {
 
 func configureDatabase(database *sql.DB) (sql.Result, error) {
 	ddl := `
-		/*drop table if exists admin;*/
 		create table if not exists admin (
 		  id integer primary key,
 		  handle text not null,
 		  hashed_password text not null
 		);
 
-		/*drop table if exists network;*/
 		create table if not exists network (
 		  id integer primary key,
 		  listening_port integer unique not null,
-		  name text not null
+		  name text not null,
+		  timeout integer not null
 		);
 
-		/*drop table if exists encoder;*/
 		create table if not exists encoder (
 		  id integer primary key,
 		  ip_address text not null,
