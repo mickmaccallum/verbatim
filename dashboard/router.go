@@ -31,7 +31,6 @@ func templateOnBase(path string) *template.Template {
 			return word + "s"
 		},
 		"captionerStatus": func(status states.Captioner) string {
-			// connected, disconnected, muted, unmuted
 			switch status {
 			case 0:
 				return "Connecting"
@@ -41,6 +40,22 @@ func templateOnBase(path string) *template.Template {
 				return "Muted"
 			case 3:
 				return "Unmuted"
+			default:
+				return "Disconnected"
+			}
+		},
+		"networkStatus": func(status states.Network) string {
+			switch status {
+			case 0:
+				return "Connecting"
+			case 1:
+				return "Listening"
+			case 2:
+				return "Listening Failed"
+			case 3:
+				return "Closed"
+			case 4:
+				return "Deleted"
 			default:
 				return "Disconnected"
 			}
