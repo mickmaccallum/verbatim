@@ -66,6 +66,9 @@ type RelayListener interface {
 
 	// GetConnectedEncoders get all the currently connected encoders
 	GetConnectedEncoders(n model.Network) []model.EncoderID
+
+	// GetConnectedNetworks get all of the currently connect networks
+	GetConnectedNetworks() map[model.NetworkID]bool
 }
 
 var relay RelayListener

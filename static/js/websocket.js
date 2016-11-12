@@ -49,7 +49,6 @@ var socketRocket = (function() {
 
     return new Promise(function(resolve, reject) {
       webSocket.onopen = function(event) {
-        console.log("OPEN");
         resolve(webSocket);
       };
 

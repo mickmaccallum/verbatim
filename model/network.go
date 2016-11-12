@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"github.com/0x7fffffff/verbatim/states"
 	"net/url"
 	"strconv"
 )
@@ -15,6 +16,7 @@ type Network struct {
 	ListeningPort int
 	Name          string
 	Timeout       int
+	State         states.Network
 }
 
 // FormValuesToNetwork validates that a Network can be created

@@ -31,7 +31,6 @@ func templateOnBase(path string) *template.Template {
 			return word + "s"
 		},
 		"captionerStatus": func(status states.Captioner) string {
-			// connected, disconnected, muted, unmuted
 			switch status {
 			case 0:
 				return "Connecting"
@@ -41,6 +40,22 @@ func templateOnBase(path string) *template.Template {
 				return "Muted"
 			case 3:
 				return "Unmuted"
+			default:
+				return "Disconnected"
+			}
+		},
+		"networkStatus": func(status states.Network) string {
+			switch status {
+			case 0:
+				return "Connecting"
+			case 1:
+				return "Listening"
+			case 2:
+				return "Listening Failed"
+			case 3:
+				return "Closed"
+			case 4:
+				return "Deleted"
 			default:
 				return "Disconnected"
 			}
@@ -452,6 +467,7 @@ func handleNetworksPage(router *mux.Router) {
 			"Captioners":               captioners,
 			"AddEncoderField":          csrf.TemplateField(request),
 			"EditEncoderField":         csrf.TemplateField(request),
+			"EditNetworkField":         csrf.TemplateField(request),
 			"DeleteEncoderField":       csrf.TemplateField(request),
 			"ToggleCaptionerMuteField": csrf.TemplateField(request),
 		}
@@ -472,10 +488,20 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		networks, err := persist.GetNetworks()
-
 		if err != nil {
 			serverError(writer, err)
 			return
+		}
+
+		connectedNetworks := relay.GetConnectedNetworks()
+		for _, network := range networks {
+			if connectedNetworks[network.ID] {
+				// TODO: Going to need revised. states.NetworkConnecting is
+				// already the 0 state and will be set by default. Need a
+				// connected state.
+				network.State = states.NetworkConnecting
+				continue
+			}
 		}
 
 		data := map[string]interface{}{
@@ -538,9 +564,27 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		network, err := persist.GetNetwork(*networkID)
-		log.Println(network)
-		log.Println(err)
+		hitNetwork, err := persist.GetNetwork(*networkID)
+		if err != nil {
+			clientError(writer, errors.New("The specified network does not exist."))
+			return
+		}
+
+		network, err := model.FormValuesToNetwork(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network.ID = hitNetwork.ID
+
+		err = persist.UpdateNetwork(*network)
+
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
