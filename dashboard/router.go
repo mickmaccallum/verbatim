@@ -145,8 +145,11 @@ func handleAccountsPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"Admin":  *admin,
-			"Admins": admins,
+			"Admin":               *admin,
+			"Admins":              admins,
+			"ChangeHandleField":   csrf.TemplateField(request),
+			"ChangePasswordField": csrf.TemplateField(request),
+			"AddAdminField":       csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_account.html")
@@ -203,6 +206,42 @@ func handleAccountsPage(router *mux.Router) {
 		}
 
 		err = persist.DeleteAdmin(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/account/handle", func(writer http.ResponseWriter, request *http.Request) {
+		log.Println("Update handle hit")
+		session, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		handle := request.Form.Get("handle")
+		if len(handle) == 0 || len(handle) > 255 {
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
+		adminId := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminId)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		admin.Handle = handle
+		err = persist.UpdateAdminHandle(*admin)
 		if err != nil {
 			serverError(writer, err)
 			return
