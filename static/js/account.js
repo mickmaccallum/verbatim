@@ -51,7 +51,7 @@ function addPasswordChangeListener() {
 };
 
 function addDeleteAdminListener() {
-    $('.delete-button').click(function(event) {
+  $('.delete-button').click(function(event) {
     event.stopPropagation();
     event.preventDefault();
 
@@ -68,17 +68,40 @@ function addDeleteAdminListener() {
       type: 'POST',
       data: $('#delete-admin-form').serialize()
     }).done(function() {
-      row.remove();
       var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
-      if (count == 0) {
-        
-      } else {
-
+      if (count <= 1) {
+        $('#admin-list-wrapper').hide('400', function() {
+          row.remove();          
+        });
       }
-      // TODO: conditionally hide/unhide table depending on count of rows.
     }).fail(function() {
       alert("Failed to remove network from list.");
     });
+  });
+};
+
+function addAddAdminListener() { // that's hard to say...
+  $('#submit-add-admin').click(function(event) {
+    event.preventDefault();
+
+    $.ajax({
+      url: '/account/add',
+      type: 'POST',
+      dataType: 'json',
+      data: $('#add-admin-form').serialize()
+    }).done(function(response) {
+      console.log(response);
+      $('#add-admin-form-handle').val('');
+      $('#add-admin-form-password').val('');
+      $('#add-admin-form-confirm-password').val('');
+
+      var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
+      if (condition) {
+        
+      }
+    }).fail(function() {
+      console.log("error");
+    });    
   });
 };
 
@@ -86,4 +109,5 @@ $(function () {
   addHandleChangeListener();
   addPasswordChangeListener();
   addDeleteAdminListener();
+  addAddAdminListener();
 });
