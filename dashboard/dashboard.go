@@ -7,8 +7,6 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	// "github.com/gorilla/csrf"
-	// "github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
