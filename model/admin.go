@@ -17,7 +17,8 @@ type Admin struct {
 // FormValuesToAdmin validates that an Admin can be created
 // from the given form values and creates it.
 func FormValuesToAdmin(values url.Values) (*Admin, error) {
-	handle, password := values.Get("handle"), values.Get("password")
+	handle, password, confirmPassword :=
+		values.Get("handle"), values.Get("password"), values.Get("confirm_password")
 
 	if len(handle) == 0 {
 		return nil, errors.New("Missing Handle")
@@ -25,6 +26,10 @@ func FormValuesToAdmin(values url.Values) (*Admin, error) {
 
 	if len(handle) > 255 {
 		return nil, errors.New("Handle too long")
+	}
+
+	if password != confirmPassword {
+		return nil, errors.New("Passwords do not match.")
 	}
 
 	if len(password) < 8 {
