@@ -135,6 +135,20 @@ func UpdateAdminHandle(admin model.Admin) error { // handle, hashed_password
 	return err
 }
 
+// UpdateAdminPassword update the password for a given Admin
+func UpdateAdminPassword(admin model.Admin) error {
+	query := `
+		UPDATE admin
+			SET
+				hashed_password = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := DB.Exec(query, admin.HashedPassword, admin.ID)
+	return err
+}
+
 // DeleteAdmin deletes the specified administrator.
 func DeleteAdmin(admin model.Admin) error {
 	query := `
