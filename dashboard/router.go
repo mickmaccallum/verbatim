@@ -60,6 +60,16 @@ func templateOnBase(path string) *template.Template {
 				return "Disconnected"
 			}
 		},
+		"filterAdmin": func(admin model.Admin, admins []model.Admin) []model.Admin {
+			var filteredAdmins []model.Admin
+			for _, value := range admins {
+				if value != admin {
+					filteredAdmins = append(filteredAdmins, value)
+				}
+			}
+
+			return filteredAdmins
+		},
 	}
 
 	return template.Must(template.New("_base.html").Funcs(funcMap).ParseFiles(
