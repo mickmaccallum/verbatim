@@ -19,6 +19,10 @@ function validatePasswords(password, confirm) {
     return false;
   }
 
+  if (password == null || password == undefined) {
+    return false;
+  }
+
   return password.length >= 8 && password.length <= 255
 };
 
@@ -47,7 +51,35 @@ function addPasswordChangeListener() {
 };
 
 function addDeleteAdminListener() {
-  
+    $('.delete-button').click(function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    var row = $(this).closest('tr');
+    var adminId = row.attr('data-admin-id');
+    var adminHandle = row.attr('data-admin-handle');
+
+    if (!confirm('Are you sure you want to delete the admin: ' + adminHandle)) {
+      return;
+    }
+    console.log($('#delete-admin-form').serialize());
+    $.ajax({
+      url: '/account/' + adminId + '/delete',
+      type: 'POST',
+      data: $('#delete-admin-form').serialize()
+    }).done(function() {
+      row.remove();
+      var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
+      if (count == 0) {
+        
+      } else {
+
+      }
+      // TODO: conditionally hide/unhide table depending on count of rows.
+    }).fail(function() {
+      alert("Failed to remove network from list.");
+    });
+  });
 };
 
 $(function () {

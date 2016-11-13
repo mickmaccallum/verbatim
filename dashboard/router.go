@@ -151,6 +151,7 @@ func handleAccountsPage(router *mux.Router) {
 			"Admins":              admins,
 			"ChangeHandleField":   csrf.TemplateField(request),
 			"ChangePasswordField": csrf.TemplateField(request),
+			"DeleteAdminField":    csrf.TemplateField(request),
 			"AddAdminField":       csrf.TemplateField(request),
 		}
 
