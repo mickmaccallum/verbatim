@@ -96,7 +96,7 @@ func GetAdminForCredentials(handle string, password string) (*model.Admin, error
 	return &admin, nil
 }
 
-func addAdmin(admin model.Admin) (*model.Admin, error) {
+func AddAdmin(admin model.Admin) (*model.Admin, error) {
 	query := `
 	    INSERT INTO admin (
 	      handle, hashed_password
