@@ -102,7 +102,7 @@ func UpdateNetwork(network model.Network) error {
 				id = ?
 	`
 
-	_, err := DB.Exec(query, network.Name, network.ListeningPort, network.ID, network.Timeout)
+	_, err := DB.Exec(query, network.Name, network.ListeningPort, network.Timeout, network.ID)
 	return err
 }
 
