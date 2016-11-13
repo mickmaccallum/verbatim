@@ -9,7 +9,7 @@ create table if not exists admin (
 /*drop table if exists network;*/
 create table if not exists network (
   id integer primary key,
-  listening_port integer unique not null,
+  listening_port integer unique not null check(listening_port > 0 && listening_port < 65536),
   name text not null,
   timeout integer not null
 );
