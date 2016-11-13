@@ -95,13 +95,13 @@ func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
 	return persist.GetAdminForID(id)
 }
 
-func checkSessionValidity(request *http.Request) bool {
+func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 	session, err := store.Get(request, "session")
 	if err != nil {
-		return false
+		return nil, false
 	}
 
-	return !session.IsNew
+	return session, !session.IsNew
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
@@ -110,8 +110,9 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 
 func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			redirectLogin(writer, request)
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -145,7 +146,8 @@ func handleAccountsPage(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/account/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -170,8 +172,10 @@ func handleAccountsPage(router *mux.Router) {
 		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
+	// Delete admin account
 	router.HandleFunc("/account/{admin_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -267,8 +271,9 @@ func handleLogin(router *mux.Router) {
 
 func handleCaptionersPage(router *mux.Router) {
 	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			redirectLogin(writer, request)
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -281,7 +286,8 @@ func handleCaptionersPage(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -297,7 +303,8 @@ func handleCaptionersPage(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -316,7 +323,8 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -358,7 +366,8 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Update Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -387,7 +396,8 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Delete Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -417,8 +427,9 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			redirectLogin(writer, request)
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -482,8 +493,9 @@ func handleNetworksPage(router *mux.Router) {
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
-			redirectLogin(writer, request)
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -518,7 +530,8 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Add Network
 	router.HandleFunc("/network/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -553,7 +566,8 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -590,7 +604,8 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Delete Network
 	router.HandleFunc("/network/{id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
