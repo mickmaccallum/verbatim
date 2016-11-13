@@ -121,6 +121,20 @@ func addAdmin(admin model.Admin) (*model.Admin, error) {
 	return &admin, nil
 }
 
+// UpdateAdminHandle update the handle for a given Admin
+func UpdateAdminHandle(admin model.Admin) error { // handle, hashed_password
+	query := `
+		UPDATE admin
+			SET
+				handle = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := DB.Exec(query, admin.Handle, admin.ID)
+	return err
+}
+
 // DeleteAdmin deletes the specified administrator.
 func DeleteAdmin(admin model.Admin) error {
 	query := `
