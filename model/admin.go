@@ -11,7 +11,7 @@ import (
 type Admin struct {
 	ID             int
 	Handle         string
-	HashedPassword string
+	HashedPassword string `json:"-"`
 }
 
 // FormValuesToAdmin validates that an Admin can be created
