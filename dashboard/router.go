@@ -62,6 +62,7 @@ func templateOnBase(path string) *template.Template {
 				return "Disconnected"
 			}
 		},
+		// Removes current admin from list of admins.
 		"filterAdmin": func(admin model.Admin, admins []model.Admin) []model.Admin {
 			var filteredAdmins []model.Admin
 			for _, value := range admins {
@@ -179,7 +180,13 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		bytes, err := json.Marshal(admin)
+		finalAdmin, err := persist.AddAdmin(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		bytes, err := json.Marshal(finalAdmin)
 		if err != nil {
 			serverError(writer, err)
 			return
