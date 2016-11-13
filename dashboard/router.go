@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
@@ -215,7 +217,6 @@ func handleAccountsPage(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/account/handle", func(writer http.ResponseWriter, request *http.Request) {
-		log.Println("Update handle hit")
 		session, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -233,8 +234,8 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		adminId := session.Values["admin"].(int)
-		admin, err := persist.GetAdminForID(adminId)
+		adminID := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminID)
 		if err != nil {
 			clientError(writer, err)
 			return
@@ -242,6 +243,53 @@ func handleAccountsPage(router *mux.Router) {
 
 		admin.Handle = handle
 		err = persist.UpdateAdminHandle(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/account/password", func(writer http.ResponseWriter, request *http.Request) {
+		session, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		password, confirmPassword := request.Form.Get("password"), request.Form.Get("confirm_password")
+		if password != confirmPassword {
+			clientError(writer, errors.New("Passwords don't match"))
+			return
+		}
+
+		if len(password) == 0 || len(password) > 255 {
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
+		adminID := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminID)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		admin.HashedPassword = string(hashed)
+
+		err = persist.UpdateAdminPassword(*admin)
 		if err != nil {
 			serverError(writer, err)
 			return
