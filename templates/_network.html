@@ -27,8 +27,20 @@
   </div>  
 </form>
 
-<div class="table-responsive panel panel-default">
-  <div class="panel-heading">Encoders</div>
+{{ if eq (len $.Encoders) 0 }}
+<div class="page-header" hidden>
+{{ else }}
+<div class="page-header">
+{{ end }}
+  <h3>Connected Encoders</h3>
+</div>
+
+{{ if eq (len $.Encoders) 0 }}
+<div class="table-responsive panel panel-default" id="encoder-list-wrapper" hidden>
+{{ else }}
+<div class="table-responsive panel panel-default" id="encoder-list-wrapper">
+{{ end }}
+  <div class="panel-heading">Connected Encoders</div>
 
   <table class="table table-hover" id="encoder-selection-table">
     <thead>
