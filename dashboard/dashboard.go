@@ -55,6 +55,9 @@ type RelayListener interface {
 	// Unmute a captioner, allowing them to send data to encoders
 	UnmuteCaptioner(id model.CaptionerID)
 
+	// DisconnectCaptioner forcibly disconnects the specified captioner
+	DisconnectCaptioner(id model.CaptionerID)
+
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
 
