@@ -166,7 +166,7 @@
         <th>Number of Connections</th>
         <th>State</th>
         <td>Mute</td>
-        <td>Connect</td>
+        <td>Disconnect</td>
       </tr>
     </thead>
     <tbody>
@@ -206,33 +206,13 @@
                 {{ end }}
               </td>
 
-              <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
+              <td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">                
                 <p data-placement="top" data-toggle="tooltip" title="Disconnect">
                   <button class="btn btn-danger btn-xs disconnect-captioner-button">
                     <span class="glyphicon glyphicon-ban-circle"></span>
                   </button>
                 </p>
               </td>
-            {{ else }} 
-              <td class="col-xl-1 col-lg-1 col-md-1 mute-row"></td>
-
-              {{ if eq $element.Captioner 0 }}
-                <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
-                  <p data-placement="top" data-toggle="tooltip" title="Disconnect">
-                    <button class="btn btn-danger btn-xs disconnect-captioner-button">
-                      <span class="glyphicon glyphicon-ban-circle"></span>
-                    </button>
-                  </p>
-                </td>
-              {{ else }}
-                <td class="col-xl-1 col-lg-1 col-md-1 connect-row">                
-                  <p data-placement="top" data-toggle="tooltip" title="Connect">
-                    <button class="btn btn-danger btn-xs connect-captioner-button">
-                      <span class="glyphicon glyphicon-ok-circle"></span>
-                    </button>
-                  </p>
-                </td>
-              {{ end }}
             {{ end }}
           </tr>
         {{ end }}
