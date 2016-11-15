@@ -203,6 +203,21 @@ func maintainListenerState() {
 					// Make sure the remaining captioner is unmuted
 					arr[0].cell.Unmute()
 				}
+				// Remove the listener from the list of listeners
+				delete(listeners, rmId)
+				toSplice := listenersByNetwork[rmId.NetworkID]
+				if len(toSplice) > 1 {
+					for i, captioner := range toSplice {
+						if captioner.cell.id == rmId {
+							// Using a 0-valued item to make sure that storage doesn't hold onto the conn
+							toSplice[i] = CaptionListener{}
+							listenersByNetwork[rmId.NetworkID] = append(toSplice[:i], toSplice[i+1:]...)
+							break
+						}
+					}
+				} else {
+					delete(listenersByNetwork, rmId.NetworkID)
+				}
 			}
 		case netId := <-askCaptioners:
 			log.Println("Check captioners for network:", netId)
@@ -294,7 +309,7 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 	buf := make([]byte, 1024)
 	log.Println("Am listening to captioner")
 	for {
-		c.SetReadDeadline(time.Now().Add(time.Second * 1))
+		c.SetReadDeadline(time.Now().Add(time.Second * 120))
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
 			log.Println("Disconnected from Captioner")
