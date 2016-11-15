@@ -429,6 +429,23 @@ func handleCaptionersPage(router *mux.Router) {
 		relay.UnmuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
+
+	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.DisconnectCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
 }
 
 func handleNetworksPage(router *mux.Router) {
