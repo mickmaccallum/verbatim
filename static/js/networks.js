@@ -220,7 +220,7 @@ function addEditEncoderHandler() {
     // var network =
 
     $.ajax({
-      url: '/encoder/add',
+      url: '/encoder/' + id,
       type: 'POST',
       dataType: 'json',
       success: function(encoder) {
@@ -243,7 +243,7 @@ function addDeleteEncoderHandler() {
     }
 
     $.ajax({
-      url: '/encoder/' + encoderId + '/delete',
+      url: '/encoder/delete/' + encoderId,
       type: 'POST',
       data: $('#delete-encoder-form').serialize()
     }).done(function() {
@@ -267,7 +267,7 @@ function addMuteCaptionerListners() {
     data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
 
     $.ajax({
-      url: '/captioners/mute',
+      url: '/captioner/mute',
       type: 'POST',
       data: $.param(data)
     }).fail(function() {
@@ -288,7 +288,7 @@ function addUnmuteCaptionerListners() {
     data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
 
     $.ajax({
-      url: '/captioners/unmute',
+      url: '/captioner/unmute',
       type: 'POST',
       data: $.param(data)
     }).fail(function() {

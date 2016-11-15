@@ -58,7 +58,7 @@ function deleteNetworkListListeners() {
     }
 
     $.ajax({
-      url: '/network/' + networkId + '/delete',
+      url: '/network/delete/' + networkId,
       type: 'POST',
       data: $('#delete-network-form').serialize()
     }).done(function() {

@@ -64,7 +64,7 @@ function addDeleteAdminListener() {
     }
     console.log($('#delete-admin-form').serialize());
     $.ajax({
-      url: '/account/' + adminId + '/delete',
+      url: '/account/delete/' + adminId,
       type: 'POST',
       data: $('#delete-admin-form').serialize()
     }).done(function() {
@@ -97,7 +97,7 @@ function addAddAdminListener() { // that's hard to say...
 
       var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
       if (condition) {
-        
+
       }
     }).fail(function() {
       console.log("error");

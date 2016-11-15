@@ -196,7 +196,7 @@ func handleAccountsPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete admin account
-	router.HandleFunc("/account/{admin_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/account/delete/{admin_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -506,7 +506,7 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Encoder
-	router.HandleFunc("/encoder/{encoder_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/encoder/delete/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -718,7 +718,7 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Network
-	router.HandleFunc("/network/{id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/network/delete/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
