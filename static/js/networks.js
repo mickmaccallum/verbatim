@@ -220,7 +220,7 @@ function addEditEncoderHandler() {
     // var network =
 
     $.ajax({
-      url: '/encoder/add',
+      url: '/encoder/' + id,
       type: 'POST',
       dataType: 'json',
       success: function(encoder) {
@@ -243,7 +243,7 @@ function addDeleteEncoderHandler() {
     }
 
     $.ajax({
-      url: '/encoder/' + encoderId + '/delete',
+      url: '/encoder/delete/' + encoderId,
       type: 'POST',
       data: $('#delete-encoder-form').serialize()
     }).done(function() {
@@ -256,20 +256,23 @@ function addDeleteEncoderHandler() {
   });
 };
 
+function getCaptionerData(button) {
+  var row = $(button).closest('tr');
+  var data = $('#toggle-captioner-mute-form').serializeArray();
+  data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
+  data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
+  data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
+  return data;
+};
+
 function addMuteCaptionerListners() {
   $('.mute-captioner-button').click(function(event) {
     event.preventDefault();
 
-    var row = $(this).closest('tr');
-    var data = $('#toggle-captioner-mute-form').serializeArray();
-    data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
-    data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
-    data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
-
     $.ajax({
-      url: '/captioners/mute',
+      url: '/captioner/mute',
       type: 'POST',
-      data: $.param(data)
+      data: $.param(getCaptionerData(this))
     }).fail(function() {
       console.log('error');
       console.log(this);
@@ -281,21 +284,30 @@ function addUnmuteCaptionerListners() {
   $('.unmute-captioner-button').click(function(event) {
     event.preventDefault();
 
-    var row = $(this).closest('tr');
-    var data = $('#toggle-captioner-mute-form').serializeArray();
-    data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
-    data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
-    data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
-
     $.ajax({
-      url: '/captioners/unmute',
+      url: '/captioner/unmute',
       type: 'POST',
-      data: $.param(data)
+      data: $.param(getCaptionerData(this))
     }).fail(function() {
       console.log('error');
       console.log(this);
     });
   });
+};
+
+function addDisconnectCaptionerListeners() {
+  $('.disconnect-captioner-button').click(function(event) {
+    event.preventDefault();
+
+    $.ajax({
+      url: '/captioner/disconnect',
+      type: 'POST',
+      data: $.param(getCaptionerData(this))
+    }).fail(function() {
+      console.log('error');
+      console.log(this);
+    });
+  });  
 };
 
 function configureEditing() {
