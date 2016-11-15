@@ -206,8 +206,6 @@ func maintainListenerState() {
 			}
 		case netId := <-askCaptioners:
 			log.Println("Check captioners for network:", netId)
-			log.Println(listeners)
-			log.Println(listenersByNetwork)
 			if cells, found := listenersByNetwork[netId]; found {
 				stats := make([]CaptionerStatus, 0)
 				for _, cl := range cells {
