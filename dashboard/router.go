@@ -637,14 +637,10 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		connectedNetworks := relay.GetConnectedNetworks()
+		connectedNetworks := relay.GetListeningNetworks()
 		for _, network := range networks {
 			if connectedNetworks[network.ID] {
-				// TODO: Going to need revised. states.NetworkConnecting is
-				// already the 0 state and will be set by default. Need a
-				// connected state.
-				network.State = states.NetworkConnecting
-				continue
+				network.State = states.NetworkListening
 			}
 		}
 
