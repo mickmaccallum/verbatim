@@ -42,23 +42,33 @@
     <form id="admin-password-form" method="POST" accept-charset="UTF-8">
       {{ .ChangePasswordField }}
 
-      <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
+        <div class="input-group">
+          <span class="input-group-addon">
+            Old Password
+          </span>
+
+          <input id="admin-form-old-password" name="old_password" type="old_password" class="form-control" placeholder="********">
+        </div>
+      </div>
+
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
             New Password
           </span>
 
-          <input id="admin-form-password" name="password" type="password" class="form-control">
+          <input id="admin-form-password" name="password" type="password" class="form-control" placeholder="********">
         </div>
-      </div>
+      </div>      
 
-      <div class="col-sm-6 col-md-6 col-lg-6 col-xl-6">
+      <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
             Confirm Password
           </span>
 
-          <input id="admin-form-confirm-password" name="confirm_password" type="password" class="form-control">
+          <input id="admin-form-confirm-password" name="confirm_password" type="password" class="form-control" placeholder="********">
           
           <span class="input-group-btn">
             <button id="submit-password-change" class="btn btn-default" type="button">Save</button>
