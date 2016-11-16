@@ -56,7 +56,7 @@ type RelayListener interface {
 	UnmuteCaptioner(id model.CaptionerID)
 
 	// DisconnectCaptioner forcibly disconnects the specified captioner
-	DisconnectCaptioner(id model.CaptionerID)
+	// DisconnectCaptioner(id model.CaptionerID)
 
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
@@ -68,8 +68,8 @@ type RelayListener interface {
 	// GetConnectedEncoders get all the currently connected encoders
 	GetConnectedEncoders(n model.Network) []model.EncoderID
 
-	// GetConnectedNetworks get all of the currently connect networks
-	GetConnectedNetworks() map[model.NetworkID]bool
+	// GetListeningNetworks get all of the currently connected and listening networks
+	GetListeningNetworks() map[model.NetworkID]bool
 }
 
 var relay RelayListener

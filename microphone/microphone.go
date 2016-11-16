@@ -85,7 +85,7 @@ var (
 )
 
 // Returns all the successfully connected networks
-func GetConnectedNetworks() map[model.NetworkID]bool {
+func GetListeningNetworks() map[model.NetworkID]bool {
 	askNetworks <- struct{}{}
 	return <-gotNetworks
 }
