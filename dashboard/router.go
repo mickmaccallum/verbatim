@@ -437,13 +437,13 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		_, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		relay.DisconnectCaptioner(*captioner)
+		// relay.DisconnectCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	})
 }
@@ -556,7 +556,6 @@ func handleNetworksPage(router *mux.Router) {
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("Trying to get network")
-
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			redirectLogin(writer, request)
