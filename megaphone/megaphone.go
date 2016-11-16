@@ -74,8 +74,10 @@ var (
 
 // Doing lookups on broadcasters
 var (
-	askBroadcaster   = make(chan model.NetworkID)
-	giveBroadCasters = make(chan *NetworkBroadcaster)
+	askBroadcaster       = make(chan model.NetworkID)
+	giveBroadCasters     = make(chan *NetworkBroadcaster)
+	getConnectedEncoders = make(chan model.NetworkID)
+	connectedEncoders    = make(chan []model.EncoderID)
 )
 
 // Send notifications (coming from Relay server)
@@ -86,30 +88,38 @@ func GetBroadcasterForNetwork(id model.NetworkID) *NetworkBroadcaster {
 	return <-giveBroadCasters
 }
 
+func GetConnectedEncoders(id model.NetworkID) []model.EncoderID {
+	getConnectedEncoders <- id
+	return <-connectedEncoders
+}
+
 func setupEncoders() error {
-	// networks, err := persist.GetNetworks()
+	networks, err := persist.GetNetworks()
+	if err != nil {
+		return nil
+	}
+
 	encoders, err := persist.GetEncoders()
 	if err != nil {
 		return err
 	}
-	networkBroadcasters = make(map[model.NetworkID]*NetworkBroadcaster)
+
 	encoderFaulted := make(chan encoderIdPair)
+	networkBroadcasters = make(map[model.NetworkID]*NetworkBroadcaster)
+	for _, n := range networks {
+		broadcaster := makeBroadcaster(n.ID, encoderFaulted)
+		networkBroadcasters[n.ID] = broadcaster
+		// Launch this off so that calls below don't block
+		go broadcaster.serveConnection()
+	}
 	for _, encoder := range encoders {
-		var broadcaster *NetworkBroadcaster
-		if val, found := networkBroadcasters[networkId(encoder)]; found {
-			broadcaster = val
-		} else {
-			broadcaster = makeBroadcaster(networkId(encoder), encoderFaulted)
-			networkBroadcasters[networkId(encoder)] = broadcaster
-			// Launch this off so that calls below don't block
-			go broadcaster.serveConnection()
-		}
+		broadcaster := networkBroadcasters[networkId(encoder)]
 		inbound := make(chan []byte)
 		broadcaster.registerEncoderChan(encId(encoder), inbound)
 		go handleEncoder(encoder, inbound, broadcaster)
 	}
 	daemonOfAwesome(networkBroadcasters, encoderFaulted)
-	return fmt.Errorf("Close the daemon of awesome for some reason")
+	return fmt.Errorf("Closed the daemon of awesome for some reason")
 }
 
 func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encoderFaulted chan encoderIdPair) {
@@ -127,9 +137,13 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 			if b, found := broadcasters[killNet]; found {
 				b.destroy()
 				delete(broadcasters, killNet)
-
 			}
-
+		case netId := <-getConnectedEncoders:
+			if b, found := broadcasters[netId]; found {
+				connectedEncoders <- b.getConnectedEncoderIds()
+			} else {
+				connectedEncoders <- make([]model.EncoderID, 0)
+			}
 		case enc := <-encoderRemoved:
 			broadcasters[model.NetworkID(enc.NetworkID)].removeEncoder(model.EncoderID(enc.ID))
 
@@ -155,13 +169,13 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 				log.Print("Closed network addition channel!")
 				return
 			}
-
 			// Make sure we're adding to a network that exists
-			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; !found {
+			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; found {
 				inbound := make(chan []byte)
 				// If we are asked to add an existing encoder, then do nothing
 				if b.registerEncoderChan(encId(newEnc), inbound) == encoderDidNotExist {
 					// Remove the encoder from the broadcaster if it dies
+					log.Println("Started new encoder")
 					go handleEncoder(newEnc, inbound, b)
 				} else {
 					close(inbound)
@@ -232,9 +246,9 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					return
 				}
 			} else {
+				log.Println("Encoder removed")
 				conn.Close()
 				relay.Logout(enc)
-				//
 				return
 			}
 		}

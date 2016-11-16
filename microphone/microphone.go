@@ -2,6 +2,7 @@ package microphone
 
 import (
 	"fmt"
+	"github.com/0x7fffffff/verbatim/states"
 	"log"
 	"math"
 	"net"
@@ -15,7 +16,7 @@ import (
 // The connection information for a given captioner.
 type CaptionerStatus struct {
 	model.CaptionerID
-	lastActivity time.Time
+	states.Captioner
 }
 
 // These are the events that the server using this will be notified of
@@ -64,39 +65,65 @@ func Start(listener RelayListener) error {
 	return nil
 }
 
+var addNetwork = make(chan model.Network, 10)
+
 // Listen on this network's port, and track listeners over time
 func AddNetwork(n model.Network) {
 	addNetwork <- n
 }
+
+var rmNetwork = make(chan model.NetworkID, 10)
 
 // Stop listening for captioners on this network, frees up the port assigned to the network
 func RemoveNetwork(id model.NetworkID) {
 	rmNetwork <- id
 }
 
+var (
+	askNetworks = make(chan struct{})
+	gotNetworks = make(chan map[model.NetworkID]bool)
+)
+
+// Returns all the successfully connected networks
+func GetConnectedNetworks() map[model.NetworkID]bool {
+	askNetworks <- struct{}{}
+	return <-gotNetworks
+}
+
+var rmCaptioner = make(chan model.CaptionerID, 10)
+
 // Forcibly disconnect this captioner, so they cannot send captions.
 func RemoveCaptioner(id model.CaptionerID) {
 	rmCaptioner <- id
 }
+
+var muteCaptioner = make(chan model.CaptionerID, 10)
 
 // Mute the captioner with the associated id.
 func MuteCaptioner(id model.CaptionerID) {
 	muteCaptioner <- id
 }
 
+var unmuteCaptioner = make(chan model.CaptionerID, 10)
+
 // Unmute the captioner with the associated id.
 func UnmuteCaptioner(id model.CaptionerID) {
 	unmuteCaptioner <- id
 }
 
+var (
+	askCaptioners  = make(chan model.NetworkID, 10)
+	captionerStats = make(chan []CaptionerStatus, 10)
+)
+
+func GetConnectedCaptioners(m model.Network) []CaptionerStatus {
+	askCaptioners <- m.ID
+	return <-captionerStats
+}
+
 // Paired channels
 var (
-	addNetwork      = make(chan model.Network, 10)
-	rmNetwork       = make(chan model.NetworkID, 10)
-	captionerAdded  = make(chan CaptionListener, 10) // Notify a new captioner has been added
-	rmCaptioner     = make(chan model.CaptionerID, 10)
-	muteCaptioner   = make(chan model.CaptionerID, 10)
-	unmuteCaptioner = make(chan model.CaptionerID, 10)
+	captionerAdded = make(chan CaptionListener, 10) // Notify a new captioner has been added
 )
 
 // Listeners by network
@@ -119,9 +146,6 @@ func maintainListenerState() {
 	listeners := make(map[model.CaptionerID]CaptionListener)
 	listenersByNetwork := make(map[model.NetworkID][]CaptionListener)
 
-	// TODO: Uncomment this, and use it in the code below
-	// writers := make(map[CaptionerID]MuteCell)
-
 	for {
 		select {
 		case n := <-addNetwork:
@@ -131,30 +155,6 @@ func maintainListenerState() {
 				relay.NetworkListenSucceeded(n)
 			} else {
 				relay.NetworkListenFailed(n)
-			}
-		case cl := <-captionerAdded:
-			// Note: This is only fired when the network listener wants to let us know we have a new captioner
-			listeners[model.CaptionerID(cl.cell.id)] = cl
-			if arr, found := listenersByNetwork[model.NetworkID(cl.NetId)]; found {
-				arr = append(arr, cl)
-				if len(arr) == 1 {
-					cl.cell.Unmute()
-					relay.Unmuted(cl.cell.id)
-				}
-			} else {
-				arr = []CaptionListener{cl}
-				cl.cell.Unmute()
-			}
-			relay.Connected(cl.cell.id)
-		case rmId := <-rmCaptioner:
-			if cl, found := listeners[rmId]; found {
-				cl.cell.Mute()
-				cl.conn.Close()
-				relay.Disconnected(rmId)
-				if arr, found := listenersByNetwork[cl.NetId]; found && len(arr) == 1 {
-					// Make sure the remaining captioner is unmuted
-					arr[0].cell.Unmute()
-				}
 			}
 		case rmId := <-rmNetwork:
 			if network, found := networks[rmId]; found {
@@ -170,6 +170,77 @@ func maintainListenerState() {
 				}
 				delete(listenersByNetwork, rmId)
 				relay.NetworkRemoved(rmId)
+			}
+		case <-askNetworks:
+			connectedNetworks := make(map[model.NetworkID]bool)
+			for _, n := range networks {
+				connectedNetworks[n.id] = true
+			}
+			gotNetworks <- connectedNetworks
+		case cl := <-captionerAdded:
+			// Note: This is only fired when the network listener wants to let us know we have a new captioner
+			listeners[model.CaptionerID(cl.cell.id)] = cl
+			if arr, found := listenersByNetwork[model.NetworkID(cl.NetId)]; found {
+				arr = append(arr, cl)
+				if len(arr) == 1 {
+					cl.cell.Unmute()
+					relay.Unmuted(cl.cell.id)
+				}
+				listenersByNetwork[cl.NetId] = arr
+			} else {
+				arr = []CaptionListener{cl}
+				cl.cell.Unmute()
+				// TODO: Mute other captioners?
+				listenersByNetwork[cl.NetId] = arr
+			}
+			relay.Connected(cl.cell.id)
+		case rmId := <-rmCaptioner:
+			if cl, found := listeners[rmId]; found {
+				cl.cell.Mute()
+				cl.conn.Close()
+				relay.Disconnected(rmId)
+				if arr, found := listenersByNetwork[cl.NetId]; found && len(arr) == 1 {
+					// Make sure the remaining captioner is unmuted
+					arr[0].cell.Unmute()
+				}
+				// Remove the listener from the list of listeners
+				delete(listeners, rmId)
+				toSplice := listenersByNetwork[rmId.NetworkID]
+				if len(toSplice) > 1 {
+					for i, captioner := range toSplice {
+						if captioner.cell.id == rmId {
+							// Using a 0-valued item to make sure that storage doesn't hold onto the conn
+							toSplice[i] = CaptionListener{}
+							listenersByNetwork[rmId.NetworkID] = append(toSplice[:i], toSplice[i+1:]...)
+							break
+						}
+					}
+				} else {
+					delete(listenersByNetwork, rmId.NetworkID)
+				}
+			}
+		case netId := <-askCaptioners:
+			log.Println("Check captioners for network:", netId)
+			if cells, found := listenersByNetwork[netId]; found {
+				stats := make([]CaptionerStatus, 0)
+				for _, cl := range cells {
+					cl.cell.cellMux.Lock()
+					if cl.cell.isMute {
+						stats = append(stats, CaptionerStatus{
+							cl.cell.id,
+							states.CaptionerMuted,
+						})
+					} else {
+						stats = append(stats, CaptionerStatus{
+							cl.cell.id,
+							states.CaptionerUnmuted,
+						})
+					}
+					cl.cell.cellMux.Unlock()
+				}
+				captionerStats <- stats
+			} else {
+				captionerStats <- nil
 			}
 		case muteId := <-muteCaptioner:
 			if cl, found := listeners[muteId]; found {
@@ -197,12 +268,13 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 	for {
 		conn, er := ln.Accept()
 		if er != nil {
+			log.Println("Connection failed:", er.Error())
 			if err := er.(net.Error); err != nil {
 				if err.Temporary() {
 					log.Println(err)
 					continue
 				} else {
-					// TODO: Signal this listener has been closed
+					// TODO: Signal error here.
 					return
 				}
 			}
@@ -222,24 +294,25 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 			NetworkID: model.NetworkID(n.ID),
 		})
 		captionerAdded <- CaptionListener{
-			conn: conn,
-			cell: writer,
+			conn:  conn,
+			cell:  writer,
+			NetId: n.ID,
 		}
 		go handleCaptioner(conn, writer)
 	}
 }
 
-// Basic demoable state.
 func handleCaptioner(c net.Conn, writer *MuteCell) {
 	// Notify that we have a new listener
 	// addListenerChan <-
 	// Keep a buffer of 1KiB per captioner
 	buf := make([]byte, 1024)
+	log.Println("Am listening to captioner")
 	for {
-		c.SetReadDeadline(time.Now().Add(time.Minute * 10))
+		c.SetReadDeadline(time.Now().Add(time.Second * 120))
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
-			c.Close()
+			log.Println("Disconnected from Captioner")
 			rmCaptioner <- writer.id
 			log.Println(err.Error())
 			break

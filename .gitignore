@@ -100,3 +100,4 @@ verbatim.exe
 verbatim.exe~
 
 dashboard/production.go
+chaos/encoder/encoder

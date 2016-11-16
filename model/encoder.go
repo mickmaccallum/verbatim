@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// EncoderID represents the id of an encoder.
 type EncoderID int
 
 // Encoder represents a single downstream encoder for a given network
@@ -18,6 +19,7 @@ type Encoder struct {
 	Handle    string
 	Password  string
 	NetworkID NetworkID
+	Status    int
 }
 
 // FormValuesToEncoder validates that an Encoder can be created

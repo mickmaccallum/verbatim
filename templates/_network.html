@@ -7,20 +7,40 @@
   <li class="active">{{ .Network.Name }} <small>- <span id="encoder-count">{{ len .Encoders }}</span> {{ simplePlural "encoder" (len .Encoders) }}</small></li>
 </ol>
 
-<div class="page-header">
-  <div>
-    <div>
-      <h3><span>{{ .Network.Name }}</span> <small>(Network Name)</small></h3>
-    </div>
+<form id="edit-network-form" method="POST" accept-charset="UTF-8">
+  {{ .EditNetworkField }}
 
+  <div id="editing-page-header" class="page-header" data-network-id="{{ .Network.ID }}">
     <div>
-      <h3><span>{{ .Network.ListeningPort }}</span> <small>(Port)</small></h3>
+      <div>
+        <h3><span data-name="name" name="name">{{ .Network.Name }}</span> <small>(Network Name)</small></h3>
+      </div>
+
+      <div>
+        <h3><span data-name="listening_port" name="listening_port">{{ .Network.ListeningPort }}</span> <small>(Port)</small></h3>
+      </div>
+
+      <div>
+        <h3><span data-name="timeout" name="timeout">{{ .Network.Timeout }}</span> <small>(Timeout in seconds)</small></h3>
+      </div>
     </div>
-  </div>
+  </div>  
+</form>
+
+{{ if eq (len $.Encoders) 0 }}
+<div class="page-header" hidden>
+{{ else }}
+<div class="page-header">
+{{ end }}
+  <h3>Connected Encoders</h3>
 </div>
 
-<div class="table-responsive panel panel-default">
-  <div class="panel-heading">Encoders</div>
+{{ if eq (len $.Encoders) 0 }}
+<div class="table-responsive panel panel-default" id="encoder-list-wrapper" hidden>
+{{ else }}
+<div class="table-responsive panel panel-default" id="encoder-list-wrapper">
+{{ end }}
+  <div class="panel-heading">Connected Encoders</div>
 
   <table class="table table-hover" id="encoder-selection-table">
     <thead>
@@ -31,7 +51,7 @@
         <th width="15%">Port</th>
         <th width="15%">Handle</th>
         <th width="15%">Password</th>
-        <th width="15%">Password</th>
+        <th width="15%">Status</th>
         <th width="5%"></th>
       </tr>
     </thead>
@@ -48,6 +68,7 @@
           <td><span>{{ $element.Port }}</span></td>
           <td><span>{{ $element.Handle }}</span></td>
           <td><span>{{ $element.Password }}</span></td>
+          <td><span>{{ $element.Status }}</span></td>
           <td>
             <p data-placement="top" data-toggle="tooltip" title="Delete">
               <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
@@ -71,7 +92,7 @@
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
       {{ .AddEncoderField }}
       <input name="network_id" type="hidden" class="form-control" value="{{ .Network.ID }}">
-      <div class="col-lg-4">
+      <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
             IP Address
@@ -81,7 +102,7 @@
         </div>
       </div>
 
-      <div class="col-lg-5">
+      <div class="col-md-5 col-lg-5 col-xl-5">
         <div class="input-group">
           <span class="input-group-addon">
             Name
@@ -91,7 +112,7 @@
         </div>
       </div>
 
-      <div class="col-lg-3">
+      <div class="col-md-3 col-lg-3 col-xl-3">
         <div class="input-group">
           <span class="input-group-addon">
             Port
@@ -101,7 +122,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4">
+      <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
             Handle
@@ -111,7 +132,7 @@
         </div>
       </div>
 
-      <div class="col-lg-5">
+      <div class="col-md-5 col-lg-5 col-xl-5">
         <div class="input-group">
           <span class="input-group-addon">
             Password
@@ -128,6 +149,76 @@
 
     </form>
   </div>
+</div>
+
+<div class="page-header">
+  <h3>Captioners</h3>
+</div>
+
+<div class="table-responsive panel panel-default">
+  <div class="panel-heading">Captioners</div>
+
+  <table class="table table-hover" id="captioner-selection-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>IP Address</th>
+        <th>Number of Connections</th>
+        <th>State</th>
+        <td>Mute</td>
+        <td>Disconnect</td>
+      </tr>
+    </thead>
+    <tbody>
+
+      <form id="toggle-captioner-mute-form" method="POST" accept-charset="UTF-8">
+        {{ $.ToggleCaptionerMuteField }}
+
+        {{range $index, $element := .Captioners }}
+          <tr class="captioner-row" 
+            id="{{ $element.TableID }}"
+            data-captioner-ip="{{ $element.IPAddr }}"
+            data-captioner-num-conn="{{ $element.NumConn }}"
+            data-captioner-network-id="{{ $element.NetworkID }}">
+
+            <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>{{ inc $index }}</th>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.IPAddr }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.NumConn }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3 state-row">{{ captionerStatus $element.Captioner }}</td>
+
+
+<!-- connected = 0, disconnected = 1, muted = 2, unmuted = 3 -->
+
+            {{ if or (eq $element.Captioner 2) (eq $element.Captioner 3) }} 
+              <td class="col-xl-1 col-lg-1 col-md-1 mute-row">
+                {{ if eq $element.Captioner 2 }}
+                  <p data-placement="top" data-toggle="tooltip" title="Unmute">
+                    <button class="btn btn-danger btn-xs unmute-captioner-button">
+                      <span class="glyphicon glyphicon-volume-up"></span>
+                    </button>
+                  </p>
+                {{ else }}
+                  <p data-placement="top" data-toggle="tooltip" title="Mute">
+                    <button class="btn btn-danger btn-xs mute-captioner-button">
+                      <span class="glyphicon glyphicon-volume-off"></span>
+                    </button>
+                  </p>
+                {{ end }}
+              </td>
+
+              <td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">                
+                <p data-placement="top" data-toggle="tooltip" title="Disconnect">
+                  <button class="btn btn-danger btn-xs disconnect-captioner-button">
+                    <span class="glyphicon glyphicon-ban-circle"></span>
+                  </button>
+                </p>
+              </td>
+            {{ end }}
+          </tr>
+        {{ end }}
+      </form>
+    </tbody>
+  </table>
 </div>
 
 {{ end }}

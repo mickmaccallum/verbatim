@@ -3,11 +3,10 @@ package dashboard
 import (
 	"net/http"
 
+	"github.com/0x7fffffff/verbatim/microphone"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	// "github.com/gorilla/csrf"
-	// "github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
@@ -56,8 +55,21 @@ type RelayListener interface {
 	// Unmute a captioner, allowing them to send data to encoders
 	UnmuteCaptioner(id model.CaptionerID)
 
+	// DisconnectCaptioner forcibly disconnects the specified captioner
+	DisconnectCaptioner(id model.CaptionerID)
+
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
+
+	// GetConnectedCaptioners gets all of the currently connected
+	// captioners for a given network.
+	GetConnectedCaptioners(n model.Network) []microphone.CaptionerStatus
+
+	// GetConnectedEncoders get all the currently connected encoders
+	GetConnectedEncoders(n model.Network) []model.EncoderID
+
+	// GetConnectedNetworks get all of the currently connect networks
+	GetConnectedNetworks() map[model.NetworkID]bool
 }
 
 var relay RelayListener
@@ -82,7 +94,7 @@ func Start(l RelayListener) {
 	csrfHandle := csrfProtect(router) // func call conditional to the build "prod" tag.
 
 	// Start the HTTP server
-	if err := http.ListenAndServe("127.0.0.1:4000", csrfHandle); err != nil {
+	if err := http.ListenAndServe(":4000", csrfHandle); err != nil {
 		panic(err)
 	}
 }

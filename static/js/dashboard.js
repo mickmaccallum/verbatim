@@ -7,7 +7,7 @@ function addNetwork(network) {
   
   var deleteItem = '<td class="col-md-1">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
-        '<button class="btn btn-danger btn-xs pull-right delete-encoder-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
+        '<button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
           '<span class="glyphicon glyphicon-trash"></span>' +
         '</button>' +
       '</p>' +
@@ -20,7 +20,7 @@ function addNetwork(network) {
   row.attr('data-network-id', network.ID + "");
   row.attr('data-network-name', network.Name);
 
-  row.append('<th scope=row>' + (count + 1) + '</th>');
+  row.append('<th class="row-number" scope=row>' + (count + 1) + '</th>');
   row.append('<td>' + network.Name + '</td>');
   row.append('<td>' + network.ListeningPort + '</td>');
   row.append(deleteItem);
@@ -58,7 +58,7 @@ function deleteNetworkListListeners() {
     }
 
     $.ajax({
-      url: '/network/' + networkId + '/delete',
+      url: '/network/delete/' + networkId,
       type: 'POST',
       data: $('#delete-network-form').serialize()
     }).done(function() {
@@ -70,7 +70,7 @@ function deleteNetworkListListeners() {
 }
 
 function addNetworkCreationListener() {
-  $('#submit-network').click(function (event) {
+  $('#submit-network').click(function(event) {
     $.ajax({
       url: '/network/add',
       type: 'POST',
@@ -93,26 +93,43 @@ function addNetworkCreationListener() {
   });
 };
 
-      // encoderState, captionerState, networkState
-
-function receiveSocketMessage(message) {
-  if (message['encoderState'] != null) {
-
-  } else if (message['captionerState'] != null) {
-
-  } else if (message['networkState'] != null) {
-
+function networkStateToString(state) {
+  if (state == 0) {
+    return "Connecting"
+  } else if (state == 1) {
+    return "Listening"
+  } else if (state == 2) {
+    return "Listening Failed"
+  } else if (state == 3) {
+    return "Closed"
+  } else if (state == 4) {
+    return "Deleted"
   } else {
-    console.log('socket received unknown message');
+    return "Disconnected"
+  }
+};
+
+function changeNetworkState(network, state) {
+  if (state == 0) { // connecting
+    
+  } else if (state == 1 || state == 2 || state == 3) { // listening, listening failed, close
+    var row = $('tr[data-network-id=' + network.ID + ']');
+    row.children('.state-row').text(networkStateToString(state));
+  } else if (state == 4) { // deleted
+    
+  } else { // disconnected
+
   }
 };
 
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
-      console.log('Got new message');
-      console.log(message);
-      receiveSocketMessage(message);
+      var networkState = message['networkState'];
+
+      if (typeof networkState !== 'undefined') {
+        changeNetworkState(networkState.network, networkState.state);
+      }
     };
 
     webSocket.onerror = function(event) {
