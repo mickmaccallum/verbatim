@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
@@ -31,7 +34,6 @@ func templateOnBase(path string) *template.Template {
 			return word + "s"
 		},
 		"captionerStatus": func(status states.Captioner) string {
-			// connected, disconnected, muted, unmuted
 			switch status {
 			case 0:
 				return "Connecting"
@@ -44,6 +46,33 @@ func templateOnBase(path string) *template.Template {
 			default:
 				return "Disconnected"
 			}
+		},
+		"networkStatus": func(status states.Network) string {
+			switch status {
+			case 0:
+				return "Connecting"
+			case 1:
+				return "Listening"
+			case 2:
+				return "Listening Failed"
+			case 3:
+				return "Closed"
+			case 4:
+				return "Deleted"
+			default:
+				return "Disconnected"
+			}
+		},
+		// Removes current admin from list of admins.
+		"filterAdmin": func(admin model.Admin, admins []model.Admin) []model.Admin {
+			var filteredAdmins []model.Admin
+			for _, value := range admins {
+				if value != admin {
+					filteredAdmins = append(filteredAdmins, value)
+				}
+			}
+
+			return filteredAdmins
 		},
 	}
 
@@ -80,22 +109,43 @@ func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
 	return persist.GetAdminForID(id)
 }
 
-func checkSessionValidity(request *http.Request) bool {
+func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 	session, err := store.Get(request, "session")
 	if err != nil {
-		return false
+		return nil, false
 	}
 
-	return !session.IsNew
+	return session, !session.IsNew
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
-	http.Redirect(writer, request, "/login", http.StatusSeeOther)
+	admins, err := persist.GetAdmins()
+	if err != nil {
+
+	}
+
+	if len(admins) > 0 {
+		http.Redirect(writer, request, "/login", http.StatusSeeOther)
+		return
+	}
+
+	host, _, err := net.SplitHostPort(request.RemoteAddr)
+	if err != nil {
+
+	}
+
+	ip := net.ParseIP(host)
+	if ip.IsLoopback() {
+		http.Redirect(writer, request, "/register", http.StatusSeeOther)
+	} else {
+		http.NotFound(writer, request)
+	}
 }
 
 func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			redirectLogin(writer, request)
 			return
 		}
@@ -119,8 +169,12 @@ func handleAccountsPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"Admin":  *admin,
-			"Admins": admins,
+			"Admin":               *admin,
+			"Admins":              admins,
+			"ChangeHandleField":   csrf.TemplateField(request),
+			"ChangePasswordField": csrf.TemplateField(request),
+			"DeleteAdminField":    csrf.TemplateField(request),
+			"AddAdminField":       csrf.TemplateField(request),
 		}
 
 		template := templateOnBase("templates/_account.html")
@@ -130,7 +184,8 @@ func handleAccountsPage(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/account/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -146,7 +201,13 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		bytes, err := json.Marshal(admin)
+		finalAdmin, err := persist.AddAdmin(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		bytes, err := json.Marshal(finalAdmin)
 		if err != nil {
 			serverError(writer, err)
 			return
@@ -155,8 +216,10 @@ func handleAccountsPage(router *mux.Router) {
 		fmt.Fprint(writer, string(bytes))
 	}).Methods("POST")
 
-	router.HandleFunc("/account/{admin_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+	// Delete admin account
+	router.HandleFunc("/account/delete/{admin_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -181,6 +244,88 @@ func handleAccountsPage(router *mux.Router) {
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
+
+	router.HandleFunc("/account/handle", func(writer http.ResponseWriter, request *http.Request) {
+		session, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		handle := request.Form.Get("handle")
+		if len(handle) == 0 || len(handle) > 255 {
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
+		adminID := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminID)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		admin.Handle = handle
+		err = persist.UpdateAdminHandle(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/account/password", func(writer http.ResponseWriter, request *http.Request) {
+		session, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		password, confirmPassword := request.Form.Get("password"), request.Form.Get("confirm_password")
+		if password != confirmPassword {
+			clientError(writer, errors.New("Passwords don't match"))
+			return
+		}
+
+		if len(password) == 0 || len(password) > 255 {
+			writer.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+
+		adminID := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminID)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		admin.HashedPassword = string(hashed)
+
+		err = persist.UpdateAdminPassword(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
 }
 
 func handleLogin(router *mux.Router) {
@@ -196,6 +341,12 @@ func handleLogin(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+		// session, sessionOk := checkSessionValidity(request)
+		// if !sessionOk {
+		// 	writer.WriteHeader(http.StatusUnauthorized)
+		// 	return
+		// }
+
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -252,7 +403,8 @@ func handleLogin(router *mux.Router) {
 
 func handleCaptionersPage(router *mux.Router) {
 	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			redirectLogin(writer, request)
 			return
 		}
@@ -266,7 +418,8 @@ func handleCaptionersPage(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -282,7 +435,8 @@ func handleCaptionersPage(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -296,12 +450,30 @@ func handleCaptionersPage(router *mux.Router) {
 		relay.UnmuteCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
+
+	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		_, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		// relay.DisconnectCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	})
 }
 
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -343,7 +515,8 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Update Encoder
 	router.HandleFunc("/encoder/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -371,8 +544,9 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Delete Encoder
-	router.HandleFunc("/encoder/{encoder_id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+	router.HandleFunc("/encoder/delete/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -402,10 +576,14 @@ func handleNetworksPage(router *mux.Router) {
 
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		log.Println("Trying to get network")
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			redirectLogin(writer, request)
 			return
 		}
+
+		log.Println("Got valid session")
 
 		id := identifierFromRequest("network_id", request)
 		if id == nil {
@@ -429,7 +607,7 @@ func handleNetworksPage(router *mux.Router) {
 		for _, encoder := range encoders {
 			for _, connectedEncoderID := range connectedEncoders {
 				if encoder.ID == connectedEncoderID {
-					encoder.Status = states.EncoderConnected
+					encoder.Status = int(states.EncoderConnected)
 					break
 				}
 			}
@@ -452,6 +630,7 @@ func handleNetworksPage(router *mux.Router) {
 			"Captioners":               captioners,
 			"AddEncoderField":          csrf.TemplateField(request),
 			"EditEncoderField":         csrf.TemplateField(request),
+			"EditNetworkField":         csrf.TemplateField(request),
 			"DeleteEncoderField":       csrf.TemplateField(request),
 			"ToggleCaptionerMuteField": csrf.TemplateField(request),
 		}
@@ -466,16 +645,23 @@ func handleNetworksPage(router *mux.Router) {
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			redirectLogin(writer, request)
 			return
 		}
 
 		networks, err := persist.GetNetworks()
-
 		if err != nil {
 			serverError(writer, err)
 			return
+		}
+
+		connectedNetworks := relay.GetListeningNetworks()
+		for _, network := range networks {
+			if connectedNetworks[network.ID] {
+				network.State = states.NetworkListening
+			}
 		}
 
 		data := map[string]interface{}{
@@ -492,7 +678,8 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Add Network
 	router.HandleFunc("/network/add", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -527,7 +714,8 @@ func handleDashboardPage(router *mux.Router) {
 
 	// Update Network
 	router.HandleFunc("/network/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -538,15 +726,34 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		network, err := persist.GetNetwork(*networkID)
-		log.Println(network)
-		log.Println(err)
+		hitNetwork, err := persist.GetNetwork(*networkID)
+		if err != nil {
+			clientError(writer, errors.New("The specified network does not exist."))
+			return
+		}
+
+		network, err := model.FormValuesToNetwork(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		network.ID = hitNetwork.ID
+
+		err = persist.UpdateNetwork(*network)
+
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
 	// Delete Network
-	router.HandleFunc("/network/{id:[0-9]+}/delete", func(writer http.ResponseWriter, request *http.Request) {
-		if !checkSessionValidity(request) {
+	router.HandleFunc("/network/delete/{id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}

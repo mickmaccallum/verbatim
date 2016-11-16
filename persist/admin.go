@@ -96,6 +96,59 @@ func GetAdminForCredentials(handle string, password string) (*model.Admin, error
 	return &admin, nil
 }
 
+func AddAdmin(admin model.Admin) (*model.Admin, error) {
+	query := `
+	    INSERT INTO admin (
+	      handle, hashed_password
+	    ) VALUES (
+	      ?, ?
+	    );
+	`
+
+	result, err := DB.Exec(query, admin.Handle, admin.HashedPassword)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rowID, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	admin.ID = int(rowID)
+
+	return &admin, nil
+}
+
+// UpdateAdminHandle update the handle for a given Admin
+func UpdateAdminHandle(admin model.Admin) error { // handle, hashed_password
+	query := `
+		UPDATE admin
+			SET
+				handle = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := DB.Exec(query, admin.Handle, admin.ID)
+	return err
+}
+
+// UpdateAdminPassword update the password for a given Admin
+func UpdateAdminPassword(admin model.Admin) error {
+	query := `
+		UPDATE admin
+			SET
+				hashed_password = ?
+			WHERE
+				id = ?
+	`
+
+	_, err := DB.Exec(query, admin.HashedPassword, admin.ID)
+	return err
+}
+
 // DeleteAdmin deletes the specified administrator.
 func DeleteAdmin(admin model.Admin) error {
 	query := `

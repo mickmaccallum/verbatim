@@ -101,7 +101,7 @@ func AttemptPortChange(id model.NetworkID, int newPort) error {
 }
 
 // Returns all the successfully connected networks
-func GetConnectedNetworks() map[model.NetworkID]bool {
+func GetListeningNetworks() map[model.NetworkID]bool {
 	askNetworks <- struct{}{}
 	return <-gotNetworks
 }
@@ -226,11 +226,24 @@ func maintainListenerState() {
 					// Make sure the remaining captioner is unmuted
 					arr[0].cell.Unmute()
 				}
+				// Remove the listener from the list of listeners
+				delete(listeners, rmId)
+				toSplice := listenersByNetwork[rmId.NetworkID]
+				if len(toSplice) > 1 {
+					for i, captioner := range toSplice {
+						if captioner.cell.id == rmId {
+							// Using a 0-valued item to make sure that storage doesn't hold onto the conn
+							toSplice[i] = CaptionListener{}
+							listenersByNetwork[rmId.NetworkID] = append(toSplice[:i], toSplice[i+1:]...)
+							break
+						}
+					}
+				} else {
+					delete(listenersByNetwork, rmId.NetworkID)
+				}
 			}
 		case netId := <-askCaptioners:
 			log.Println("Check captioners for network:", netId)
-			log.Println(listeners)
-			log.Println(listenersByNetwork)
 			if cells, found := listenersByNetwork[netId]; found {
 				stats := make([]CaptionerStatus, 0)
 				for _, cl := range cells {

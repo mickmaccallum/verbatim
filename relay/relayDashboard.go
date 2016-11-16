@@ -36,8 +36,8 @@ func (dl dashboardListener) RemoveNetwork(network model.Network) {
 	megaphone.NotifyNetworkRemoved(network.ID)
 }
 
-func (dl dashboardListener) GetConnectedNetworks() map[model.NetworkID]bool {
-	return microphone.GetConnectedNetworks()
+func (dl dashboardListener) GetListeningNetworks() map[model.NetworkID]bool {
+	return microphone.GetListeningNetworks()
 }
 
 // Add encoder to it's network

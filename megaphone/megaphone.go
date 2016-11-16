@@ -89,9 +89,7 @@ func GetBroadcasterForNetwork(id model.NetworkID) *NetworkBroadcaster {
 }
 
 func GetConnectedEncoders(id model.NetworkID) []model.EncoderID {
-	log.Println("HXE")
 	getConnectedEncoders <- id
-	log.Println("XEHN")
 	return <-connectedEncoders
 }
 

@@ -10,7 +10,7 @@ import (
 // GetNetwork gets the Network for a given id.
 func GetNetwork(id int) (*model.Network, error) {
 	query := `
-		SELECT id, listening_port, name
+		SELECT id, listening_port, name, timeout
 		FROM network
 		WHERE id = ?
 	`
@@ -21,7 +21,7 @@ func GetNetwork(id int) (*model.Network, error) {
 	}
 
 	var net model.Network
-	if err := row.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
+	if err := row.Scan(&net.ID, &net.ListeningPort, &net.Name, &net.Timeout); err != nil {
 		return nil, errors.New("Failed to find specified Network")
 	}
 
@@ -31,7 +31,7 @@ func GetNetwork(id int) (*model.Network, error) {
 // GetNetworks Gets all Networks in the database.
 func GetNetworks() ([]model.Network, error) {
 	query := `
-		SELECT id, listening_port, name
+		SELECT id, listening_port, name, timeout
 		FROM network
 	`
 	rows, err := DB.Query(query)
@@ -45,7 +45,7 @@ func GetNetworks() ([]model.Network, error) {
 	for rows.Next() {
 		var net model.Network
 
-		if err = rows.Scan(&net.ID, &net.ListeningPort, &net.Name); err != nil {
+		if err = rows.Scan(&net.ID, &net.ListeningPort, &net.Name, &net.Timeout); err != nil {
 			log.Fatal(err)
 			continue
 		}
@@ -64,13 +64,13 @@ func GetNetworks() ([]model.Network, error) {
 func AddNetwork(network model.Network) (*model.Network, error) {
 	query := `
 		INSERT INTO network (
-			listening_port, name
+			listening_port, name, timeout
 		) VALUES (
-			?, ?
+			?, ?, ?
 		);
 	`
 
-	result, err := DB.Exec(query, network.ListeningPort, network.Name)
+	result, err := DB.Exec(query, network.ListeningPort, network.Name, network.Timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +84,7 @@ func AddNetwork(network model.Network) (*model.Network, error) {
 		ID:            model.NetworkID(rowID),
 		Name:          network.Name,
 		ListeningPort: network.ListeningPort,
+		Timeout:       network.Timeout,
 	}
 
 	return &newNetwork, nil
@@ -95,12 +96,13 @@ func UpdateNetwork(network model.Network) error {
 		UPDATE network
 			SET
 				name = ?,
-				listening_port = ?
+				listening_port = ?,
+				timeout = ?
 			WHERE
 				id = ?
 	`
 
-	_, err := DB.Exec(query, network.Name, network.ListeningPort, network.ID)
+	_, err := DB.Exec(query, network.Name, network.ListeningPort, network.Timeout, network.ID)
 	return err
 }
 

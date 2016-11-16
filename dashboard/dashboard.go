@@ -7,8 +7,6 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	// "github.com/gorilla/csrf"
-	// "github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/michaeljs1990/sqlitestore"
 )
@@ -57,6 +55,9 @@ type RelayListener interface {
 	// Unmute a captioner, allowing them to send data to encoders
 	UnmuteCaptioner(id model.CaptionerID)
 
+	// DisconnectCaptioner forcibly disconnects the specified captioner
+	// DisconnectCaptioner(id model.CaptionerID)
+
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
 
@@ -66,6 +67,9 @@ type RelayListener interface {
 
 	// GetConnectedEncoders get all the currently connected encoders
 	GetConnectedEncoders(n model.Network) []model.EncoderID
+
+	// GetListeningNetworks get all of the currently connected and listening networks
+	GetListeningNetworks() map[model.NetworkID]bool
 }
 
 var relay RelayListener

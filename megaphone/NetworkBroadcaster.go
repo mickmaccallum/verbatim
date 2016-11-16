@@ -115,7 +115,7 @@ func (n *NetworkBroadcaster) serveConnection() {
 			}
 		case <-n.getEncoders:
 			encoders := make([]model.EncoderID, 0)
-			for id, _ := range n.encoders {
+			for id := range n.encoders {
 				encoders = append(encoders, id)
 			}
 			n.encoderIds <- encoders
