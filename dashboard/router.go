@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 
@@ -118,7 +119,27 @@ func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
-	http.Redirect(writer, request, "/login", http.StatusSeeOther)
+	admins, err := persist.GetAdmins()
+	if err != nil {
+
+	}
+
+	if len(admins) > 0 {
+		http.Redirect(writer, request, "/login", http.StatusSeeOther)
+		return
+	}
+
+	host, _, err := net.SplitHostPort(request.RemoteAddr)
+	if err != nil {
+
+	}
+
+	ip := net.ParseIP(host)
+	if ip.IsLoopback() {
+		http.Redirect(writer, request, "/register", http.StatusSeeOther)
+	} else {
+		http.NotFound(writer, request)
+	}
 }
 
 func handleAccountsPage(router *mux.Router) {
