@@ -1,36 +1,125 @@
 package microphone
 
 import (
+	"fmt"
 	"github.com/0x7fffffff/verbatim/model"
+	"log"
+	"math"
 	"net"
+	"time"
 )
 
 type networkListeningServer struct {
 
 	// Indicates if this server is active, or shutting down
-	bool isActive
+	isActive bool
 	// The listener for this network
 	ln net.Listener
 	// Pull in the id and such from here.
-	network         model.Network
-	captionerAdded  chan CaptionListener
-	rmCaptioner     chan model.CaptionerID
-	muteCaptioenr   chan model.CaptionerID
-	unmuteCaptioner chan model.CaptionerID
+	network model.Network
+
+	// All the currently connected captioners
+	captioners map[model.CaptionerID]CaptionListener
+
+	// If we get a change request, we need to know what to change to.
+	tryPortChange chan int
+	// Indicate if the change could successfully be made.
+	couldMakePortChange chan error
+
+	// Change the timeout for a listen call...
+	changeTimeout     chan time.Time
+	timeoutChanged    chan error
+	tryAddCaptioner   chan CaptionListener
+	couldAddCaptioner chan error
+	rmCaptioner       chan model.CaptionerID
+	muteCaptioner     chan model.CaptionerID
+	unmuteCaptioner   chan model.CaptionerID
+	killSelf          chan struct{}
+}
+
+// Attempt to spin up a listener, and return if it succeeded
+func tryMakeNetworkListener(n model.Network) (*networkListeningServer, error) {
+	var ln net.Listener
+	var err error
+	if ln, err = attemptListen(n); err != nil {
+		return nil, err
+	}
+
+	return &networkListeningServer{
+		isActive:            true,
+		ln:                  ln,
+		captioners:          make(map[model.CaptionerID]CaptionListener),
+		tryPortChange:       make(chan int),
+		couldMakePortChange: make(chan error),
+		changeTimeout:       make(chan time.Time),
+		timeoutChanged:      make(chan error),
+		tryAddCaptioner:     make(chan CaptionListener),
+		couldAddCaptioner:   make(chan error),
+		rmCaptioner:         make(chan model.CaptionerID),
+		muteCaptioner:       make(chan model.CaptionerID),
+		unmuteCaptioner:     make(chan model.CaptionerID),
+		killSelf:            make(chan struct{}),
+	}, nil
+}
+
+func (n networkListeningServer) MuteCaptioner(id model.CaptionerID) {
+	n.muteCaptioner <- id
+}
+
+func (n networkListeningServer) UnmuteCaptioner(id model.CaptionerID) {
+	n.unmuteCaptioner <- id
 }
 
 // Maintain all the state related to a network
 func (n *networkListeningServer) serve() {
 	for {
-		select {}
+		select {
+		case <-n.tryPortChange:
+		case <-n.changeTimeout:
+		case <-n.tryAddCaptioner:
+			// TODO: Port this code to work in this server loop
+			/*
+				n.captioners[model.CaptionerID(cl.cell.id)] = cl
+				if arr, found := listenersByNetwork[model.NetworkID(cl.NetId)]; found {
+					arr = append(arr, cl)
+					if len(arr) == 1 {
+						cl.cell.Unmute()
+					}
+					listenersByNetwork[cl.NetId] = arr
+					relay.Connected(cl.cell.id)
+					cl.cell.cellMux.Lock()
+					if cl.cell.isMute {
+						relay.Muted(cl.cell.id)
+					} else {
+						relay.Unmuted(cl.cell.id)
+					}
+					cl.cell.cellMux.Unlock()
+					couldAddCaptioner <- nil
+				} else {
+					couldAddCaptioner <- fmt.Errorf("")
+				}
+			*/
+		case <-n.rmCaptioner:
+		case muteID := <-n.muteCaptioner:
+			if cl, found := n.captioners[muteID]; found {
+				cl.cell.Mute()
+				relay.Muted(muteID)
+			}
+		case <-n.unmuteCaptioner:
+
+		}
 	}
+}
+
+func (n networkListeningServer) Close() {
+	n.killSelf <- struct{}{}
 }
 
 func attemptListen(n model.Network) (net.Listener, error) {
 	return net.Listen("tcp", fmt.Sprint(":", n.ListeningPort))
 }
 
-func handleCaptioner(c net.Conn, writer *MuteCell) {
+func (srv networkListeningServer) handleCaptioner(c net.Conn, writer *MuteCell) {
 	// Notify that we have a new listener
 	// addListenerChan <-
 	// Keep a buffer of 1KiB per captioner
@@ -41,7 +130,7 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
 			log.Println("Disconnected from Captioner")
-			rmCaptioner <- writer.id
+			srv.rmCaptioner <- writer.id
 			log.Println(err.Error())
 			break
 		}
@@ -57,7 +146,7 @@ func handleCaptioner(c net.Conn, writer *MuteCell) {
 }
 
 // TODO A way to report failed listers?
-func listenForNetwork(n model.Network, ln net.Listener) {
+func (srv networkListeningServer) listenForNetwork(n model.Network, ln net.Listener) {
 	var connsPerIP = make(map[string]int)
 	// Add the network to the list of networks in use.
 	broadcaster := relay.GetBroadcaster(n)
@@ -71,7 +160,7 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 					continue
 				} else {
 					// TODO: Signal error here.
-					relay.NetworkListenFailed(network)
+					relay.NetworkListenFailed(n)
 					return
 				}
 			}
@@ -90,11 +179,14 @@ func listenForNetwork(n model.Network, ln net.Listener) {
 			IPAddr:    conn.RemoteAddr().String(),
 			NetworkID: model.NetworkID(n.ID),
 		})
-		captionerAdded <- CaptionListener{
+		srv.tryAddCaptioner <- CaptionListener{
 			conn:  conn,
 			cell:  writer,
 			NetId: n.ID,
 		}
-		go handleCaptioner(conn, writer)
+		if <-srv.couldAddCaptioner != nil {
+			return
+		}
+		go srv.handleCaptioner(conn, writer)
 	}
 }
