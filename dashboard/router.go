@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 
@@ -118,7 +119,27 @@ func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
-	http.Redirect(writer, request, "/login", http.StatusSeeOther)
+	admins, err := persist.GetAdmins()
+	if err != nil {
+
+	}
+
+	if len(admins) > 0 {
+		http.Redirect(writer, request, "/login", http.StatusSeeOther)
+		return
+	}
+
+	host, _, err := net.SplitHostPort(request.RemoteAddr)
+	if err != nil {
+
+	}
+
+	ip := net.ParseIP(host)
+	if ip.IsLoopback() {
+		http.Redirect(writer, request, "/register", http.StatusSeeOther)
+	} else {
+		http.NotFound(writer, request)
+	}
 }
 
 func handleAccountsPage(router *mux.Router) {
@@ -437,13 +458,13 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		_, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		relay.DisconnectCaptioner(*captioner)
+		// relay.DisconnectCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	})
 }
@@ -556,7 +577,6 @@ func handleNetworksPage(router *mux.Router) {
 	// Get Encoder
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("Trying to get network")
-
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			redirectLogin(writer, request)
@@ -637,14 +657,10 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		connectedNetworks := relay.GetConnectedNetworks()
+		connectedNetworks := relay.GetListeningNetworks()
 		for _, network := range networks {
 			if connectedNetworks[network.ID] {
-				// TODO: Going to need revised. states.NetworkConnecting is
-				// already the 0 state and will be set by default. Need a
-				// connected state.
-				network.State = states.NetworkConnecting
-				continue
+				network.State = states.NetworkListening
 			}
 		}
 
