@@ -5,13 +5,16 @@ function addNetwork(network) {
 
   var body = $('#network-selection-table > tbody');
   
-  var deleteItem = '<td class="col-md-1">' +
-      '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
-        '<button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
-          '<span class="glyphicon glyphicon-trash"></span>' +
-        '</button>' +
-      '</p>' +
-    '</td>';
+  var deleteItem = '<td class="col-xl-1 col-lg-1 col-md-1">' +
+                      '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
+                        '<button class="btn btn-danger btn-xs pull-right delete-button" ' +
+                          'data-title="Delete" data-toggle="modal" ' +
+                          'data-target="#delete">' +
+                            '<span class="glyphicon glyphicon-trash"></span>' +
+                        '</button>' +
+                      '</p>' +
+                    '</td>';
+
 
   var count = body.children().length;
 
@@ -20,9 +23,11 @@ function addNetwork(network) {
   row.attr('data-network-id', network.ID + "");
   row.attr('data-network-name', network.Name);
 
-  row.append('<th class="row-number" scope=row>' + (count + 1) + '</th>');
-  row.append('<td>' + network.Name + '</td>');
-  row.append('<td>' + network.ListeningPort + '</td>');
+  row.append('<th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>' + (count + 1) + '</th>');
+  row.append('<td class="col-xl-3 col-lg-3 col-md-3">' + network.Name + '</td>');
+  row.append('<td class="col-xl-2 col-lg-2 col-md-2">' + network.ListeningPort + '</td>');
+  row.append('<td class="col-xl-3 col-lg-3 col-md-3">' + network.Timeout + '</td>');
+  row.append('<td class="col-xl-2 col-lg-2 col-md-2 state-row">' + network.State + '</td>');
   row.append(deleteItem);
 
   body.append(row);
