@@ -329,6 +329,17 @@ func handleAccountsPage(router *mux.Router) {
 }
 
 func handleLogin(router *mux.Router) {
+	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
+		data := map[string]interface{}{
+			"RegistrationField": csrf.TemplateField(request),
+		}
+
+		template := templateOnBase("templates/_registration.html")
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+			serverError(writer, err)
+		}
+	}).Methods("GET")
+
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := map[string]interface{}{
 			"LoginField": csrf.TemplateField(request),
