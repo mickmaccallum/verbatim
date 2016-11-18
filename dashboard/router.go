@@ -63,6 +63,21 @@ func templateOnBase(path string) *template.Template {
 				return "Disconnected"
 			}
 		},
+		"encoderStatus": func(status states.Encoder) string {
+			switch status {
+			case 0:
+				return "Connected"
+			case 1:
+				return "Connecting"
+			case 2:
+				return "Authentication Failed"
+			case 3:
+				return "Writes Failing"
+			default:
+				return "Disconnected"
+
+			}
+		},
 		// Removes current admin from list of admins.
 		"filterAdmin": func(admin model.Admin, admins []model.Admin) []model.Admin {
 			var filteredAdmins []model.Admin
