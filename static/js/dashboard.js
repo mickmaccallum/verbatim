@@ -99,8 +99,12 @@ function addNetworkCreationListener() {
 };
 
 function networkStateToString(state) {
+  if (!Number.isInteger(state)) {
+    return "Disconnected";
+  }
+
   if (state == 0) {
-    return "Connecting"
+    return "Connected"
   } else if (state == 1) {
     return "Listening"
   } else if (state == 2) {

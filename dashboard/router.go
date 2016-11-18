@@ -36,7 +36,7 @@ func templateOnBase(path string) *template.Template {
 		"captionerStatus": func(status states.Captioner) string {
 			switch status {
 			case 0:
-				return "Connecting"
+				return "Connected"
 			case 1:
 				return "Disconnecting"
 			case 2:
@@ -50,7 +50,7 @@ func templateOnBase(path string) *template.Template {
 		"networkStatus": func(status states.Network) string {
 			switch status {
 			case 0:
-				return "Connecting"
+				return "Connected"
 			case 1:
 				return "Listening"
 			case 2:
@@ -61,6 +61,21 @@ func templateOnBase(path string) *template.Template {
 				return "Deleted"
 			default:
 				return "Disconnected"
+			}
+		},
+		"encoderStatus": func(status states.Encoder) string {
+			switch status {
+			case 0:
+				return "Connected"
+			case 1:
+				return "Connecting"
+			case 2:
+				return "Authentication Failed"
+			case 3:
+				return "Writes Failing"
+			default:
+				return "Disconnected"
+
 			}
 		},
 		// Removes current admin from list of admins.
@@ -83,9 +98,18 @@ func templateOnBase(path string) *template.Template {
 }
 
 func templateParamsOnBase(new map[string]interface{}, request *http.Request) map[string]interface{} {
+	session, err := store.Get(request, "session")
+	var showAccount bool
+	if err == nil {
+		showAccount = !session.IsNew
+	} else {
+		showAccount = false
+	}
+
 	base := map[string]interface{}{
 		"LogoutField": csrf.TemplateField(request),
 		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"ShowAccount": showAccount,
 	}
 
 	for k, v := range base {
@@ -619,7 +643,7 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
-	// Get Encoder
+	// Get Encoders
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("Trying to get network")
 		_, sessionOk := checkSessionValidity(request)
