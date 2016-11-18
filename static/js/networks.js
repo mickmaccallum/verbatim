@@ -15,9 +15,27 @@ function changeEncoderState(encoderState) {
   // console.log(row);
 }
 
+function encoderStateToString(state) {
+  if (!Number.isInteger(state)) {
+    return "Disconnected";
+  }
+
+  if (state == 0) {
+    return "Connected";
+  } else if (state == 1) {
+    return "Connecting";
+  } else if (state == 2) {
+    return "Authentication Failed";
+  } else if (state == 3) {
+    return "Writes Failing";
+  } else {
+    return "Disconnected";
+  }
+};
+
 function captionerStateToString(state) {
   if (state == 0) {
-    return "Connecting";
+    return "Connected";
   } else if (state == 1) {
     return "Disconnecting";
   } else if (state == 2) {
