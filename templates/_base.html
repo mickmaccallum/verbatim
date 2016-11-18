@@ -42,8 +42,10 @@
               <a href="dashboard.html">Dashboard</a>
             </li>
           </ul> -->
+
+          {{ if .ShowAccount }}
           <form action="/logout" method="POST">
-            {{ .LogoutField }}
+            {{ $.LogoutField }}
 
             <ul class="nav navbar-nav navbar-right">
               <li class="dropdown">
@@ -72,6 +74,7 @@
               </li>
             </ul>
           </form>
+          {{ end }}
         </div>
       </div>
     </nav>
@@ -91,6 +94,7 @@
     <script src="/js/vendor/vue/vue-validator.min.js"></script>
     <script src="/js/vendor/bootstrap/bootstrap.min.js"></script>
     <script src="/js/vendor/bootstrap-editable.min.js"></script>
+    <script src="/js/polyfill.js"></script>
     <script src="/js/base.js"></script>
 
     {{ template "scripts" . }}

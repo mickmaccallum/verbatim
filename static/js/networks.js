@@ -15,9 +15,27 @@ function changeEncoderState(encoderState) {
   // console.log(row);
 }
 
+function encoderStateToString(state) {
+  if (!Number.isInteger(state)) {
+    return "Disconnected";
+  }
+
+  if (state == 0) {
+    return "Connected";
+  } else if (state == 1) {
+    return "Connecting";
+  } else if (state == 2) {
+    return "Authentication Failed";
+  } else if (state == 3) {
+    return "Writes Failing";
+  } else {
+    return "Disconnected";
+  }
+};
+
 function captionerStateToString(state) {
   if (state == 0) {
-    return "Connecting";
+    return "Connected";
   } else if (state == 1) {
     return "Disconnecting";
   } else if (state == 2) {
@@ -181,54 +199,41 @@ function addEncoder(encoder) {
 
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function (event) {
+    var form = $(this).closest('form');
+
     $.ajax({
       url: '/encoder/add',
       type: 'POST',
       dataType: 'json',
-      data: $(this).closest('form').serialize(),
-      success: function(encoder) {
-        if (addEncoder(encoder)) {
-          addDeleteEncoderHandler();
-          configureEditing();
-          recountEncoders();
-        } else {
-          
-        }
-
-        $('#encoder-form-ip').val('');
-        $('#encoder-form-port').val('');
-        $('#encoder-form-name').val('');
-        $('#encoder-form-handle').val('');
-        $('#encoder-form-password').val('');
-      },
-      error: function (xhr, ajaxOptions, thrownError) {
-        console.log('++++++++++++++++++++++++++++++++');
-        console.log(xhr);
-        console.log(ajaxOptions);
-        console.log(thrownError);
-        console.log('--------------------------------');
+      data: form.serialize(),
+    }).done(function(encoder) {
+      if (addEncoder(encoder)) {
+        addDeleteEncoderHandler();
+        configureEditing();
+        recountEncoders();
+      } else {
+        
       }
+
+      form.reset();
+    }).fail(function(error) {
+        console.log('++++++++++++++++++++++++++++++++');
+        console.log(error);
+        console.log('--------------------------------');
     });
-  });
 };
 
 function addEditEncoderHandler() {
   $('#edit-encoder').click(function (e) {
-    // var ip      =
-    // var port    =
-    // var name    =
-    // var network =
-
     $.ajax({
       url: '/encoder/' + id,
       type: 'POST',
       dataType: 'json',
-      success: function(encoder) {
-
-      },
-      error: function (xhr, ajaxOptions, thrownError) {
-
-      }
+      // data: {param1: 'value1'},
+    }).done(function() {
+      console.log("success");
+    }).fail(function() {
+      console.log("error");
     });
   });
 };
