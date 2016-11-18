@@ -329,6 +329,51 @@ func handleAccountsPage(router *mux.Router) {
 }
 
 func handleLogin(router *mux.Router) {
+	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
+		data := map[string]interface{}{
+			"RegistrationField": csrf.TemplateField(request),
+		}
+
+		template := templateOnBase("templates/_registration.html")
+		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+			serverError(writer, err)
+		}
+	}).Methods("GET")
+
+	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		admin, err := model.FormValuesToAdmin(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		newAdmin, err := persist.AddAdmin(*admin)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		session, err := store.Get(request, "session")
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		session.Values["admin"] = newAdmin.ID
+
+		if err = session.Save(request, writer); err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		http.Redirect(writer, request, "/", http.StatusSeeOther)
+	}).Methods("POST")
+
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := map[string]interface{}{
 			"LoginField": csrf.TemplateField(request),
