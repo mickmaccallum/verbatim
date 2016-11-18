@@ -12,8 +12,8 @@ import (
 
 // The connection information for a given captioner.
 type CaptionerStatus struct {
-	model.CaptionerID
-	states.Captioner
+	id    model.CaptionerID
+	state states.Captioner
 }
 
 // These are the events that the server using this will be notified of
@@ -84,7 +84,7 @@ var (
 var (
 	askPortChange = make(chan struct {
 		model.NetworkID
-		int
+		port int
 	})
 	couldStartPortChange = make(chan error)
 )
@@ -92,7 +92,7 @@ var (
 func AttemptPortChange(id model.NetworkID, newPort int) error {
 	askPortChange <- struct {
 		model.NetworkID
-		int
+		port int
 	}{id, newPort}
 	return <-couldStartPortChange
 }
@@ -147,12 +147,6 @@ type NetworkListener struct {
 	listener net.Listener
 }
 
-type CaptionListener struct {
-	NetId model.NetworkID
-	conn  net.Conn
-	cell  *MuteCell
-}
-
 // This function is the sole arbiter of state for these stats
 func maintainListenerState() {
 	// Networks
@@ -184,62 +178,12 @@ func maintainListenerState() {
 				connectedNetworks[n.network.ID] = true
 			}
 			gotNetworks <- connectedNetworks
-
-		case <-rmCaptioner:
-			// TODO: Delegate this duty to the networkListenerServer for
-			// the network in question.
-			/*
-				if cl, found := listeners[rmId]; found {
-					cl.cell.Mute()
-					cl.conn.Close()
-					relay.Disconnected(rmId)
-					if arr, found := listenersByNetwork[cl.NetId]; found && len(arr) == 1 {
-						// Make sure the remaining captioner is unmuted
-						arr[0].cell.Unmute()
-					}
-					// Remove the listener from the list of listeners
-					delete(listeners, rmId)
-					toSplice := listenersByNetwork[rmId.NetworkID]
-					if len(toSplice) > 1 {
-						for i, captioner := range toSplice {
-							if captioner.cell.id == rmId {
-								// Using a 0-valued item to make sure that storage doesn't hold onto the conn
-								toSplice[i] = CaptionListener{}
-								listenersByNetwork[rmId.NetworkID] = append(toSplice[:i], toSplice[i+1:]...)
-								break
-							}
-						}
-					} else {
-						delete(listenersByNetwork, rmId.NetworkID)
-					}
-				}
-			*/
-		case <-askCaptioners:
-			// TODO: Delegate this to the network server in question
-			/*
-				log.Println("Check captioners for network:", netId)
-				if cells, found := listenersByNetwork[netId]; found {
-					stats := make([]CaptionerStatus, 0)
-					for _, cl := range cells {
-						cl.cell.cellMux.Lock()
-						if cl.cell.isMute {
-							stats = append(stats, CaptionerStatus{
-								cl.cell.id,
-								states.CaptionerMuted,
-							})
-						} else {
-							stats = append(stats, CaptionerStatus{
-								cl.cell.id,
-								states.CaptionerUnmuted,
-							})
-						}
-						cl.cell.cellMux.Unlock()
-					}
-					captionerStats <- stats
-				} else {
-					captionerStats <- nil
-				}
-			*/
+		case info := <-askPortChange:
+			couldStartPortChange <- networks[info.NetworkID].TryChangePort(info.port)
+		case rmId := <-rmCaptioner:
+			networks[rmId.NetworkID].RemoveCaptioner(rmId)
+		case netId := <-askCaptioners:
+			captionerStats <- networks[netId].GetConnectedCaptioners()
 		case muteId := <-muteCaptioner:
 			if n, found := networks[muteId.NetworkID]; found {
 				n.MuteCaptioner(muteId)
