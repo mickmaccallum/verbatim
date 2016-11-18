@@ -97,6 +97,18 @@ func AttemptPortChange(id model.NetworkID, newPort int) error {
 	return <-couldStartPortChange
 }
 
+var askTimeoutChange = make(chan struct {
+	model.NetworkID
+	timeSeconds int
+})
+
+func ChangeTimeout(id model.NetworkID, newTimeoutSeconds int) {
+	askTimeoutChange <- struct {
+		model.NetworkID
+		timeSeconds int
+	}{id, newTimeoutSeconds}
+}
+
 // Returns all the successfully connected networks
 func GetListeningNetworks() map[model.NetworkID]bool {
 	askNetworks <- struct{}{}
@@ -150,7 +162,7 @@ type NetworkListener struct {
 // This function is the sole arbiter of state for these stats
 func maintainListenerState() {
 	// Networks
-	networks := make(map[model.NetworkID]networkListeningServer)
+	networks := make(map[model.NetworkID]*networkListeningServer)
 	// Caption listeners
 	// listeners := make(map[model.CaptionerID]CaptionListener)
 	// listenersByNetwork := make(map[model.NetworkID][]CaptionListener)
@@ -162,6 +174,7 @@ func maintainListenerState() {
 				relay.NetworkListenFailed(n)
 			} else {
 				go srv.serve()
+				networks[n.ID] = srv
 				relay.NetworkListenSucceeded(n)
 			}
 		case rmId := <-rmNetwork:
@@ -179,11 +192,23 @@ func maintainListenerState() {
 			}
 			gotNetworks <- connectedNetworks
 		case info := <-askPortChange:
-			couldStartPortChange <- networks[info.NetworkID].TryChangePort(info.port)
+			if network, found := networks[info.NetworkID]; found {
+				couldStartPortChange <- network.TryChangePort(info.port)
+			}
+		case info := <-askTimeoutChange:
+			if network, found := networks[info.NetworkID]; found {
+				network.ChangeTimeout(info.timeSeconds)
+			}
 		case rmId := <-rmCaptioner:
-			networks[rmId.NetworkID].RemoveCaptioner(rmId)
+			if network, found := networks[rmId.NetworkID]; found {
+				network.RemoveCaptioner(rmId)
+			}
 		case netId := <-askCaptioners:
-			captionerStats <- networks[netId].GetConnectedCaptioners()
+			if network, found := networks[netId]; found {
+				captionerStats <- network.GetConnectedCaptioners()
+			} else {
+				captionerStats <- nil
+			}
 		case muteId := <-muteCaptioner:
 			if n, found := networks[muteId.NetworkID]; found {
 				n.MuteCaptioner(muteId)

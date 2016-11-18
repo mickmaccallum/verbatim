@@ -25,7 +25,6 @@ type networkListeningServer struct {
 	ln net.Listener
 	// Pull in the id and such from here.
 	network model.Network
-	port    int
 
 	// All the currently connected captioners
 	captioners map[model.CaptionerID]CaptionListener
@@ -60,6 +59,7 @@ func tryMakeNetworkListener(n model.Network) (*networkListeningServer, error) {
 	return &networkListeningServer{
 		isActive:            true,
 		ln:                  ln,
+		network:             n,
 		captioners:          make(map[model.CaptionerID]CaptionListener),
 		tryPortChange:       make(chan int),
 		couldMakePortChange: make(chan error),
@@ -93,6 +93,10 @@ func (n networkListeningServer) RemoveCaptioner(id model.CaptionerID) {
 	n.rmCaptioner <- id
 }
 
+func (n networkListeningServer) ChangeTimeout(seconds int) {
+	n.changeTimeout <- (time.Duration(seconds) * time.Second)
+}
+
 func (n networkListeningServer) GetConnectedCaptioners() []CaptionerStatus {
 	n.askCaptioners <- struct{}{}
 	return <-n.captionerList
@@ -109,6 +113,8 @@ var (
 
 // Maintain all the state related to a network
 func (n *networkListeningServer) serve() {
+	// Kick off the listening loop
+	go n.listenForNetwork()
 	for {
 		select {
 		case <-n.killSelf:
@@ -117,6 +123,8 @@ func (n *networkListeningServer) serve() {
 				cl.cell.Mute()
 				cl.conn.Close()
 			}
+			n.ln.Close()
+			n.ln = nil
 		case port := <-n.tryPortChange:
 			if len(n.captioners) > 0 {
 				n.couldMakePortChange <- errCaptionersAreStillConnected
@@ -126,10 +134,10 @@ func (n *networkListeningServer) serve() {
 				} else {
 					// Closing the old connection should cause a loop exit
 					n.ln.Close()
-					go n.listenForNetwork(n.network, ln)
 					n.ln = ln
 					n.network.ListeningPort = port
 					n.couldMakePortChange <- nil
+					go n.listenForNetwork()
 					relay.NetworkListenSucceeded(n.network)
 				}
 			}
@@ -140,7 +148,7 @@ func (n *networkListeningServer) serve() {
 			}
 
 		case cl := <-n.tryAddCaptioner:
-			if n.isActive && cl.port == n.port {
+			if n.isActive && cl.port == n.network.ListeningPort {
 				// Mute any existing captioners
 				for _, cl := range n.captioners {
 					cl.cell.Mute()
@@ -199,6 +207,7 @@ func (srv networkListeningServer) handleCaptioner(c net.Conn, writer *MuteCell) 
 	// log.Println("Am listening to captioner")
 	for {
 		now := time.Now()
+		// log.Println(srv.network)
 		c.SetReadDeadline(now.Add(time.Duration(srv.network.Timeout) * time.Second))
 		writer.SetWaitTime(now)
 		n, err := c.Read(buf)
@@ -218,12 +227,12 @@ func (srv networkListeningServer) handleCaptioner(c net.Conn, writer *MuteCell) 
 }
 
 // TODO A way to report failed listers?
-func (srv networkListeningServer) listenForNetwork(n model.Network, ln net.Listener) {
+func (srv networkListeningServer) listenForNetwork() {
 	var connsPerIP = make(map[string]int)
 	// Add the network to the list of networks in use.
-	broadcaster := relay.GetBroadcaster(n)
+	broadcaster := relay.GetBroadcaster(srv.network)
 	for {
-		conn, er := ln.Accept()
+		conn, er := srv.ln.Accept()
 		if er != nil {
 			log.Println("Connection failed:", er.Error())
 			if err := er.(net.Error); err != nil {
@@ -232,7 +241,7 @@ func (srv networkListeningServer) listenForNetwork(n model.Network, ln net.Liste
 					continue
 				} else {
 					// TODO: Signal error here.
-					relay.NetworkListenFailed(n)
+					relay.NetworkListenFailed(srv.network)
 					return
 				}
 			}
@@ -249,13 +258,13 @@ func (srv networkListeningServer) listenForNetwork(n model.Network, ln net.Liste
 		writer := makeMuteCell(broadcaster, model.CaptionerID{
 			NumConn:   val,
 			IPAddr:    conn.RemoteAddr().String(),
-			NetworkID: model.NetworkID(n.ID),
+			NetworkID: model.NetworkID(srv.network.ID),
 		})
 		srv.tryAddCaptioner <- CaptionListener{
 			conn:  conn,
-			port:  srv.port,
+			port:  srv.network.ListeningPort,
 			cell:  writer,
-			NetId: n.ID,
+			NetId: srv.network.ID,
 		}
 		// Don't spin up a caption listener
 		if <-srv.couldAddCaptioner != nil {

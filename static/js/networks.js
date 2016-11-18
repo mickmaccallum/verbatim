@@ -221,6 +221,7 @@ function addAddEncoderHandler() {
         console.log(error);
         console.log('--------------------------------');
     });
+  });
 };
 
 function addEditEncoderHandler() {
