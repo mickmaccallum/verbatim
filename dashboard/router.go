@@ -83,9 +83,18 @@ func templateOnBase(path string) *template.Template {
 }
 
 func templateParamsOnBase(new map[string]interface{}, request *http.Request) map[string]interface{} {
+	session, err := store.Get(request, "session")
+	var showAccount bool
+	if err == nil {
+		showAccount = !session.IsNew
+	} else {
+		showAccount = false
+	}
+
 	base := map[string]interface{}{
 		"LogoutField": csrf.TemplateField(request),
 		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"ShowAccount": showAccount,
 	}
 
 	for k, v := range base {
