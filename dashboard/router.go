@@ -36,7 +36,7 @@ func templateOnBase(path string) *template.Template {
 		"captionerStatus": func(status states.Captioner) string {
 			switch status {
 			case 0:
-				return "Connecting"
+				return "Connected"
 			case 1:
 				return "Disconnecting"
 			case 2:
@@ -50,7 +50,7 @@ func templateOnBase(path string) *template.Template {
 		"networkStatus": func(status states.Network) string {
 			switch status {
 			case 0:
-				return "Connecting"
+				return "Connected"
 			case 1:
 				return "Listening"
 			case 2:
@@ -628,7 +628,7 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
-	// Get Encoder
+	// Get Encoders
 	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		log.Println("Trying to get network")
 		_, sessionOk := checkSessionValidity(request)
