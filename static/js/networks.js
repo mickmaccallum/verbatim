@@ -199,6 +199,7 @@ function addEncoder(encoder) {
 
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function (event) {
+
     var form = $(this).closest('form');
 
     $.ajax({
@@ -221,6 +222,7 @@ function addAddEncoderHandler() {
         console.log(error);
         console.log('--------------------------------');
     });
+  });
 };
 
 function addEditEncoderHandler() {
