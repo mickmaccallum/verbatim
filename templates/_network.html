@@ -8,7 +8,7 @@
 </ol>
 
 <form id="edit-network-form" method="POST" accept-charset="UTF-8">
-  {{ .EditNetworkField }}
+  {{ $.csrfField }}
 
   <div id="editing-page-header" class="page-header" data-network-id="{{ .Network.ID }}">
     <div>
@@ -57,7 +57,7 @@
     </thead>
 
     <form id="delete-encoder-form" method="POST" accept-charset="UTF-8">
-      {{ .DeleteEncoderField }}
+      {{ $.csrfField }}
 
       <tbody>
         {{range $index, $element := .Encoders }}
@@ -90,7 +90,8 @@
 <div>
   <div class="row">
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
-      {{ .AddEncoderField }}
+      {{ $.csrfField }}
+      
       <input name="network_id" type="hidden" class="form-control" value="{{ .Network.ID }}">
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
@@ -172,7 +173,7 @@
     <tbody>
 
       <form id="toggle-captioner-mute-form" method="POST" accept-charset="UTF-8">
-        {{ $.ToggleCaptionerMuteField }}
+        {{ $.csrfField }}
 
         {{range $index, $element := .Captioners }}
           <tr class="captioner-row" 

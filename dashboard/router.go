@@ -107,9 +107,9 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 	}
 
 	base := map[string]interface{}{
-		"LogoutField": csrf.TemplateField(request),
-		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
-		"ShowAccount": showAccount,
+		csrf.TemplateTag: csrf.TemplateField(request),
+		"SocketURL":      "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"ShowAccount":    showAccount,
 	}
 
 	for k, v := range base {
@@ -193,12 +193,8 @@ func handleAccountsPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"Admin":               *admin,
-			"Admins":              admins,
-			"ChangeHandleField":   csrf.TemplateField(request),
-			"ChangePasswordField": csrf.TemplateField(request),
-			"DeleteAdminField":    csrf.TemplateField(request),
-			"AddAdminField":       csrf.TemplateField(request),
+			"Admin":  *admin,
+			"Admins": admins,
 		}
 
 		template := templateOnBase("templates/_account.html")
@@ -354,9 +350,7 @@ func handleAccountsPage(router *mux.Router) {
 
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
-		data := map[string]interface{}{
-			"RegistrationField": csrf.TemplateField(request),
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_registration.html")
 		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
@@ -399,9 +393,7 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		data := map[string]interface{}{
-			"LoginField": csrf.TemplateField(request),
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_login.html")
 		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
@@ -694,14 +686,9 @@ func handleNetworksPage(router *mux.Router) {
 		// }
 
 		data := map[string]interface{}{
-			"Network":                  *network,
-			"Encoders":                 encoders,
-			"Captioners":               captioners,
-			"AddEncoderField":          csrf.TemplateField(request),
-			"EditEncoderField":         csrf.TemplateField(request),
-			"EditNetworkField":         csrf.TemplateField(request),
-			"DeleteEncoderField":       csrf.TemplateField(request),
-			"ToggleCaptionerMuteField": csrf.TemplateField(request),
+			"Network":    *network,
+			"Encoders":   encoders,
+			"Captioners": captioners,
 		}
 
 		template := templateOnBase("templates/_network.html")
@@ -734,9 +721,7 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"AddNetworkField":    csrf.TemplateField(request),
-			"DeleteNetworkField": csrf.TemplateField(request),
-			"Networks":           networks,
+			"Networks": networks,
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
