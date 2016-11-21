@@ -3,7 +3,8 @@
 {{ define "content" }}
 
 <form class="form-register" action="/register" method="POST" accept-charset="UTF-8">
-  {{ .RegistrationField }}
+  {{ $.csrfField }}
+  
   <h2 class="form-register-heading">Register an account</h2>
   <label for="register-form-handle" class="sr-only">
     Email address

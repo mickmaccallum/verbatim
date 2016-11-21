@@ -19,5 +19,16 @@ const (
 
 func csrfProtect(router *mux.Router) http.Handler {
 	log.Println("Running In Development Mode")
-	return csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"), csrf.Secure(false))(router)
+
+	// errHandler := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+
+	// 	sess, err := store.Get(request, "session")
+	// 	log.Println(sess.IsNew)
+	// 	log.Println(err)
+	// 	log.Println(sess.)
+
+	// 	log.Println(csrf.FailureReason(request))
+	// })
+
+	return csrf.Protect([]byte("tb82Tg0Hw8vVQ6cO8TP1Yh9D69M0lKX4"), csrf.Secure(false) /*, csrf.ErrorHandler(errHandler)*/)(router)
 }

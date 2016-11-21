@@ -21,7 +21,7 @@
     </thead>
 
     <form id="delete-network-form" method="POST" accept-charset="UTF-8">
-      {{ .DeleteNetworkField }}
+      {{ $.csrfField }}
 
       <tbody>
       {{ range $index, $element := .Networks }}
@@ -57,7 +57,7 @@
 <div>
   <div class="row">
     <form id="add-network-form" method="POST" accept-charset="UTF-8">
-      {{ .AddNetworkField }}
+      {{ $.csrfField }}
 
       <!-- <input id="add-network-element" type="hidden" class="form-control"> -->
       <div class="col-lg-4 col-md-4 col-sm-4">

@@ -41,7 +41,7 @@ function addNetworkListListeners() {
 
     if (id != null) {
       event.preventDefault();
-      window.location.href = 'networks/' + id;
+      window.location.href = '/network/' + id;
       return true;
     }
 

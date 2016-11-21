@@ -16,7 +16,7 @@
 
   <div class="row">
     <form id="admin-handle-form" method="POST" accept-charset="UTF-8">
-      {{ .ChangeHandleField }}
+      {{ $.csrfField }}
 
       <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
         <div class="input-group">
@@ -40,7 +40,7 @@
 
   <div class="row">
     <form id="admin-password-form" method="POST" accept-charset="UTF-8">
-      {{ .ChangePasswordField }}
+      {{ $.csrfField }}
 
       <div class="col-sm-4 col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
@@ -106,7 +106,7 @@
     </thead>
 
     <form id="delete-admin-form" method="POST" accept-charset="UTF-8">
-      {{ .DeleteAdminField }}
+      {{ $.csrfField }}
 
       <tbody>
         {{ range $index, $element := $admins }}
@@ -136,7 +136,7 @@
 
 <div class="row">
   <form id="add-admin-form" method="POST" accept-charset="UTF-8">
-    {{ .AddAdminField }}
+    {{ $.csrfField }}
 
     <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
       <div class="input-group">

@@ -107,9 +107,9 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 	}
 
 	base := map[string]interface{}{
-		"LogoutField": csrf.TemplateField(request),
-		"SocketURL":   "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
-		"ShowAccount": showAccount,
+		csrf.TemplateTag: csrf.TemplateField(request),
+		"SocketURL":      "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"ShowAccount":    showAccount,
 	}
 
 	for k, v := range base {
@@ -139,7 +139,13 @@ func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 		return nil, false
 	}
 
+	renewSession(session)
+
 	return session, !session.IsNew
+}
+
+func renewSession(session *sessions.Session) {
+	session.Options.MaxAge = 86400
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
@@ -168,14 +174,8 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 
 func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
-		_, sessionOk := checkSessionValidity(request)
+		session, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
-			redirectLogin(writer, request)
-			return
-		}
-
-		session, err := store.Get(request, "session")
-		if err != nil {
 			redirectLogin(writer, request)
 			return
 		}
@@ -193,16 +193,12 @@ func handleAccountsPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"Admin":               *admin,
-			"Admins":              admins,
-			"ChangeHandleField":   csrf.TemplateField(request),
-			"ChangePasswordField": csrf.TemplateField(request),
-			"DeleteAdminField":    csrf.TemplateField(request),
-			"AddAdminField":       csrf.TemplateField(request),
+			"Admin":  *admin,
+			"Admins": admins,
 		}
 
 		template := templateOnBase("templates/_account.html")
-		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -354,9 +350,7 @@ func handleAccountsPage(router *mux.Router) {
 
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
-		data := map[string]interface{}{
-			"RegistrationField": csrf.TemplateField(request),
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_registration.html")
 		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
@@ -399,9 +393,7 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		data := map[string]interface{}{
-			"LoginField": csrf.TemplateField(request),
-		}
+		data := map[string]interface{}{}
 
 		template := templateOnBase("templates/_login.html")
 		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
@@ -459,13 +451,17 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
-		session, err := store.Get(request, "session")
-		if err != nil {
-			redirectLogin(writer, request)
+		session, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		_ = store.Delete(request, writer, session)
+		err := store.Delete(request, writer, session)
+		if err != nil {
+			log.Println(err.Error())
+		}
+
 		redirectLogin(writer, request)
 	}).Methods("POST")
 }
@@ -535,7 +531,7 @@ func handleCaptionersPage(router *mux.Router) {
 
 		// relay.DisconnectCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
-	})
+	}).Methods("POST")
 }
 
 func handleNetworksPage(router *mux.Router) {
@@ -543,6 +539,7 @@ func handleNetworksPage(router *mux.Router) {
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
+			log.Println("session not okay")
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -643,16 +640,13 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
-	// Get Encoders
-	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
-		log.Println("Trying to get network")
+	// Get Network
+	router.HandleFunc("/network/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			redirectLogin(writer, request)
 			return
 		}
-
-		log.Println("Got valid session")
 
 		id := identifierFromRequest("network_id", request)
 		if id == nil {
@@ -683,29 +677,14 @@ func handleNetworksPage(router *mux.Router) {
 		}
 
 		captioners := relay.GetConnectedCaptioners(*network)
-
-		// {
-		// 	"CaptionerID": {
-		// 		"IPAddr": "192.168.1.1",
-		// 		"NumConn": 1, // dunno
-		// 		"NetworkID": 0
-		// 	},
-		// 	"Captioner": 0 // (0 = connected, 1 = disconnected, 2 = muted, 3 = unmuted)
-		// }
-
 		data := map[string]interface{}{
-			"Network":                  *network,
-			"Encoders":                 encoders,
-			"Captioners":               captioners,
-			"AddEncoderField":          csrf.TemplateField(request),
-			"EditEncoderField":         csrf.TemplateField(request),
-			"EditNetworkField":         csrf.TemplateField(request),
-			"DeleteEncoderField":       csrf.TemplateField(request),
-			"ToggleCaptionerMuteField": csrf.TemplateField(request),
+			"Network":    *network,
+			"Encoders":   encoders,
+			"Captioners": captioners,
 		}
 
 		template := templateOnBase("templates/_network.html")
-		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -734,9 +713,7 @@ func handleDashboardPage(router *mux.Router) {
 		}
 
 		data := map[string]interface{}{
-			"AddNetworkField":    csrf.TemplateField(request),
-			"DeleteNetworkField": csrf.TemplateField(request),
-			"Networks":           networks,
+			"Networks": networks,
 		}
 
 		template := templateOnBase("templates/_dashboard.html")
