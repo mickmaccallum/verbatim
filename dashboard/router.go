@@ -139,7 +139,13 @@ func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 		return nil, false
 	}
 
+	renewSession(session)
+
 	return session, !session.IsNew
+}
+
+func renewSession(session *sessions.Session) {
+	session.Options.MaxAge = 86400
 }
 
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
