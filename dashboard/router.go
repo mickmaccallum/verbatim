@@ -531,7 +531,6 @@ func handleCaptionersPage(router *mux.Router) {
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
-
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			log.Println("session not okay")
@@ -636,7 +635,7 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	// Get Network
-	router.HandleFunc("/networks/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/network/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			redirectLogin(writer, request)
