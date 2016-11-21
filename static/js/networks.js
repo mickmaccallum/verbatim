@@ -13,7 +13,7 @@ $(function() {
 function changeEncoderState(encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
   // console.log(row);
-}
+};
 
 function encoderStateToString(state) {
   if (!Number.isInteger(state)) {
@@ -198,9 +198,10 @@ function addEncoder(encoder) {
 };
 
 function addAddEncoderHandler() {
-  $('#submit-encoder').click(function (event) {
-
-    var form = $(this).closest('form');
+  $('#submit-encoder').click(function(event) {
+    event.preventDefault();
+    var form = $('#add-encoder-form');
+    console.log(form.serialize());
 
     $.ajax({
       url: '/encoder/add',
