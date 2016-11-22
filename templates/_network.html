@@ -89,10 +89,9 @@
 
 <div>
   <div class="row">
-    <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
+    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
       {{ $.csrfField }}
-      
-      <input name="network_id" type="hidden" class="form-control" value="{{ .Network.ID }}">
+
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">

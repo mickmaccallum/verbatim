@@ -196,7 +196,6 @@ function addEncoder(encoder) {
   row.append('<td>' + encoder.Handle + '</td>');
   row.append('<td>' + encoder.Password + '</td>');
   row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
-
   row.append(deleteItem);
 
   body.append(row);
@@ -208,27 +207,36 @@ function addAddEncoderHandler() {
   $('#submit-encoder').click(function(event) {
     event.preventDefault();
     var form = $('#add-encoder-form');
-    console.log(form.serialize());
+    var data = form.serializeArray();
+    data.push({
+      name: 'network_id',
+      value: form.attr('data-network-id')
+    });
 
     $.ajax({
       url: '/encoder/add',
       type: 'POST',
       dataType: 'json',
-      data: form.serialize(),
+      data: $.param(data),
     }).done(function(encoder) {
       if (addEncoder(encoder)) {
         addDeleteEncoderHandler();
         configureEditing();
         recountEncoders();
+
+        // form.children('.form-control').val('');
       } else {
-        
+        alertError('Failed to show new encoder');
+      }
+    }).fail(function(xhr, status, error) {
+      var message = '';
+      if (xhr.responseText != null) {
+        message = xhr.responseText;
+      } else {
+        message = error;
       }
 
-      form.reset();
-    }).fail(function(error) {
-        console.log('++++++++++++++++++++++++++++++++');
-        console.log(error);
-        console.log('--------------------------------');
+      alertError(message);
     });
   });
 };
