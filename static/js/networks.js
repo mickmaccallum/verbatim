@@ -170,8 +170,13 @@ function addEncoder(encoder) {
     return false;
   }
 
-  var body = $('#encoder-selection-table > tbody');
+  var wrapper = $('#encoder-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#encoder-list-header').show();
+    wrapper.show();
+  }
 
+  var body = $('#encoder-selection-table > tbody');
   var deleteItem = '<td class="col-md-1">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
         '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
