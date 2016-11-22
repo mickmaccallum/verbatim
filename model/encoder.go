@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/url"
 	"strconv"
+
+	"github.com/0x7fffffff/verbatim/states"
 )
 
 // EncoderID represents the id of an encoder.
@@ -19,7 +21,7 @@ type Encoder struct {
 	Handle    string
 	Password  string
 	NetworkID NetworkID
-	Status    int
+	Status    states.Encoder
 }
 
 // FormValuesToEncoder validates that an Encoder can be created
