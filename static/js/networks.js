@@ -195,6 +195,8 @@ function addEncoder(encoder) {
   row.append('<td>' + encoder.Port + '</td>');
   row.append('<td>' + encoder.Handle + '</td>');
   row.append('<td>' + encoder.Password + '</td>');
+  row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
+
   row.append(deleteItem);
 
   body.append(row);
