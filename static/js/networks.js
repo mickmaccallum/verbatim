@@ -223,8 +223,7 @@ function addAddEncoderHandler() {
         addDeleteEncoderHandler();
         configureEditing();
         recountEncoders();
-
-        // form.children('.form-control').val('');
+        form.find('input.form-control').val('');
       } else {
         alertError('Failed to show new encoder');
       }
