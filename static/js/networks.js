@@ -10,9 +10,27 @@ $(function() {
   addUnmuteCaptionerListners();
 });
 
-function changeEncoderState(encoderState) {
+function changeEncoderState(encoder, encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
-  // console.log(row);
+
+  if (encoderState === 0) { // connected
+    addEncoder(encoder);
+
+  } else if (encoderState === 1) { // disconnected
+    var wrapper = $('#encoder-list-wrapper');
+    if (!wrapper.is(':hidden')) {
+      $('#encoder-list-header').hide('slow');
+      wrapper.animate({ height: '0px' }, 'slow', function() {
+        row.remove();
+      });
+    }
+  } else if (encoderState === 2) { // auth failure
+
+  } else if (encoderState === 3) { // writes failing
+
+  } else { // assuming disconnected
+    // NOOP
+  }
 };
 
 function encoderStateToString(state) {
@@ -20,13 +38,13 @@ function encoderStateToString(state) {
     return "Disconnected";
   }
 
-  if (state == 0) {
+  if (state === 0) {
     return "Connected";
-  } else if (state == 1) {
+  } else if (state === 1) {
     return "Connecting";
-  } else if (state == 2) {
+  } else if (state === 2) {
     return "Authentication Failed";
-  } else if (state == 3) {
+  } else if (state === 3) {
     return "Writes Failing";
   } else {
     return "Disconnected";
@@ -34,13 +52,17 @@ function encoderStateToString(state) {
 };
 
 function captionerStateToString(state) {
-  if (state == 0) {
+  if (!Number.isInteger(state)) {
+    return "Disconnected";
+  }
+
+  if (state === 0) {
     return "Connected";
-  } else if (state == 1) {
-    return "Disconnecting";
-  } else if (state == 2) {
+  } else if (state === 1) {
+    return "Disconnected";
+  } else if (state === 2) {
     return "Muted";
-  } else if (state == 3) {
+  } else if (state === 3) {
     return "Unmuted";
   } else {
     return "Disconnected";
@@ -81,8 +103,8 @@ function addCaptioner(captioner, tableId, state) {
     '<td class="state-row">' + captionerStateToString(state) + '</td>';
 
   var muteColumn = '';
-  if (state == 2 || state == 3) {
-    if (state == 2) {
+  if (state === 2 || state === 3) {
+    if (state === 2) {
       muteColumn = makeUnmuteButton();
     } else {
       muteColumn = makeMuteButton();
@@ -140,7 +162,7 @@ function startWebSocket() {
       var captionerState = message['captionerState'];
 
       if (typeof encoderState !== 'undefined') {
-        changeEncoderState(encoderState);
+        changeEncoderState(encoderState.encoderId, encoderState.state);
       } else if (typeof captionerState !== 'undefined') {
         changeCaptionerState(captionerState.captionerId, captionerState.state);
       }      
@@ -214,15 +236,26 @@ function addEncoder(encoder) {
   return true;
 };
 
+function newEncoderIsValid() {
+  return true;
+};
+
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function(event) {
     event.preventDefault();
+
+    if (!newEncoderIsValid()) {
+      return;
+    }
+
     var form = $('#add-encoder-form');
     var data = form.serializeArray();
     data.push({
       name: 'network_id',
       value: form.attr('data-network-id')
     });
+
+    console.log(data);
 
     $.ajax({
       url: '/encoder/add',
