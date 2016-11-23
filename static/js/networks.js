@@ -64,6 +64,12 @@ function makeUnmuteButton() {
 };
 
 function addCaptioner(captioner, tableId, state) {
+  var wrapper = $('#captioner-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#captioner-list-header').show();
+    wrapper.show();
+  }
+
   var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
     'data-captioner-ip="' + captioner.IPAddr + '" ' +
     'data-captioner-num-conn="' + captioner.NumConn + '" ' +
@@ -95,30 +101,35 @@ function addCaptioner(captioner, tableId, state) {
 function changeCaptionerState(captioner, state) {
   var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(":");
 
-  if (state == 0) { // connected
+  if (state === 0) { // connected
     addCaptioner(captioner, tableId, state);
 
-  } else if (state == 1) { // disconnected
-    $(document.getElementById(tableId)).hide('slow', function(){ 
-      this.remove(); 
-    });
+  } else if (state === 1) { // disconnected
+    var wrapper = $('#captioner-list-wrapper');
+    if (!wrapper.is(':hidden')) {
+      $('#captioner-list-header').hide('slow');
+      // $('#captioner-list-header').hide('slow', function() {
+      // });
 
-  } else if (state == 2) { // muted
+      wrapper.animate({ height: '0px' }, 'slow', function() {
+        $(document.getElementById(tableId)).remove();
+      });
+    }
+  } else if (state === 2) { // muted
     var row = $(document.getElementById(tableId));
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeUnmuteButton());
     addUnmuteCaptionerListners();
 
-  } else if (state == 3) { // unmuted
+  } else if (state === 3) { // unmuted
     var row = $(document.getElementById(tableId));
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeMuteButton());
     addMuteCaptionerListners();
-
   } else {
-
+    // NOOP
   }
 };
 

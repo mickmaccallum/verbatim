@@ -118,7 +118,7 @@
             Port
           </span>
 
-          <input name="port" id="encoder-form-port" type="text" class="form-control" placeholder="23" value="23">
+          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23">
         </div>
       </div>
 
@@ -151,11 +151,19 @@
   </div>
 </div>
 
-<div class="page-header">
+{{ if eq (len $.Captioners) 0 }}
+<div class="page-header" id="captioner-list-header" hidden>
+{{ else }}
+<div class="page-header" id="captioner-list-header">
+{{ end }}
   <h3>Captioners</h3>
 </div>
 
-<div class="table-responsive panel panel-default">
+{{ if eq (len $.Captioners) 0 }}
+<div class="table-responsive panel panel-default" id="captioner-list-wrapper" hidden>
+{{ else }}
+<div class="table-responsive panel panel-default" id="captioner-list-wrapper">
+{{ end }}
   <div class="panel-heading">Captioners</div>
 
   <table class="table table-hover" id="captioner-selection-table">
