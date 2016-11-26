@@ -28,7 +28,7 @@
 </form>
 
 {{ if eq (len $.Encoders) 0 }}
-<div class="page-header" hidden>
+<div class="page-header" id="encoder-list-header" hidden>
 {{ else }}
 <div class="page-header">
 {{ end }}
@@ -68,7 +68,7 @@
           <td><span>{{ $element.Port }}</span></td>
           <td><span>{{ $element.Handle }}</span></td>
           <td><span>{{ $element.Password }}</span></td>
-          <td><span>{{ $element.Status }}</span></td>
+          <td><span>{{ encoderStatus $element.Status }}</span></td>
           <td>
             <p data-placement="top" data-toggle="tooltip" title="Delete">
               <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
@@ -89,10 +89,9 @@
 
 <div>
   <div class="row">
-    <form id="add-encoder-form" method="POST" accept-charset="UTF-8">
+    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
       {{ $.csrfField }}
-      
-      <input name="network_id" type="hidden" class="form-control" value="{{ .Network.ID }}">
+
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
@@ -119,7 +118,7 @@
             Port
           </span>
 
-          <input name="port" id="encoder-form-port" type="text" class="form-control" placeholder="23" value="23">
+          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23">
         </div>
       </div>
 
@@ -152,11 +151,19 @@
   </div>
 </div>
 
-<div class="page-header">
+{{ if eq (len $.Captioners) 0 }}
+<div class="page-header" id="captioner-list-header" hidden>
+{{ else }}
+<div class="page-header" id="captioner-list-header">
+{{ end }}
   <h3>Captioners</h3>
 </div>
 
-<div class="table-responsive panel panel-default">
+{{ if eq (len $.Captioners) 0 }}
+<div class="table-responsive panel panel-default" id="captioner-list-wrapper" hidden>
+{{ else }}
+<div class="table-responsive panel panel-default" id="captioner-list-wrapper">
+{{ end }}
   <div class="panel-heading">Captioners</div>
 
   <table class="table table-hover" id="captioner-selection-table">

@@ -10,9 +10,27 @@ $(function() {
   addUnmuteCaptionerListners();
 });
 
-function changeEncoderState(encoderState) {
+function changeEncoderState(encoder, encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
-  // console.log(row);
+
+  if (encoderState === 0) { // connected
+    addEncoder(encoder);
+
+  } else if (encoderState === 1) { // disconnected
+    var wrapper = $('#encoder-list-wrapper');
+    if (!wrapper.is(':hidden')) {
+      $('#encoder-list-header').hide('slow');
+      wrapper.animate({ height: '0px' }, 'slow', function() {
+        row.remove();
+      });
+    }
+  } else if (encoderState === 2) { // auth failure
+
+  } else if (encoderState === 3) { // writes failing
+
+  } else { // assuming disconnected
+    // NOOP
+  }
 };
 
 function encoderStateToString(state) {
@@ -20,13 +38,13 @@ function encoderStateToString(state) {
     return "Disconnected";
   }
 
-  if (state == 0) {
+  if (state === 0) {
     return "Connected";
-  } else if (state == 1) {
+  } else if (state === 1) {
     return "Connecting";
-  } else if (state == 2) {
+  } else if (state === 2) {
     return "Authentication Failed";
-  } else if (state == 3) {
+  } else if (state === 3) {
     return "Writes Failing";
   } else {
     return "Disconnected";
@@ -34,13 +52,17 @@ function encoderStateToString(state) {
 };
 
 function captionerStateToString(state) {
-  if (state == 0) {
+  if (!Number.isInteger(state)) {
+    return "Disconnected";
+  }
+
+  if (state === 0) {
     return "Connected";
-  } else if (state == 1) {
-    return "Disconnecting";
-  } else if (state == 2) {
+  } else if (state === 1) {
+    return "Disconnected";
+  } else if (state === 2) {
     return "Muted";
-  } else if (state == 3) {
+  } else if (state === 3) {
     return "Unmuted";
   } else {
     return "Disconnected";
@@ -64,6 +86,12 @@ function makeUnmuteButton() {
 };
 
 function addCaptioner(captioner, tableId, state) {
+  var wrapper = $('#captioner-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#captioner-list-header').show();
+    wrapper.show();
+  }
+
   var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
     'data-captioner-ip="' + captioner.IPAddr + '" ' +
     'data-captioner-num-conn="' + captioner.NumConn + '" ' +
@@ -75,8 +103,8 @@ function addCaptioner(captioner, tableId, state) {
     '<td class="state-row">' + captionerStateToString(state) + '</td>';
 
   var muteColumn = '';
-  if (state == 2 || state == 3) {
-    if (state == 2) {
+  if (state === 2 || state === 3) {
+    if (state === 2) {
       muteColumn = makeUnmuteButton();
     } else {
       muteColumn = makeMuteButton();
@@ -95,30 +123,35 @@ function addCaptioner(captioner, tableId, state) {
 function changeCaptionerState(captioner, state) {
   var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(":");
 
-  if (state == 0) { // connected
+  if (state === 0) { // connected
     addCaptioner(captioner, tableId, state);
 
-  } else if (state == 1) { // disconnected
-    $(document.getElementById(tableId)).hide('slow', function(){ 
-      this.remove(); 
-    });
+  } else if (state === 1) { // disconnected
+    var wrapper = $('#captioner-list-wrapper');
+    if (!wrapper.is(':hidden')) {
+      $('#captioner-list-header').hide('slow');
+      // $('#captioner-list-header').hide('slow', function() {
+      // });
 
-  } else if (state == 2) { // muted
+      wrapper.animate({ height: '0px' }, 'slow', function() {
+        $(document.getElementById(tableId)).remove();
+      });
+    }
+  } else if (state === 2) { // muted
     var row = $(document.getElementById(tableId));
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeUnmuteButton());
     addUnmuteCaptionerListners();
 
-  } else if (state == 3) { // unmuted
+  } else if (state === 3) { // unmuted
     var row = $(document.getElementById(tableId));
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeMuteButton());
     addMuteCaptionerListners();
-
   } else {
-
+    // NOOP
   }
 };
 
@@ -129,7 +162,7 @@ function startWebSocket() {
       var captionerState = message['captionerState'];
 
       if (typeof encoderState !== 'undefined') {
-        changeEncoderState(encoderState);
+        changeEncoderState(encoderState.encoderId, encoderState.state);
       } else if (typeof captionerState !== 'undefined') {
         changeCaptionerState(captionerState.captionerId, captionerState.state);
       }      
@@ -170,8 +203,13 @@ function addEncoder(encoder) {
     return false;
   }
 
-  var body = $('#encoder-selection-table > tbody');
+  var wrapper = $('#encoder-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#encoder-list-header').show();
+    wrapper.show();
+  }
 
+  var body = $('#encoder-selection-table > tbody');
   var deleteItem = '<td class="col-md-1">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
         '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
@@ -190,6 +228,7 @@ function addEncoder(encoder) {
   row.append('<td>' + encoder.Port + '</td>');
   row.append('<td>' + encoder.Handle + '</td>');
   row.append('<td>' + encoder.Password + '</td>');
+  row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
   row.append(deleteItem);
 
   body.append(row);
@@ -197,31 +236,50 @@ function addEncoder(encoder) {
   return true;
 };
 
+function newEncoderIsValid() {
+  return true;
+};
+
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function(event) {
     event.preventDefault();
+
+    if (!newEncoderIsValid()) {
+      return;
+    }
+
     var form = $('#add-encoder-form');
-    console.log(form.serialize());
+    var data = form.serializeArray();
+    data.push({
+      name: 'network_id',
+      value: form.attr('data-network-id')
+    });
+
+    console.log(data);
 
     $.ajax({
       url: '/encoder/add',
       type: 'POST',
       dataType: 'json',
-      data: form.serialize(),
+      data: $.param(data),
     }).done(function(encoder) {
       if (addEncoder(encoder)) {
         addDeleteEncoderHandler();
         configureEditing();
         recountEncoders();
+        form.find('input.form-control').val('');
       } else {
-        
+        alertError('Failed to show new encoder');
+      }
+    }).fail(function(xhr, status, error) {
+      var message = '';
+      if (xhr.responseText != null) {
+        message = xhr.responseText;
+      } else {
+        message = error;
       }
 
-      form.reset();
-    }).fail(function(error) {
-        console.log('++++++++++++++++++++++++++++++++');
-        console.log(error);
-        console.log('--------------------------------');
+      alertError(message);
     });
   });
 };

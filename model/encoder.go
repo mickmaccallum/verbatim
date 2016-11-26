@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"net/url"
+	"regexp"
 	"strconv"
+
+	"github.com/0x7fffffff/verbatim/states"
 )
 
 // EncoderID represents the id of an encoder.
@@ -19,7 +22,7 @@ type Encoder struct {
 	Handle    string
 	Password  string
 	NetworkID NetworkID
-	Status    int
+	Status    states.Encoder
 }
 
 // FormValuesToEncoder validates that an Encoder can be created
@@ -35,7 +38,16 @@ func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 
 	// Min length of IPv4, max length of IPv6.
 	if len(ipAddress) < 7 || len(ipAddress) > 45 {
-		return nil, errors.New("Invalid IP Address")
+		return nil, errors.New("Invalid IP Address length")
+	}
+
+	match, err := regexp.MatchString("", ipAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	if !match {
+		return nil, errors.New("Invalid IP address")
 	}
 
 	// Ports [1, 65535]
