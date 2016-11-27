@@ -304,11 +304,16 @@ function validateNewEncoderForm() {
 function displayNewEncoderErrors(errors) {
   var container = $('#encoder-form-error-container');
   container.text(errors.join(',\t\t'));
-  container.show('fast');
+  if (container.is(':hidden')) {
+    container.show('fast');
+  }
 };
 
 function hideNewEncoderErrors() {
- $('#encoder-form-error-container').hide('fast'); 
+  var container = $('#encoder-form-error-container');
+  if (!container.is(':hidden')) {
+    container.hide('fast');
+  }
 };
 
 function addAddEncoderHandler() {
