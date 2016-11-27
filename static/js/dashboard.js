@@ -72,8 +72,80 @@ function deleteNetworkListListeners() {
   });
 }
 
+function validateNewNetworkForm() {
+  var errors = [];
+  var name = $('#network-form-name').val();
+  var port = $('#network-form-port').val();
+  var timeout = $('#network-form-timeout').val();
+
+
+  // validate name field
+  if (name == null || name.length === 0) {
+    errors.push('Missing network name');
+  } else {
+    if (name.length > 255) {
+      errors.push('Network name too long. Must contain less than 255 characters');
+    }
+  }
+
+  // validate port field
+  if (port == null || port.length === 0) {
+    errors.push('Missing port');
+  } else {
+    var intPort = parseInt(port, 10);
+    if (isNaN(intPort)) {
+      errors.push('Port is not a number');
+    } else {
+      if (intPort < 1 || intPort > 65535) {
+        errors.push('Invalid Port. Must be in range [1, 65535].');
+      }
+    }
+  }
+
+  // validate timeout field
+  if (timeout == null || timeout.length === 0) {
+    errors.push('Missing timeout');
+  } else {
+    var intTimeout = parseInt(timeout, 10);
+    if (isNaN(intTimeout)) {
+      errors.push('Timeout is not a number');
+    } else {
+      if (intTimeout < 10) {
+        errors.push('Timeout too short. Must be at least 10 seconds');
+      } else if (intTimeout > 1800) {
+        errors.push('Timeout too long. Must be less than 1800 seconds (30 minutes).')
+      }
+    }
+  }
+
+  return errors;
+};
+
+function displayNewNetworkErrors(errors) {
+  var container = $('#network-form-error-container');
+  container.text(errors.join(',\t\t'));
+  if (container.is(':hidden')) {
+    container.show('fast');
+  }
+};
+
+function hideNewNetworkErrors() {
+  var container = $('#network-form-error-container');
+  if (!container.is(':hidden')) {
+    container.hide('fast');
+  }
+};
+
 function addNetworkCreationListener() {
   $('#submit-network').click(function(event) {
+    var networkErrors = validateNewNetworkForm();
+    if (networkErrors.length > 0) {
+      displayNewNetworkErrors(networkErrors);
+      return;
+    }
+
+    hideNewNetworkErrors();
+
     $.ajax({
       url: '/network/add',
       type: 'POST',
