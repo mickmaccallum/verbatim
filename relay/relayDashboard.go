@@ -40,6 +40,18 @@ func (dl dashboardListener) GetListeningNetworks() map[model.NetworkID]bool {
 	return microphone.GetListeningNetworks()
 }
 
+func (dl dashboardListener) TryChangeNetworkPort(id model.NetworkID, port int) error {
+	return microphone.AttemptPortChange(id, port)
+}
+
+func (dl dashboardListener) UpdateNetwork(network model.Network) {
+
+}
+
+func (dl dashboardListener) ChangeNetworkTimeout(id model.NetworkID, seconds int) {
+	microphone.ChangeTimeout(id, seconds)
+}
+
 // Add encoder to it's network
 func (dl dashboardListener) AddEncoder(enc model.Encoder) {
 	megaphone.NotifyEncoderAdded(enc)
