@@ -12,8 +12,8 @@ import (
 
 // The connection information for a given captioner.
 type CaptionerStatus struct {
-	id    model.CaptionerID
-	state states.Captioner
+	ID    model.CaptionerID
+	State states.Captioner
 }
 
 // These are the events that the server using this will be notified of

@@ -174,28 +174,27 @@
       </tr>
     </thead>
     <tbody>
-
       <form id="toggle-captioner-mute-form" method="POST" accept-charset="UTF-8">
         {{ $.csrfField }}
 
         {{range $index, $element := .Captioners }}
           <tr class="captioner-row" 
-            id="{{ $element.TableID }}"
-            data-captioner-ip="{{ $element.IPAddr }}"
-            data-captioner-num-conn="{{ $element.NumConn }}"
-            data-captioner-network-id="{{ $element.NetworkID }}">
+            id="{{ $element.ID.TableID }}"
+            data-captioner-ip="{{ $element.ID.IPAddr }}"
+            data-captioner-num-conn="{{ $element.ID.NumConn }}"
+            data-captioner-network-id="{{ $element.ID.NetworkID }}">
 
             <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>{{ inc $index }}</th>
-            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.IPAddr }}</td>
-            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.CaptionerID.NumConn }}</td>
-            <td class="col-xl-2 col-lg-2 col-md-3 state-row">{{ captionerStatus $element.Captioner }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.ID.IPAddr }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.ID.NumConn }}</td>
+            <td class="col-xl-2 col-lg-2 col-md-3 state-row">{{ captionerStatus $element.State }}</td>
 
 
 <!-- connected = 0, disconnected = 1, muted = 2, unmuted = 3 -->
 
-            {{ if or (eq $element.Captioner 2) (eq $element.Captioner 3) }} 
+            {{ if or (eq $element.State 2) (eq $element.State 3) }} 
               <td class="col-xl-1 col-lg-1 col-md-1 mute-row">
-                {{ if eq $element.Captioner 2 }}
+                {{ if eq $element.State 2 }}
                   <p data-placement="top" data-toggle="tooltip" title="Unmute">
                     <button class="btn btn-danger btn-xs unmute-captioner-button">
                       <span class="glyphicon glyphicon-volume-up"></span>
