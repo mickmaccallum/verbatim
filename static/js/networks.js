@@ -86,42 +86,44 @@ function makeUnmuteButton() {
 };
 
 function addCaptioner(captioner, tableId, state) {
-  var wrapper = $('#captioner-list-wrapper');
-  if (wrapper.is(':hidden')) {
-    $('#captioner-list-header').show();
-    wrapper.show();
-  }
-
   var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
     'data-captioner-ip="' + captioner.IPAddr + '" ' +
     'data-captioner-num-conn="' + captioner.NumConn + '" ' +
     'data-captioner-network-id="' + captioner.NetworkID + '">';
 
-  var headers = '<th class="row-number" scope=row>0</th>' + 
-    '<td>' + captioner.IPAddr + '</td>' + 
-    '<td>' + captioner.NumConn + '</td>' + 
-    '<td class="state-row">' + captionerStateToString(state) + '</td>';
-
-  var muteColumn = '';
-  if (state === 2 || state === 3) {
-    if (state === 2) {
-      muteColumn = makeUnmuteButton();
-    } else {
-      muteColumn = makeMuteButton();
-    }
-  } else {
-    // TODO: handle this.
-  }
-
+  var headers = '<th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>0</th>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.IPAddr + '</td>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.NumConn + '</td>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3 state-row">' + captionerStateToString(state) + '</td>';
+  // state will always be 0 here. Default to disconnectable/mutable
+ 
+  var muteColumn = '<td class="col-xl-1 col-lg-1 col-md-1 mute-row">' + makeMuteButton() + '</td>';
+  var disconnect = '<td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">' +
+                     '<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
+                       '<button class="btn btn-danger btn-xs disconnect-captioner-button">' +
+                         '<span class="glyphicon glyphicon-ban-circle"></span>' +
+                       '</button>' +
+                     '</p>' +
+                   '</td>';
+ 
   var endRow = '</tr>';
-
-  var row = $(openRow + headers + muteColumn + endRow);
+  var row = $(openRow + headers + muteColumn + disconnect + endRow);
   $('#captioner-selection-table > tbody').prepend(row);
   recountCaptioners();
+
+  var wrapper = $('#captioner-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#captioner-list-header').show('fast');
+    wrapper.show('fast');
+  }
 };
 
 function changeCaptionerState(captioner, state) {
-  var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(':');
+  var tableId = [
+    captioner.IPAddr, 
+    captioner.NumConn, 
+    captioner.NetworkID
+  ].join(':');
 
   if (state === 0) { // connected
     addCaptioner(captioner, tableId, state);
