@@ -403,7 +403,7 @@ function addMuteCaptionerListners() {
       url: '/captioner/mute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(falertAjaxFailure);
+    }).fail(alertAjaxFailure);
   });
 };
 
