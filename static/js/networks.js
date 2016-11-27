@@ -269,7 +269,7 @@ function validateNewEncoderForm() {
 
   // validate port field
   if (port == null || port.length === 0) {
-    port = 23;
+    $('#encoder-form-port').val('23'); // hack
   } else {
     var intPort = parseInt(port, 10);
     if (isNaN(port)) {
@@ -318,8 +318,6 @@ function addAddEncoderHandler() {
 
     var encoderErrors = validateNewEncoderForm();
     if (encoderErrors.length > 0) {
-      console.log('Add encoder validation errors:');
-      console.log(encoderErrors);
       displayNewEncoderErrors(encoderErrors);
       return;
     }
