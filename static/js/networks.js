@@ -35,37 +35,37 @@ function changeEncoderState(encoder, encoderState) {
 
 function encoderStateToString(state) {
   if (!Number.isInteger(state)) {
-    return "Disconnected";
+    return 'Disconnected';
   }
 
   if (state === 0) {
-    return "Connected";
+    return 'Connected';
   } else if (state === 1) {
-    return "Connecting";
+    return 'Connecting';
   } else if (state === 2) {
-    return "Authentication Failed";
+    return 'Authentication Failed';
   } else if (state === 3) {
-    return "Writes Failing";
+    return 'Writes Failing';
   } else {
-    return "Disconnected";
+    return 'Disconnected';
   }
 };
 
 function captionerStateToString(state) {
   if (!Number.isInteger(state)) {
-    return "Disconnected";
+    return 'Disconnected';
   }
 
   if (state === 0) {
-    return "Connected";
+    return 'Connected';
   } else if (state === 1) {
-    return "Disconnected";
+    return 'Disconnected';
   } else if (state === 2) {
-    return "Muted";
+    return 'Muted';
   } else if (state === 3) {
-    return "Unmuted";
+    return 'Unmuted';
   } else {
-    return "Disconnected";
+    return 'Disconnected';
   }
 };
 
@@ -121,7 +121,7 @@ function addCaptioner(captioner, tableId, state) {
 };
 
 function changeCaptionerState(captioner, state) {
-  var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(":");
+  var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(':');
 
   if (state === 0) { // connected
     addCaptioner(captioner, tableId, state);
@@ -169,7 +169,7 @@ function startWebSocket() {
     };
 
     webSocket.onerror = function(event) {
-      console.log("ERROR: " + event.data);
+      console.log('ERROR: ' + event.data);
     };
   }).catch(function(event) {
     console.log(event);
@@ -177,14 +177,14 @@ function startWebSocket() {
 };
 
 function autoStopWebSocket() {
-  $(window).on("beforeunload", function() {
+  $(window).on('beforeunload', function() {
     socketRocket.stop();
   });
 };
 
 function recountCaptioners() {
   $('#captioner-selection-table > tbody').children('tr').each(function(index, el) {
-    $(el).children('.row-number').text((index + 1) + "");
+    $(el).children('.row-number').text((index + 1) + '');
   });
 }
 
@@ -194,7 +194,7 @@ function recountEncoders() {
 
   $('#encoder-count').text(rows.length);
   rows.each(function(index, el) {
-    $(el).children('.row-number').text((index + 1) + "");
+    $(el).children('.row-number').text((index + 1) + '');
   });
 };
 
@@ -292,9 +292,9 @@ function addEditEncoderHandler() {
       dataType: 'json',
       // data: {param1: 'value1'},
     }).done(function() {
-      console.log("success");
+      console.log('success');
     }).fail(function() {
-      console.log("error");
+      console.log('error');
     });
   });
 };
@@ -304,7 +304,7 @@ function addDeleteEncoderHandler() {
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
 
-    if (!confirm("Are you sure you want to delete this encoder?")) {
+    if (!confirm('Are you sure you want to delete this encoder?')) {
       return;
     }
 
@@ -325,9 +325,9 @@ function addDeleteEncoderHandler() {
 function getCaptionerData(button) {
   var row = $(button).closest('tr');
   var data = $('#toggle-captioner-mute-form').serializeArray();
-  data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
-  data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
-  data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
+  data.push({name: 'ipAddress', value: row.attr('data-captioner-ip')});
+  data.push({name: 'numConn', value: row.attr('data-captioner-num-conn')});
+  data.push({name: 'networkId', value: row.attr('data-captioner-network-id')});
   return data;
 };
 
