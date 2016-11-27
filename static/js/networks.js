@@ -109,7 +109,10 @@ function addCaptioner(captioner, tableId, state) {
   var endRow = '</tr>';
   var row = $(openRow + headers + muteColumn + disconnect + endRow);
   $('#captioner-selection-table > tbody').prepend(row);
+  
   recountCaptioners();
+  addDisconnectCaptionerListeners();
+  addMuteCaptionerListners();
 
   var wrapper = $('#captioner-list-wrapper');
   if (wrapper.is(':hidden')) {
