@@ -87,7 +87,7 @@
   <h3>Add an Encoder</h3>
 </div>
 
-<div>
+<div class="panel">
   <div class="row">
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
       {{ $.csrfField }}
@@ -118,7 +118,7 @@
             Port
           </span>
 
-          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23">
+          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23" placeholder="23">
         </div>
       </div>
 
@@ -140,30 +140,26 @@
 
           <input name="password" id="encoder-form-password" type="text" class="form-control" placeholder="********">
 
-
           <span class="input-group-btn">
             <button id="submit-encoder" class="btn btn-default" type="button">Add Encoder</button>
           </span>
         </div>
       </div>
-
     </form>
+  </div>
+
+  <div class="alert alert-danger row buffered-row" role="alert" id="encoder-form-error-container" hidden>
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Errors:</span>
   </div>
 </div>
 
-{{ if eq (len $.Captioners) 0 }}
-<div class="page-header" id="captioner-list-header" hidden>
-{{ else }}
+
 <div class="page-header" id="captioner-list-header">
-{{ end }}
   <h3>Captioners</h3>
 </div>
 
-{{ if eq (len $.Captioners) 0 }}
-<div class="table-responsive panel panel-default" id="captioner-list-wrapper" hidden>
-{{ else }}
 <div class="table-responsive panel panel-default" id="captioner-list-wrapper">
-{{ end }}
   <div class="panel-heading">Captioners</div>
 
   <table class="table table-hover" id="captioner-selection-table">

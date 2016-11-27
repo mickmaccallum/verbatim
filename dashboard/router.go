@@ -21,6 +21,8 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// creates the base template into which all subtemplates for individual
+// pages will be rendered.
 func templateOnBase(path string) *template.Template {
 	funcMap := template.FuncMap{
 		"inc": func(i int) int {
@@ -97,6 +99,8 @@ func templateOnBase(path string) *template.Template {
 	))
 }
 
+// creates the base params that will be passed to all templates when
+// they are rendered.
 func templateParamsOnBase(new map[string]interface{}, request *http.Request) map[string]interface{} {
 	session, err := store.Get(request, "session")
 	var showAccount bool
@@ -119,6 +123,7 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 	return new
 }
 
+// gets the admin who owns the session associated with a given request.
 func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
 	someID, ok := session.Values["admin"]
 	if !ok {
@@ -133,6 +138,8 @@ func fetchAdminForSession(session *sessions.Session) (*model.Admin, error) {
 	return persist.GetAdminForID(id)
 }
 
+// determines whether or not the session attached to a given request
+// is valid.
 func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 	session, err := store.Get(request, "session")
 	if err != nil {
@@ -144,10 +151,14 @@ func checkSessionValidity(request *http.Request) (*sessions.Session, bool) {
 	return session, !session.IsNew
 }
 
+// experimental
 func renewSession(session *sessions.Session) {
 	session.Options.MaxAge = 86400
 }
 
+// forcibly redirects the request to the login screen. Use when the user's
+// session is determined to be invalid. Redirects to the registration page
+// instead of the login page if it is determined that no admins exists yet.
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	admins, err := persist.GetAdmins()
 	if err != nil {
@@ -172,6 +183,7 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// Handles all routes related to the account page.
 func handleAccountsPage(router *mux.Router) {
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
 		session, sessionOk := checkSessionValidity(request)
@@ -348,6 +360,7 @@ func handleAccountsPage(router *mux.Router) {
 	}).Methods("POST")
 }
 
+// Handles all routes related to the login page.
 func handleLogin(router *mux.Router) {
 	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
 		data := map[string]interface{}{}
@@ -466,6 +479,7 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 }
 
+// Handles all routes related to the captioners page.
 func handleCaptionersPage(router *mux.Router) {
 	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
@@ -523,17 +537,18 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		_, err := model.FormValuesToCaptionerID(request.Form)
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		// relay.DisconnectCaptioner(*captioner)
+		relay.DisconnectCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 }
 
+// Handles all routes related to the networks page.
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
 	router.HandleFunc("/encoder/add", func(writer http.ResponseWriter, request *http.Request) {
@@ -690,6 +705,7 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("GET")
 }
 
+// Handles all routes related to the dashboard page.
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
@@ -827,6 +843,7 @@ func handleDashboardPage(router *mux.Router) {
 	}).Methods("POST")
 }
 
+// renders a customer 404 page.
 func generalNotFound(writer http.ResponseWriter, request *http.Request) {
 	data := map[string]interface{}{
 		"Location": request.URL.RequestURI(),
@@ -838,6 +855,7 @@ func generalNotFound(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// adds all the routes to the router.
 func addRoutes() *mux.Router {
 	router := mux.NewRouter()
 
@@ -859,6 +877,7 @@ func addRoutes() *mux.Router {
 	return router
 }
 
+// used to server static files, like CSS/JavaScript/fonts/etc.
 func serveStaticFolder(folder string, router *mux.Router) {
 	static := "static" + folder
 	fileServer := http.FileServer(http.Dir(static))
@@ -878,6 +897,7 @@ func isMethodNotAllowed(method string, writer http.ResponseWriter, request *http
 	return method != request.Method
 }
 
+// parses the given identifier out of the request path.
 func identifierFromRequest(identifier string, request *http.Request) *int {
 	vars := mux.Vars(request)
 	idString := vars[identifier]

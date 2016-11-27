@@ -56,7 +56,7 @@ type RelayListener interface {
 	UnmuteCaptioner(id model.CaptionerID)
 
 	// DisconnectCaptioner forcibly disconnects the specified captioner
-	// DisconnectCaptioner(id model.CaptionerID)
+	DisconnectCaptioner(id model.CaptionerID)
 
 	// Remove a captioner, forcibly disconnecting them
 	RemoveCaptioner(id model.CaptionerID)
@@ -70,6 +70,12 @@ type RelayListener interface {
 
 	// GetListeningNetworks get all of the currently connected and listening networks
 	GetListeningNetworks() map[model.NetworkID]bool
+
+	// TryChangeNetworkPort attempts to save a change of port, returning an error if something goes wrong.
+	TryChangeNetworkPort(id model.NetworkID, port int) error
+
+	// Change the timeout for this network.
+	ChangeNetworkTimeout(id model.NetworkID, seconds int)
 }
 
 var relay RelayListener

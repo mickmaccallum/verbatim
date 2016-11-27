@@ -35,37 +35,37 @@ function changeEncoderState(encoder, encoderState) {
 
 function encoderStateToString(state) {
   if (!Number.isInteger(state)) {
-    return "Disconnected";
+    return 'Disconnected';
   }
 
   if (state === 0) {
-    return "Connected";
+    return 'Connected';
   } else if (state === 1) {
-    return "Connecting";
+    return 'Connecting';
   } else if (state === 2) {
-    return "Authentication Failed";
+    return 'Authentication Failed';
   } else if (state === 3) {
-    return "Writes Failing";
+    return 'Writes Failing';
   } else {
-    return "Disconnected";
+    return 'Disconnected';
   }
 };
 
 function captionerStateToString(state) {
   if (!Number.isInteger(state)) {
-    return "Disconnected";
+    return 'Disconnected';
   }
 
   if (state === 0) {
-    return "Connected";
+    return 'Connected';
   } else if (state === 1) {
-    return "Disconnected";
+    return 'Disconnected';
   } else if (state === 2) {
-    return "Muted";
+    return 'Muted';
   } else if (state === 3) {
-    return "Unmuted";
+    return 'Unmuted';
   } else {
-    return "Disconnected";
+    return 'Disconnected';
   }
 };
 
@@ -86,57 +86,56 @@ function makeUnmuteButton() {
 };
 
 function addCaptioner(captioner, tableId, state) {
-  var wrapper = $('#captioner-list-wrapper');
-  if (wrapper.is(':hidden')) {
-    $('#captioner-list-header').show();
-    wrapper.show();
-  }
-
   var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
     'data-captioner-ip="' + captioner.IPAddr + '" ' +
     'data-captioner-num-conn="' + captioner.NumConn + '" ' +
     'data-captioner-network-id="' + captioner.NetworkID + '">';
 
-  var headers = '<th class="row-number" scope=row>0</th>' + 
-    '<td>' + captioner.IPAddr + '</td>' + 
-    '<td>' + captioner.NumConn + '</td>' + 
-    '<td class="state-row">' + captionerStateToString(state) + '</td>';
-
-  var muteColumn = '';
-  if (state === 2 || state === 3) {
-    if (state === 2) {
-      muteColumn = makeUnmuteButton();
-    } else {
-      muteColumn = makeMuteButton();
-    }
-  } else {
-    // TODO: handle this.
-  }
-
+  var headers = '<th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>0</th>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.IPAddr + '</td>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.NumConn + '</td>' + 
+    '<td class="col-xl-2 col-lg-2 col-md-3 state-row">' + captionerStateToString(state) + '</td>';
+  // state will always be 0 here. Default to disconnectable/mutable
+ 
+  var muteColumn = '<td class="col-xl-1 col-lg-1 col-md-1 mute-row">' + makeMuteButton() + '</td>';
+  var disconnect = '<td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">' +
+                     '<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
+                       '<button class="btn btn-danger btn-xs disconnect-captioner-button">' +
+                         '<span class="glyphicon glyphicon-ban-circle"></span>' +
+                       '</button>' +
+                     '</p>' +
+                   '</td>';
+ 
   var endRow = '</tr>';
-
-  var row = $(openRow + headers + muteColumn + endRow);
+  var row = $(openRow + headers + muteColumn + disconnect + endRow);
   $('#captioner-selection-table > tbody').prepend(row);
+  
   recountCaptioners();
+  addDisconnectCaptionerListeners();
+  addMuteCaptionerListners();
+
+  var wrapper = $('#captioner-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#captioner-list-header').show('fast');
+    wrapper.show('fast');
+  }
 };
 
 function changeCaptionerState(captioner, state) {
-  var tableId = [captioner.IPAddr, captioner.NumConn, captioner.NetworkID].join(":");
+  var tableId = [
+    captioner.IPAddr, 
+    captioner.NumConn, 
+    captioner.NetworkID
+  ].join(':');
 
   if (state === 0) { // connected
     addCaptioner(captioner, tableId, state);
 
   } else if (state === 1) { // disconnected
-    var wrapper = $('#captioner-list-wrapper');
-    if (!wrapper.is(':hidden')) {
-      $('#captioner-list-header').hide('slow');
-      // $('#captioner-list-header').hide('slow', function() {
-      // });
-
-      wrapper.animate({ height: '0px' }, 'slow', function() {
-        $(document.getElementById(tableId)).remove();
-      });
-    }
+    var row = $(document.getElementById(tableId));
+    row.hide('slow', function() {
+      this.remove();
+    });
   } else if (state === 2) { // muted
     var row = $(document.getElementById(tableId));
 
@@ -169,7 +168,7 @@ function startWebSocket() {
     };
 
     webSocket.onerror = function(event) {
-      console.log("ERROR: " + event.data);
+      console.log('ERROR: ' + event.data);
     };
   }).catch(function(event) {
     console.log(event);
@@ -177,14 +176,14 @@ function startWebSocket() {
 };
 
 function autoStopWebSocket() {
-  $(window).on("beforeunload", function() {
+  $(window).on('beforeunload', function() {
     socketRocket.stop();
   });
 };
 
 function recountCaptioners() {
   $('#captioner-selection-table > tbody').children('tr').each(function(index, el) {
-    $(el).children('.row-number').text((index + 1) + "");
+    $(el).children('.row-number').text((index + 1) + '');
   });
 }
 
@@ -194,7 +193,7 @@ function recountEncoders() {
 
   $('#encoder-count').text(rows.length);
   rows.each(function(index, el) {
-    $(el).children('.row-number').text((index + 1) + "");
+    $(el).children('.row-number').text((index + 1) + '');
   });
 };
 
@@ -236,17 +235,93 @@ function addEncoder(encoder) {
   return true;
 };
 
-function newEncoderIsValid() {
-  return true;
+function validateNewEncoderForm() {
+  var errors = [];
+  var ip = $('#encoder-form-ip').val();
+  var name = $('#encoder-form-name').val();
+  var port = $('#encoder-form-port').val();
+  var handle = $('#encoder-form-handle').val();
+  var password = $('#encoder-form-password').val();
+
+  // validate IP address field
+  if (ip == null || ip.length === 0) {
+    errors.push('IP address missing');
+  } else {
+    if (ip.length < 3) {
+      errors.push('IP address too short to be valid');
+    } else if (ip.length > 45) {
+      errors.push('IP address too long to be valid');
+    } else {
+      var ipv4Pattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      var ipv6Pattern = /(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/;
+
+      if (!ipv4Pattern.test(ip) && !ipv6Pattern.test(ip)) {
+        errors.push('IP Address is Invalid');
+      }      
+    }
+  }
+
+  // validate name field
+  if ((name != null || name.length !== 0) && name.length > 255) {
+    errors.push('Name is too Long');
+  }
+
+  // validate port field
+  if (port == null || port.length === 0) {
+    $('#encoder-form-port').val('23'); // hack
+  } else {
+    var intPort = parseInt(port, 10);
+    if (isNaN(port)) {
+      errors.push('Port is not a Number');
+    } else {
+      if (port < 1 || port > 65535) {
+        errors.push('Invalid Port. Must be in range [1, 65535].');
+      }
+    }
+  }
+
+  // validate handle field
+  if (handle == null || handle.length === 0) {
+    errors.push('Missing handle');
+  } else {
+    if (handle.length > 255) {
+      errors.push('Handle too long. Must contain less than 255 characters');
+    }
+  }
+
+  // validate password field
+  if (password == null || password.length === 0) {
+    errors.push('Missing password');
+  } else {
+    if (password.length > 255) {
+      errors.push('Password too long. Must contain less than 255 characters');
+    }
+  }
+
+  return errors;
+};
+
+function displayNewEncoderErrors(errors) {
+  var container = $('#encoder-form-error-container');
+  container.text(errors.join(',\t\t'));
+  container.show('fast');
+};
+
+function hideNewEncoderErrors() {
+ $('#encoder-form-error-container').hide('fast'); 
 };
 
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function(event) {
     event.preventDefault();
 
-    if (!newEncoderIsValid()) {
+    var encoderErrors = validateNewEncoderForm();
+    if (encoderErrors.length > 0) {
+      displayNewEncoderErrors(encoderErrors);
       return;
     }
+
+    hideNewEncoderErrors();
 
     var form = $('#add-encoder-form');
     var data = form.serializeArray();
@@ -254,8 +329,6 @@ function addAddEncoderHandler() {
       name: 'network_id',
       value: form.attr('data-network-id')
     });
-
-    console.log(data);
 
     $.ajax({
       url: '/encoder/add',
@@ -271,16 +344,7 @@ function addAddEncoderHandler() {
       } else {
         alertError('Failed to show new encoder');
       }
-    }).fail(function(xhr, status, error) {
-      var message = '';
-      if (xhr.responseText != null) {
-        message = xhr.responseText;
-      } else {
-        message = error;
-      }
-
-      alertError(message);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -292,10 +356,8 @@ function addEditEncoderHandler() {
       dataType: 'json',
       // data: {param1: 'value1'},
     }).done(function() {
-      console.log("success");
-    }).fail(function() {
-      console.log("error");
-    });
+      console.log('success');
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -304,7 +366,7 @@ function addDeleteEncoderHandler() {
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
 
-    if (!confirm("Are you sure you want to delete this encoder?")) {
+    if (!confirm('Are you sure you want to delete this encoder?')) {
       return;
     }
 
@@ -315,19 +377,16 @@ function addDeleteEncoderHandler() {
     }).done(function() {
       row.remove();
       recountEncoders();
-    }).fail(function(error) {
-      console.log('error');
-      console.log(error);
-    });    
+    }).fail(alertAjaxFailure);    
   });
 };
 
 function getCaptionerData(button) {
   var row = $(button).closest('tr');
   var data = $('#toggle-captioner-mute-form').serializeArray();
-  data.push({name: "ipAddress", value: row.attr('data-captioner-ip')});
-  data.push({name: "numConn", value: row.attr('data-captioner-num-conn')});
-  data.push({name: "networkId", value: row.attr('data-captioner-network-id')});
+  data.push({name: 'ipAddress', value: row.attr('data-captioner-ip')});
+  data.push({name: 'numConn', value: row.attr('data-captioner-num-conn')});
+  data.push({name: 'networkId', value: row.attr('data-captioner-network-id')});
   return data;
 };
 
@@ -339,10 +398,7 @@ function addMuteCaptionerListners() {
       url: '/captioner/mute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(falertAjaxFailure);
   });
 };
 
@@ -354,10 +410,7 @@ function addUnmuteCaptionerListners() {
       url: '/captioner/unmute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -369,10 +422,7 @@ function addDisconnectCaptionerListeners() {
       url: '/captioner/disconnect',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });  
 };
 
@@ -413,9 +463,7 @@ function configureEditing() {
           data: $.param(data),
         }).done(function() {
           d.resolve(this);
-        }).fail(function() {
-          d.reject(this);
-        });
+        }).fail(alertAjaxFailure);
 
         return d.promise();
       }
@@ -425,4 +473,15 @@ function configureEditing() {
   $('#encoder-selection-table > tbody td').editable({
     mode: 'inline'
   });
+};
+
+function alertAjaxFailure(xhr, status, error) {
+  var message = '';
+  if (xhr.responseText != null) {
+    message = xhr.responseText;
+  } else {
+    message = error;
+  }
+
+  alertError(message);
 };
