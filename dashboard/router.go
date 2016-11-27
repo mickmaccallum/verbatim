@@ -537,13 +537,13 @@ func handleCaptionersPage(router *mux.Router) {
 			return
 		}
 
-		_, err := model.FormValuesToCaptionerID(request.Form)
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
 		}
 
-		// relay.DisconnectCaptioner(*captioner)
+		relay.DisconnectCaptioner(*captioner)
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 }

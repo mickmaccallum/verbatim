@@ -70,3 +70,8 @@ func (dl dashboardListener) UnmuteCaptioner(id model.CaptionerID) {
 func (dl dashboardListener) RemoveCaptioner(id model.CaptionerID) {
 	microphone.RemoveCaptioner(id)
 }
+
+// DisconnectCaptioner forcibly disconnects the specified captioner
+func (dl dashboardListener) DisconnectCaptioner(id model.CaptionerID) {
+
+}
