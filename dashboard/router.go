@@ -479,75 +479,6 @@ func handleLogin(router *mux.Router) {
 	}).Methods("POST")
 }
 
-// Handles all routes related to the captioners page.
-func handleCaptionersPage(router *mux.Router) {
-	router.HandleFunc("/captioners", func(writer http.ResponseWriter, request *http.Request) {
-		_, sessionOk := checkSessionValidity(request)
-		if !sessionOk {
-			redirectLogin(writer, request)
-			return
-		}
-
-		data := map[string]interface{}{}
-
-		template := templateOnBase("templates/_captioners.html")
-		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
-			serverError(writer, err)
-		}
-	}).Methods("GET")
-
-	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
-		_, sessionOk := checkSessionValidity(request)
-		if !sessionOk {
-			writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		captioner, err := model.FormValuesToCaptionerID(request.Form)
-		if err != nil {
-			clientError(writer, err)
-			return
-		}
-
-		relay.MuteCaptioner(*captioner)
-		writer.WriteHeader(http.StatusOK)
-	}).Methods("POST")
-
-	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
-		_, sessionOk := checkSessionValidity(request)
-		if !sessionOk {
-			writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		captioner, err := model.FormValuesToCaptionerID(request.Form)
-		if err != nil {
-			clientError(writer, err)
-			return
-		}
-
-		relay.UnmuteCaptioner(*captioner)
-		writer.WriteHeader(http.StatusOK)
-	}).Methods("POST")
-
-	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
-		_, sessionOk := checkSessionValidity(request)
-		if !sessionOk {
-			writer.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		captioner, err := model.FormValuesToCaptionerID(request.Form)
-		if err != nil {
-			clientError(writer, err)
-			return
-		}
-
-		relay.DisconnectCaptioner(*captioner)
-		writer.WriteHeader(http.StatusOK)
-	}).Methods("POST")
-}
-
 // Handles all routes related to the networks page.
 func handleNetworksPage(router *mux.Router) {
 	// Add Encoder
@@ -703,6 +634,57 @@ func handleNetworksPage(router *mux.Router) {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
+
+	router.HandleFunc("/captioners/mute", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.MuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.UnmuteCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		captioner, err := model.FormValuesToCaptionerID(request.Form)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.DisconnectCaptioner(*captioner)
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
 }
 
 // Handles all routes related to the dashboard page.
@@ -803,10 +785,21 @@ func handleDashboardPage(router *mux.Router) {
 		network.ID = hitNetwork.ID
 
 		err = persist.UpdateNetwork(*network)
-
 		if err != nil {
 			serverError(writer, err)
 			return
+		}
+
+		if network.Timeout != hitNetwork.Timeout {
+			relay.ChangeNetworkTimeout(network.ID, network.Timeout)
+		}
+
+		if network.ListeningPort != hitNetwork.ListeningPort {
+			err = relay.TryChangeNetworkPort(network.ID, network.ListeningPort)
+			if err != nil {
+				serverError(writer, err)
+				return
+			}
 		}
 
 		writer.WriteHeader(http.StatusOK)
@@ -862,7 +855,6 @@ func addRoutes() *mux.Router {
 	handleLogin(router)
 	handleDashboardPage(router)
 	handleNetworksPage(router)
-	handleCaptionersPage(router)
 	handleAccountsPage(router)
 
 	serveStaticFolder("/css/", router)

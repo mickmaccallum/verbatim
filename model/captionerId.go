@@ -16,6 +16,7 @@ type CaptionerID struct {
 	NetworkID NetworkID
 }
 
+// TableID string representation of CaptionerID, colon delimited fields.
 func (c CaptionerID) TableID() string {
 	return fmt.Sprint(c.IPAddr, ":", c.NumConn, ":", c.NetworkID)
 }
@@ -32,9 +33,14 @@ func FormValuesToCaptionerID(values url.Values) (*CaptionerID, error) {
 		values.Get("numConn"),
 		values.Get("networkId")
 
-	// Min length of IPv4, max length of IPv6.
-	if len(ipAddress) < 7 || len(ipAddress) > 45 {
-		return nil, errors.New("Invalid IP Address")
+	// validate IPv4 & IPv6 addresses
+	valid, err := isValidIp(ipAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	if !valid {
+		return nil, errors.New("Invalid IP address")
 	}
 
 	// sizeof(int); derp
