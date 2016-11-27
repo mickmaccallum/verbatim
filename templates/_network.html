@@ -140,21 +140,20 @@
 
           <input name="password" id="encoder-form-password" type="text" class="form-control" placeholder="********">
 
-
           <span class="input-group-btn">
             <button id="submit-encoder" class="btn btn-default" type="button">Add Encoder</button>
           </span>
         </div>
       </div>
-
     </form>
   </div>
 
-  <div class="alert alert-danger row" role="alert" id="encoder-form-error-container" hidden>
+  <div class="alert alert-danger row buffered-row" role="alert" id="encoder-form-error-container" hidden>
     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
     <span class="sr-only">Errors:</span>
   </div>
 </div>
+
 
 {{ if eq (len $.Captioners) 0 }}
 <div class="page-header" id="captioner-list-header" hidden>
