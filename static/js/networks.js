@@ -268,13 +268,13 @@ function validateNewEncoderForm() {
 
   // validate port field
   if (port == null || port.length === 0) {
-    $('#encoder-form-port').val('23'); // hack
+    errors.push('Missing port');
   } else {
     var intPort = parseInt(port, 10);
-    if (isNaN(port)) {
+    if (isNaN(intPort)) {
       errors.push('Port is not a Number');
     } else {
-      if (port < 1 || port > 65535) {
+      if (intPort < 1 || intPort > 65535) {
         errors.push('Invalid Port. Must be in range [1, 65535].');
       }
     }
@@ -304,11 +304,16 @@ function validateNewEncoderForm() {
 function displayNewEncoderErrors(errors) {
   var container = $('#encoder-form-error-container');
   container.text(errors.join(',\t\t'));
-  container.show('fast');
+  if (container.is(':hidden')) {
+    container.show('fast');
+  }
 };
 
 function hideNewEncoderErrors() {
- $('#encoder-form-error-container').hide('fast'); 
+  var container = $('#encoder-form-error-container');
+  if (!container.is(':hidden')) {
+    container.hide('fast');
+  }
 };
 
 function addAddEncoderHandler() {
@@ -473,15 +478,4 @@ function configureEditing() {
   $('#encoder-selection-table > tbody td').editable({
     mode: 'inline'
   });
-};
-
-function alertAjaxFailure(xhr, status, error) {
-  var message = '';
-  if (xhr.responseText != null) {
-    message = xhr.responseText;
-  } else {
-    message = error;
-  }
-
-  alertError(message);
 };

@@ -10,13 +10,16 @@ import (
 	"github.com/0x7fffffff/verbatim/persist"
 )
 
-// The connection information for a given captioner.
+// CaptionerStatus The connection information for a given captioner.
 type CaptionerStatus struct {
-	id    model.CaptionerID
-	state states.Captioner
+	// ID the identification of this captioner. Holds into about ip/port/etc.
+	ID model.CaptionerID
+
+	// State the current connection state of this captioner.
+	State states.Captioner
 }
 
-// These are the events that the server using this will be notified of
+// RelayListener These are the events that the server using this will be notified of
 type RelayListener interface {
 
 	// Report that a given network was unable to listen to a given port
@@ -47,7 +50,7 @@ type RelayListener interface {
 // This is our reference to the delegate methods from the relay server
 var relay RelayListener
 
-// Listen for TCP connections
+// Start Listen for TCP connections
 func Start(listener RelayListener) error {
 	// Get this ready first
 	go maintainListenerState()
@@ -153,7 +156,7 @@ var (
 	errNetworkClosed  = fmt.Errorf("The network's port was closed")
 )
 
-// Listeners by network
+// NetworkListener Listeners by network
 type NetworkListener struct {
 	id       model.NetworkID
 	listener net.Listener

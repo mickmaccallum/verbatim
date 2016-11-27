@@ -165,12 +165,12 @@ func (n *networkListeningServer) serve() {
 			captionersToReturn := make([]CaptionerStatus, len(n.captioners))
 			i := 0
 			for id, cl := range n.captioners {
-				captionersToReturn[i].id = id
+				captionersToReturn[i].ID = id
 				cl.cell.cellMux.Lock()
 				if cl.cell.isMute {
-					captionersToReturn[i].state = states.CaptionerMuted
+					captionersToReturn[i].State = states.CaptionerMuted
 				} else {
-					captionersToReturn[i].state = states.CaptionerUnmuted
+					captionersToReturn[i].State = states.CaptionerUnmuted
 				}
 				cl.cell.cellMux.Unlock()
 			}
