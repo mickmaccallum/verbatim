@@ -268,13 +268,13 @@ function validateNewEncoderForm() {
 
   // validate port field
   if (port == null || port.length === 0) {
-    $('#encoder-form-port').val('23'); // hack
+    errors.push('Missing port');
   } else {
     var intPort = parseInt(port, 10);
-    if (isNaN(port)) {
+    if (isNaN(intPort)) {
       errors.push('Port is not a Number');
     } else {
-      if (port < 1 || port > 65535) {
+      if (intPort < 1 || intPort > 65535) {
         errors.push('Invalid Port. Must be in range [1, 65535].');
       }
     }
