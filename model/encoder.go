@@ -41,7 +41,8 @@ func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 		return nil, errors.New("Invalid IP Address length")
 	}
 
-	match, err := regexp.MatchString("", ipAddress)
+	pattern := "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+	match, err := regexp.MatchString(pattern, ipAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,6 @@ func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 		return nil, errors.New("Invalid password")
 	}
 
-	// sizeof(int); derp
 	if len(networkIDString) == 0 || len(networkIDString) > 10 {
 		return nil, errors.New("Invalid Network ID")
 	}
