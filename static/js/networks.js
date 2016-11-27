@@ -127,16 +127,10 @@ function changeCaptionerState(captioner, state) {
     addCaptioner(captioner, tableId, state);
 
   } else if (state === 1) { // disconnected
-    var wrapper = $('#captioner-list-wrapper');
-    if (!wrapper.is(':hidden')) {
-      $('#captioner-list-header').hide('slow');
-      // $('#captioner-list-header').hide('slow', function() {
-      // });
-
-      wrapper.animate({ height: '0px' }, 'slow', function() {
-        $(document.getElementById(tableId)).remove();
-      });
-    }
+    var row = $(document.getElementById(tableId));
+    row.hide('slow', function() {
+      this.remove();
+    });
   } else if (state === 2) { // muted
     var row = $(document.getElementById(tableId));
 
