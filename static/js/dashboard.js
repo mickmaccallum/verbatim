@@ -68,9 +68,7 @@ function deleteNetworkListListeners() {
       data: $('#delete-network-form').serialize()
     }).done(function() {
       row.remove();
-    }).fail(function() {
-      alert("Failed to remove network from list.");
-    });
+    }).fail(alertAjaxFailure);
   });
 }
 
@@ -91,10 +89,7 @@ function addNetworkCreationListener() {
 
       $('#network-form-port').val('');
       $('#network-form-name').val('');
-    }).fail(function() {
-      console.log("error");
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
