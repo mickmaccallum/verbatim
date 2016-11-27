@@ -785,10 +785,21 @@ func handleDashboardPage(router *mux.Router) {
 		network.ID = hitNetwork.ID
 
 		err = persist.UpdateNetwork(*network)
-
 		if err != nil {
 			serverError(writer, err)
 			return
+		}
+
+		if network.Timeout != hitNetwork.Timeout {
+			relay.ChangeNetworkTimeout(network.ID, network.Timeout)
+		}
+
+		if network.ListeningPort != hitNetwork.ListeningPort {
+			err = relay.TryChangeNetworkPort(network.ID, network.ListeningPort)
+			if err != nil {
+				serverError(writer, err)
+				return
+			}
 		}
 
 		writer.WriteHeader(http.StatusOK)
