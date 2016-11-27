@@ -236,17 +236,93 @@ function addEncoder(encoder) {
   return true;
 };
 
-function newEncoderIsValid() {
-  return true;
+function validateNewEncoderForm() {
+  var errors = [];
+  var ip = $('#encoder-form-ip').val();
+  var name = $('#encoder-form-name').val();
+  var port = $('#encoder-form-port').val();
+  var handle = $('#encoder-form-handle').val();
+  var password = $('#encoder-form-password').val();
+
+  // validate IP address field
+  if (ip == null || ip.length === 0) {
+    errors.push('IP address missing');
+  } else {
+    if (ip.length < 7) {
+      errors.push('IP address too short to be valid');
+    } else if (ip.length > 25) {
+      errors.push('IP address too long to be valid');
+    } else {
+      var ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      if (ipPattern.test(ip)) {
+        errors.push('IP Address is Invalid');
+      }      
+    }
+  }
+
+  // validate name field
+  if ((name != null || name.length !== 0) && name.length > 255) {
+    errors.push('Name is too Long');
+  }
+
+  // validate port field
+  if (port == null || port.length === 0) {
+    port = 23;
+  } else {
+    var intPort = parseInt(port, 10);
+    if (isNaN(port)) {
+      errors.push('Port is not a Number');
+    } else {
+      if (port < 1 || port > 65535) {
+        errors.push('Invalid Port. Must be in range [1, 65535].');
+      }
+    }
+  }
+
+  // validate handle field
+  if (handle == null || handle.length === 0) {
+    errors.push('Missing handle');
+  } else {
+    if (handle.length > 255) {
+      errors.push('Handle too long. Must contain less than 255 characters');
+    }
+  }
+
+  // validate password field
+  if (password == null || password.length === 0) {
+    errors.push('Missing password');
+  } else {
+    if (password.length > 255) {
+      errors.push('Password too long. Must contain less than 255 characters');
+    }
+  }
+
+  return errors;
+};
+
+function displayNewEncoderErrors(errors) {
+  var container = $('#encoder-form-error-container');
+  container.text(errors.join(',\t\t'));
+  container.show('fast');
+};
+
+function hideNewEncoderErrors() {
+ $('#encoder-form-error-container').hide('fast'); 
 };
 
 function addAddEncoderHandler() {
   $('#submit-encoder').click(function(event) {
     event.preventDefault();
 
-    if (!newEncoderIsValid()) {
+    var encoderErrors = validateNewEncoderForm();
+    if (encoderErrors.length > 0) {
+      console.log('Add encoder validation errors:');
+      console.log(encoderErrors);
+      displayNewEncoderErrors(encoderErrors);
       return;
     }
+
+    hideNewEncoderErrors();
 
     var form = $('#add-encoder-form');
     var data = form.serializeArray();
@@ -254,8 +330,6 @@ function addAddEncoderHandler() {
       name: 'network_id',
       value: form.attr('data-network-id')
     });
-
-    console.log(data);
 
     $.ajax({
       url: '/encoder/add',

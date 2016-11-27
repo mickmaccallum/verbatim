@@ -87,7 +87,7 @@
   <h3>Add an Encoder</h3>
 </div>
 
-<div>
+<div class="panel">
   <div class="row">
     <form id="add-encoder-form" method="POST" accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
       {{ $.csrfField }}
@@ -118,7 +118,7 @@
             Port
           </span>
 
-          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23">
+          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23" placeholder="23">
         </div>
       </div>
 
@@ -148,6 +148,11 @@
       </div>
 
     </form>
+  </div>
+
+  <div class="alert alert-danger row" role="alert" id="encoder-form-error-container" hidden>
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Errors:</span>
   </div>
 </div>
 
