@@ -8,9 +8,3 @@ import (
 func main() {
 	relay.Start()
 }
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
