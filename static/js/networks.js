@@ -345,16 +345,7 @@ function addAddEncoderHandler() {
       } else {
         alertError('Failed to show new encoder');
       }
-    }).fail(function(xhr, status, error) {
-      var message = '';
-      if (xhr.responseText != null) {
-        message = xhr.responseText;
-      } else {
-        message = error;
-      }
-
-      alertError(message);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -367,9 +358,7 @@ function addEditEncoderHandler() {
       // data: {param1: 'value1'},
     }).done(function() {
       console.log('success');
-    }).fail(function() {
-      console.log('error');
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -389,10 +378,7 @@ function addDeleteEncoderHandler() {
     }).done(function() {
       row.remove();
       recountEncoders();
-    }).fail(function(error) {
-      console.log('error');
-      console.log(error);
-    });    
+    }).fail(alertAjaxFailure);    
   });
 };
 
@@ -413,10 +399,7 @@ function addMuteCaptionerListners() {
       url: '/captioner/mute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(falertAjaxFailure);
   });
 };
 
@@ -428,10 +411,7 @@ function addUnmuteCaptionerListners() {
       url: '/captioner/unmute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -443,10 +423,7 @@ function addDisconnectCaptionerListeners() {
       url: '/captioner/disconnect',
       type: 'POST',
       data: $.param(getCaptionerData(this))
-    }).fail(function() {
-      console.log('error');
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });  
 };
 
@@ -487,9 +464,7 @@ function configureEditing() {
           data: $.param(data),
         }).done(function() {
           d.resolve(this);
-        }).fail(function() {
-          d.reject(this);
-        });
+        }).fail(alertAjaxFailure);
 
         return d.promise();
       }
@@ -499,4 +474,15 @@ function configureEditing() {
   $('#encoder-selection-table > tbody td').editable({
     mode: 'inline'
   });
+};
+
+function alertAjaxFailure(xhr, status, error) {
+  var message = '';
+  if (xhr.responseText != null) {
+    message = xhr.responseText;
+  } else {
+    message = error;
+  }
+
+  alertError(message);
 };
