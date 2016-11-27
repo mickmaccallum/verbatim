@@ -54,16 +54,14 @@ func FormValuesToEncoder(values url.Values) (*Encoder, error) {
 	}
 
 	if !match {
-		return nil, errors.New("Invalid IP address")
-	}
+		match, err = regexp.MatchString(ipv6Pattern, ipAddress)
+		if err != nil {
+			return nil, err
+		}
 
-	match, err = regexp.MatchString(ipv6Pattern, ipAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	if !match {
-		return nil, errors.New("Invalid IP address")
+		if !match {
+			return nil, errors.New("Invalid IP address")
+		}
 	}
 
 	// Ports [1, 65535]
