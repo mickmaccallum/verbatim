@@ -33,6 +33,28 @@ function validatePasswords(password, confirm) {
   return errors;
 };
 
+function validateNewAdminForm() {
+  var errors = [];
+  var handleField = $('#add-admin-form-handle');
+  var passwordField = $('#add-admin-form-password');
+  var confirmPasswordField = $('#add-admin-form-confirm-password');
+
+  if (handleField.val() == null || handleField.val().length === 0) {
+    errors.push('Handle is missing');
+  } else if (oldPasswordField.val().length > 255) {
+    errors.push('Handle is too long. Must be less than 256 characters');
+  }
+
+  errors = errors.concat(
+    validatePasswords(
+      passwordField.val(), 
+      confirmPasswordField.val()
+    )
+  );
+
+  return errors;
+};
+
 function validateNewPasswordForm() {
   var errors = [];
   var oldPasswordField = $('#admin-form-old-password');
@@ -70,6 +92,7 @@ function hideErrorContainer(container) {
 
 function addPasswordChangeListener() {
   $('#submit-password-change').click(function(event) {
+    event.preventDefault();
     var passwordErrors = validateNewPasswordForm();
     var container = $('#change-password-form-error-container');
 
@@ -123,21 +146,24 @@ function addAddAdminListener() { // that's hard to say...
   $('#submit-add-admin').click(function(event) {
     event.preventDefault();
 
+    var adminErrors = validateNewAdminForm();
+    var container = $('#add-admin-form-error-container');
+
+    if (adminErrors.length > 0) {
+      displayErrorsOnContainer(adminErrors, container);
+      return;
+    }
+
+    hideErrorContainer(container);
+    var form = $('#add-admin-form');
+
     $.ajax({
       url: '/account/add',
       type: 'POST',
       dataType: 'json',
-      data: $('#add-admin-form').serialize()
+      data: form.serialize()
     }).done(function(response) {
-      console.log(response);
-      $('#add-admin-form-handle').val('');
-      $('#add-admin-form-password').val('');
-      $('#add-admin-form-confirm-password').val('');
-
-      var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
-      if (condition) {
-
-      }
+      form.find('input.form-control').val('');
     }).fail(alertAjaxFailure);    
   });
 };
