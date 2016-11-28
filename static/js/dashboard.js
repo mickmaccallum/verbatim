@@ -138,6 +138,8 @@ function hideNewNetworkErrors() {
 
 function addNetworkCreationListener() {
   $('#submit-network').click(function(event) {
+    event.preventDefault();
+
     var networkErrors = validateNewNetworkForm();
     if (networkErrors.length > 0) {
       displayNewNetworkErrors(networkErrors);
