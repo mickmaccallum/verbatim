@@ -180,6 +180,7 @@ func (n *networkListeningServer) serve() {
 				cl.cell.Mute()
 				cl.conn.Close()
 				delete(n.captioners, rmId)
+				relay.Disconnected(cl.cell.id)
 			}
 		case muteID := <-n.muteCaptioner:
 			if cl, found := n.captioners[muteID]; found {
@@ -211,7 +212,7 @@ func (srv networkListeningServer) handleCaptioner(c net.Conn, writer *MuteCell) 
 		writer.SetWaitTime(now)
 		n, err := c.Read(buf)
 		if err != nil || n == 0 {
-			log.Println("Disconnected from Captioner")
+			log.Println("Disconnected from Captioner ", writer.id)
 			srv.rmCaptioner <- writer.id
 			log.Println(err.Error())
 			break
