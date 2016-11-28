@@ -209,24 +209,8 @@ function startWebSocket() {
     };
 
     webSocket.onerror = function(event) {
-      console.log('ERROR: ' + event.data);
+      console.log('Web Socket Error: ' + event.data);
     };
-
-    // setTimeout(function() {
-    //   console.log("sending message");
-    //   var payload = {
-    //     "message": "Hello, Servar."
-    //   };
-    
-    //   socketRocket.send(payload, function(reply) {
-    //     console.log(reply);
-
-    //     // socketRocket.stop(function() {
-    //     //   console.log("finished closing.");
-    //     // });
-    //   });
-    // }, 2000);
-
   }).catch(function(event) {
     console.log(event);
   });
