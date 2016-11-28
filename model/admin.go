@@ -57,5 +57,5 @@ func FormValuesToAdmin(values url.Values) (*Admin, error) {
 // as the receiver's password
 func (admin Admin) HasPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(admin.HashedPassword), []byte(password))
-	return err != nil
+	return err == nil
 }
