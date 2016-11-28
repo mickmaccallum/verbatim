@@ -146,7 +146,6 @@ func (n *networkListeningServer) serve() {
 				// Reset each timeout to be in the future
 				cl.conn.SetDeadline(cl.cell.LastWaitTime().Add(time.Second * timeoutLen))
 			}
-
 		case cl := <-n.tryAddCaptioner:
 			if n.isActive && cl.port == n.network.ListeningPort {
 				// Mute any existing captioners
@@ -173,6 +172,7 @@ func (n *networkListeningServer) serve() {
 					captionersToReturn[i].State = states.CaptionerUnmuted
 				}
 				cl.cell.cellMux.Unlock()
+				i++
 			}
 			n.captionerList <- captionersToReturn
 		case rmId := <-n.rmCaptioner:
@@ -181,7 +181,6 @@ func (n *networkListeningServer) serve() {
 				cl.conn.Close()
 				delete(n.captioners, rmId)
 			}
-
 		case muteID := <-n.muteCaptioner:
 			if cl, found := n.captioners[muteID]; found {
 				cl.cell.Mute()
