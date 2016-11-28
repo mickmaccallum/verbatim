@@ -7,10 +7,7 @@ function addHandleChangeListener() {
     }).done(function(response) {
       // $('#network-form-port').val('');
       // $('#network-form-name').val('');
-    }).fail(function() {
-      console.log("error");
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -26,11 +23,32 @@ function validatePasswords(password, confirm) {
   return password.length >= 8 && password.length <= 255
 };
 
+function validateNewPasswordForm() {
+  var errors = [];
+  var oldPasswordField = $('#admin-form-old-password');
+  var newpasswordField = $('#admin-form-password');
+  var confirmNewPasswordField = $('#admin-form-confirm-password');
+
+  if (oldPasswordField.val() == null || oldPasswordField.val().length === 0) {
+    errors.push('Old password is missing');
+  } else if (oldPasswordField.val().length > 255) {
+    errors.push('Old password is too long. Must be less than 255 characters');
+  }
+
+  var newPassword = newpasswordField.val();
+  var confirmedNew = confirmNewPasswordField.val();
+
+  if () {
+
+  }
+};
+
 function addPasswordChangeListener() {
   $('#submit-password-change').click(function(event) {
+    var oldPasswordField = $('#admin-form-old-password');
     var passwordField = $('#admin-form-password');
     var confirmPasswordField = $('#admin-form-confirm-password');
-
+    console.log('++++++++++++++++++');
     if (!validatePasswords(passwordField.val(), confirmPasswordField.val())) {
       console.log('password isn\'t valid.');
       return;
@@ -43,10 +61,7 @@ function addPasswordChangeListener() {
     }).done(function(response) {
       passwordField.val('');
       confirmPasswordField.val('');
-    }).fail(function() {
-      console.log("error");
-      console.log(this);
-    });
+    }).fail(alertAjaxFailure);
   });	
 };
 
