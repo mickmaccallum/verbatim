@@ -12,15 +12,25 @@ function addHandleChangeListener() {
 };
 
 function validatePasswords(password, confirm) {
-  if (password !== confirm) {
-    return false;
+  var errors = [];
+
+  if (password == null || confirm == null) {
+    errors.push('Missing password');
+  } else {
+    if (password === confirm) {
+      if (password.length === 0) {
+        errors.push('Missing password');
+      } else if (password.length < 8) {
+        errors.push('New password is too short. Must be at least 8 characters');
+      } else if (password.length > 255) {
+        errors.push('New password is too long. Must be less than 256 characters');
+      }
+    } else {
+      errors.push('New passwords do not match');
+    }
   }
 
-  if (password == null || password == undefined) {
-    return false;
-  }
-
-  return password.length >= 8 && password.length <= 255
+  return errors;
 };
 
 function validateNewPasswordForm() {
@@ -32,35 +42,51 @@ function validateNewPasswordForm() {
   if (oldPasswordField.val() == null || oldPasswordField.val().length === 0) {
     errors.push('Old password is missing');
   } else if (oldPasswordField.val().length > 255) {
-    errors.push('Old password is too long. Must be less than 255 characters');
+    errors.push('Old password is too long. Must be less than 256 characters');
   }
 
-  var newPassword = newpasswordField.val();
-  var confirmedNew = confirmNewPasswordField.val();
+  errors = errors.concat(
+    validatePasswords(
+      newpasswordField.val(), 
+      confirmNewPasswordField.val()
+    )
+  );
 
-  if () {
+  return errors;
+};
 
+function displayErrorsOnContainer(errors, container) {
+  container.text(errors.join(',\t\t'));
+  if (container.is(':hidden')) {
+    container.show('fast');
+  }
+};
+
+function hideErrorContainer(container) {
+  if (!container.is(':hidden')) {
+    container.hide('fast');
   }
 };
 
 function addPasswordChangeListener() {
   $('#submit-password-change').click(function(event) {
-    var oldPasswordField = $('#admin-form-old-password');
-    var passwordField = $('#admin-form-password');
-    var confirmPasswordField = $('#admin-form-confirm-password');
-    console.log('++++++++++++++++++');
-    if (!validatePasswords(passwordField.val(), confirmPasswordField.val())) {
-      console.log('password isn\'t valid.');
+    var passwordErrors = validateNewPasswordForm();
+    var container = $('#change-password-form-error-container');
+
+    if (passwordErrors.length > 0) {
+      displayErrorsOnContainer(passwordErrors, container);
       return;
     }
+
+    hideErrorContainer(container);
+    var form = $('#admin-password-form');
 
     $.ajax({
       url: '/account/password',
       type: 'POST',
-      data: $('#admin-password-form').serialize(),
+      data: form.serialize(),
     }).done(function(response) {
-      passwordField.val('');
-      confirmPasswordField.val('');
+      form.find('input.form-control').val('');
     }).fail(alertAjaxFailure);
   });	
 };
@@ -77,7 +103,7 @@ function addDeleteAdminListener() {
     if (!confirm('Are you sure you want to delete the admin: ' + adminHandle)) {
       return;
     }
-    console.log($('#delete-admin-form').serialize());
+
     $.ajax({
       url: '/account/delete/' + adminId,
       type: 'POST',
