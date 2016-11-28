@@ -147,22 +147,20 @@ function addNetworkCreationListener() {
     }
 
     hideNewNetworkErrors();
+    var form = $(this).closest('form');
 
     $.ajax({
       url: '/network/add',
       type: 'POST',
       dataType: 'json',
-      data: $(this).closest('form').serialize(),
+      data: form.serialize(),
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
         deleteNetworkListListeners();
-      } else {
-        // Maybe prompt to refresh? IDK
       }
 
-      $('#network-form-port').val('');
-      $('#network-form-name').val('');
+      form.find('input.form-control').val('');
     }).fail(alertAjaxFailure);
   });
 };
