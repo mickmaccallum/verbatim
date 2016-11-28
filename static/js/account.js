@@ -41,7 +41,7 @@ function validateNewAdminForm() {
 
   if (handleField.val() == null || handleField.val().length === 0) {
     errors.push('Handle is missing');
-  } else if (oldPasswordField.val().length > 255) {
+  } else if (handleField.val().length > 255) {
     errors.push('Handle is too long. Must be less than 256 characters');
   }
 
@@ -162,8 +162,9 @@ function addAddAdminListener() { // that's hard to say...
       type: 'POST',
       dataType: 'json',
       data: form.serialize()
-    }).done(function(response) {
+    }).done(function(admin) {
       form.find('input.form-control').val('');
+      addAdmin(admin);
     }).fail(alertAjaxFailure);    
   });
 };
