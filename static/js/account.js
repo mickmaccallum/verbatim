@@ -31,6 +31,7 @@ function addAdmin(admin) {
     addDeleteAdminListener();
 
     wrapper.show('slow');
+    $('#admin-list-header').show('slow');
   } else {
     row.hide();
     row.appendTo('#admin-selection-table > tbody').show('fast');
@@ -174,8 +175,10 @@ function addDeleteAdminListener() {
       type: 'POST',
       data: $('#delete-admin-form').serialize()
     }).done(function() {
-      var count = $('#admin-list-wrapper > table > tbody').children('tr').count;
+      var count = $('#admin-selection-table > tbody').children('tr').length;
+
       if (count <= 1) {
+        $('#admin-list-header').hide('400');
         $('#admin-list-wrapper').hide('400', function() {
           row.remove();          
         });

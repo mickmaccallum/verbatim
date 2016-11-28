@@ -87,9 +87,9 @@
 {{ $admins := filterAdmin .Admin .Admins }}
 
 {{ if eq (len $admins) 0 }}
-<div class="page-header" hidden>
+<div class="page-header" id="admin-list-header" hidden>
 {{ else }}
-<div class="page-header">
+<div class="page-header" id="admin-list-header">
 {{ end }}
   <h3>Other Admins</h3>
 </div>
