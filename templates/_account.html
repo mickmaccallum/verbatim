@@ -77,14 +77,19 @@
       </div>
     </form>
   </div>
+
+  <div class="alert alert-danger row buffered-row" role="alert" id="change-password-form-error-container" hidden>
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Errors:</span>
+  </div>
 </div>
 
 {{ $admins := filterAdmin .Admin .Admins }}
 
 {{ if eq (len $admins) 0 }}
-<div class="page-header" hidden>
+<div class="page-header" id="admin-list-header" hidden>
 {{ else }}
-<div class="page-header">
+<div class="page-header" id="admin-list-header">
 {{ end }}
   <h3>Other Admins</h3>
 </div>
@@ -172,6 +177,11 @@
       </div>
     </div>
   </form>
+</div>
+
+<div class="alert alert-danger row buffered-row" role="alert" id="add-admin-form-error-container" hidden>
+  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Errors:</span>
 </div>
 {{ end }}
 

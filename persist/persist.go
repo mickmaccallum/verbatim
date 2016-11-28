@@ -26,7 +26,7 @@ func configureDatabase(database *sql.DB) (sql.Result, error) {
 	ddl := `
 		create table if not exists admin (
 		  id integer primary key,
-		  handle text not null,
+		  handle text unique not null,
 		  hashed_password text not null
 		);
 

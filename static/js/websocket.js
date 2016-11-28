@@ -68,7 +68,7 @@ var socketRocket = (function() {
       webSocket.onclose = function(event) {
         webSocket = null;
 
-        if (event.code === 1005 && exports.onComplete !== undefined) {
+        if (event.code === 1005 && exports.onComplete != null && typeof(exports.onComplete) === typeof(Function)) {
           exports.onComplete();
           exports.onComplete = null;
           return;
@@ -81,7 +81,10 @@ var socketRocket = (function() {
 
   exports.stop = function(completion) {
     if (webSocket == null) {
-      completion();
+      if (completion != null && typeof(completion) === typeof(Function)) {
+        completion();
+      }
+      
       return;
     }
 

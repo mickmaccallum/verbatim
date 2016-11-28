@@ -20,7 +20,7 @@ function addNetwork(network) {
 
   var row = $('<tr></tr>');
 
-  row.attr('data-network-id', network.ID + "");
+  row.attr('data-network-id', network.ID + '');
   row.attr('data-network-name', network.Name);
 
   row.append('<th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>' + (count + 1) + '</th>');
@@ -167,21 +167,21 @@ function addNetworkCreationListener() {
 
 function networkStateToString(state) {
   if (!Number.isInteger(state)) {
-    return "Disconnected";
+    return 'Disconnected';
   }
 
   if (state == 0) {
-    return "Connected"
+    return 'Connected'
   } else if (state == 1) {
-    return "Listening"
+    return 'Listening'
   } else if (state == 2) {
-    return "Listening Failed"
+    return 'Listening Failed'
   } else if (state == 3) {
-    return "Closed"
+    return 'Closed'
   } else if (state == 4) {
-    return "Deleted"
+    return 'Deleted'
   } else {
-    return "Disconnected"
+    return 'Disconnected'
   }
 };
 
@@ -209,7 +209,7 @@ function startWebSocket() {
     };
 
     webSocket.onerror = function(event) {
-      console.log("ERROR: " + event.data);
+      console.log('ERROR: ' + event.data);
     };
 
     // setTimeout(function() {
@@ -233,9 +233,9 @@ function startWebSocket() {
 };
 
 function autoStopWebSocket() {
-  $(window).on("beforeunload", function() {
+  $(window).on('beforeunload', function() {
     socketRocket.stop(function() {
-      console.log("finished closing.");
+      console.log('finished closing.');
     });
   });
 };
