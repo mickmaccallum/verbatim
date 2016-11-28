@@ -8,6 +8,7 @@ $(function() {
   autoStopWebSocket();
   addMuteCaptionerListners();
   addUnmuteCaptionerListners();
+  addDisconnectCaptionerListeners();
 });
 
 function changeEncoderState(encoder, encoderState) {
