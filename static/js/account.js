@@ -1,3 +1,45 @@
+
+function makeDeleteButton() {
+  return '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
+           '<button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" data-toggle="modal" data-target="#delete">' +
+             '<span class="glyphicon glyphicon-trash"></span>' +
+           '</button' +
+         '</p>';
+};
+
+function recountAdmins() {
+  $('#admin-selection-table > tbody').children('tr').each(function(index, el) {
+    $(el).children('.row-number').text((index + 1) + '');
+  });
+}
+
+function addAdmin(admin) {
+  var row = $('<tr></tr>');
+
+  row.attr('data-admin-id', admin.ID + '');
+  row.attr('data-admin-handle', admin.Handle);
+
+  row.append('<th class="col-md-1 col-lg-1 col-xl-1" scope=row>0</th>');
+  row.append('<td class="col-md-10 col-lg-10 col-xl-10">' + admin.Handle + '</td>');
+  row.append('<td class="col-md-1 col-lg-1 col-xl-1">' + makeDeleteButton() + '</td>');
+
+  var wrapper = $('#admin-list-wrapper');
+  if (wrapper.is(':hidden')) {
+    $('#admin-selection-table > tbody').append(row);
+
+    recountAdmins();
+    addDeleteAdminListener();
+
+    wrapper.show('slow');
+  } else {
+    row.hide();
+    row.appendTo('#admin-selection-table > tbody').show('fast');
+
+    recountAdmins();
+    addDeleteAdminListener();
+  }
+};
+
 function addHandleChangeListener() {
   $('#submit-handle-change').click(function(event) {
     $.ajax({
