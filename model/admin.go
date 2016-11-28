@@ -52,3 +52,10 @@ func FormValuesToAdmin(values url.Values) (*Admin, error) {
 
 	return &admin, nil
 }
+
+// HasPassword returns whether or not the given password is the same
+// as the receiver's password
+func (admin Admin) HasPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(admin.HashedPassword), []byte(password))
+	return err != nil
+}
