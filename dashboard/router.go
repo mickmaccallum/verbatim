@@ -752,7 +752,7 @@ func handleDashboardPage(router *mux.Router) {
 
 		newNetwork, err := persist.AddNetwork(*network)
 		if err != nil {
-			serverError(writer, err)
+			clientError(writer, err)
 			return
 		}
 
