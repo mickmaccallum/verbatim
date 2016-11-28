@@ -1,5 +1,9 @@
 $(function() {
   $('#logout-button').click(function(event) {
+    if (!confirm('Are you sure you want to log out?')) {
+      return;
+    }
+
     $(this).closest('form').submit();
   });
 });
