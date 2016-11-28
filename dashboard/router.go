@@ -324,7 +324,25 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		password, confirmPassword := request.Form.Get("password"), request.Form.Get("confirm_password")
+		adminID := session.Values["admin"].(int)
+		admin, err := persist.GetAdminForID(adminID)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		oldPassword := request.Form.Get("old_password")
+		if len(oldPassword) == 0 {
+			clientError(writer, errors.New("Missing old password"))
+			return
+		}
+
+		if !admin.HasPassword(oldPassword) {
+			clientError(writer, errors.New("Old password does not match admin"))
+			return
+		}
+
+		password, confirmPassword := request.Form.Get("new_password"), request.Form.Get("confirm_new_password")
 		if password != confirmPassword {
 			clientError(writer, errors.New("Passwords don't match"))
 			return
@@ -332,13 +350,6 @@ func handleAccountsPage(router *mux.Router) {
 
 		if len(password) == 0 || len(password) > 255 {
 			writer.WriteHeader(http.StatusUnprocessableEntity)
-			return
-		}
-
-		adminID := session.Values["admin"].(int)
-		admin, err := persist.GetAdminForID(adminID)
-		if err != nil {
-			clientError(writer, err)
 			return
 		}
 
