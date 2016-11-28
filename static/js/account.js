@@ -89,9 +89,7 @@ function addDeleteAdminListener() {
           row.remove();          
         });
       }
-    }).fail(function() {
-      alert("Failed to remove network from list.");
-    });
+    }).fail(alertAjaxFailure);
   });
 };
 
@@ -114,9 +112,7 @@ function addAddAdminListener() { // that's hard to say...
       if (condition) {
 
       }
-    }).fail(function() {
-      console.log("error");
-    });    
+    }).fail(alertAjaxFailure);    
   });
 };
 
