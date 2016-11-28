@@ -137,6 +137,10 @@ function addDeleteAdminListener() {
         $('#admin-list-wrapper').hide('400', function() {
           row.remove();          
         });
+      } else {
+        row.hide('fast', function() {
+          this.remove();          
+        });
       }
     }).fail(alertAjaxFailure);
   });
