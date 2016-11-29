@@ -3,12 +3,16 @@ $(function() {
   addAddEncoderHandler();
   addEditEncoderHandler();
   addDeleteEncoderHandler();
-  configureEditing();
-  startWebSocket();
-  autoStopWebSocket();
+  addConnectEncoderHandler();
+  addDisconnectEncoderHandler();
+
   addMuteCaptionerListners();
   addUnmuteCaptionerListners();
   addDisconnectCaptionerListeners();
+
+  configureEditing();
+  startWebSocket();
+  autoStopWebSocket();
 });
 
 function changeEncoderState(encoder, encoderState) {
@@ -369,6 +373,9 @@ function addEditEncoderHandler() {
 
 function addDeleteEncoderHandler() {
   $('.delete-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
 
@@ -383,6 +390,50 @@ function addDeleteEncoderHandler() {
     }).done(function() {
       row.remove();
       recountEncoders();
+    }).fail(alertAjaxFailure);    
+  });
+};
+
+function addConnectEncoderHandler() {
+  $('.connect-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var row = $(this).closest('tr');
+    var encoderId = row.attr('data-encoder-id');
+
+    if (!confirm('Are you sure you want to connect this encoder?')) {
+      return;
+    }
+
+    $.ajax({
+      url: '/encoder/connect/' + encoderId,
+      type: 'POST',
+      data: $('#delete-encoder-form').serialize()
+    }).done(function() {
+
+    }).fail(alertAjaxFailure);    
+  });  
+};
+
+function addDisconnectEncoderHandler() {
+  $('.disconnect-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var row = $(this).closest('tr');
+    var encoderId = row.attr('data-encoder-id');
+
+    if (!confirm('Are you sure you want to disconnect this encoder?')) {
+      return;
+    }
+
+    $.ajax({
+      url: '/encoder/disconnect/' + encoderId,
+      type: 'POST',
+      data: $('#delete-encoder-form').serialize()
+    }).done(function() {
+
     }).fail(alertAjaxFailure);    
   });
 };
