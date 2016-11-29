@@ -44,27 +44,18 @@ func (dl dashboardListener) TryChangeNetworkPort(id model.NetworkID, port int) e
 	return microphone.AttemptPortChange(id, port)
 }
 
-func (dl dashboardListener) UpdateNetwork(network model.Network) {
-
-}
-
 func (dl dashboardListener) ChangeNetworkTimeout(id model.NetworkID, seconds int) {
 	microphone.ChangeTimeout(id, seconds)
 }
 
 // Add encoder to it's network
-func (dl dashboardListener) AddEncoder(enc model.Encoder) {
-	megaphone.NotifyEncoderAdded(enc)
+func (dl dashboardListener) LoginEncoder(enc model.Encoder) {
+	megaphone.NotifyEncoderLogin(enc)
 }
 
 // Logout encoder
 func (dl dashboardListener) LogoutEncoder(enc model.Encoder) {
 	megaphone.NotifyEncoderLogout(enc)
-}
-
-// Remove encoder from database and from encoder
-func (dl dashboardListener) DeleteEncoder(enc model.Encoder) {
-	megaphone.NotifyEncoderRemoved(enc)
 }
 
 // Mute a captioner to keep them from being able to

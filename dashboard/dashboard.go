@@ -40,13 +40,10 @@ type RelayListener interface {
 	RemoveNetwork(id model.Network)
 
 	// Add encoder to it's network
-	AddEncoder(enc model.Encoder)
+	LoginEncoder(enc model.Encoder)
 
 	// Logout encoder
 	LogoutEncoder(id model.Encoder)
-
-	// Remove encoder from database and from encoder
-	DeleteEncoder(id model.Encoder)
 
 	// Mute a captioner to keep them from being able to
 	// send data to the encoders

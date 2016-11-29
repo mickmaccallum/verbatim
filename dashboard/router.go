@@ -525,7 +525,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.AddEncoder(*newEncoder)
+		relay.LoginEncoder(*newEncoder)
 
 		bytes, err := persist.EncoderToJSON(*newEncoder)
 		if err != nil {
@@ -592,7 +592,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.DeleteEncoder(*encoder)
+		relay.LogoutEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")

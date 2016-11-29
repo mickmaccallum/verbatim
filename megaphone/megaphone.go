@@ -44,12 +44,8 @@ func NotifyNetworkRemoved(n model.NetworkID) {
 	networkRemoved <- n
 }
 
-func NotifyEncoderAdded(enc model.Encoder) {
+func NotifyEncoderLogin(enc model.Encoder) {
 	encoderAdded <- enc
-}
-
-func NotifyEncoderRemoved(enc model.Encoder) {
-	encoderRemoved <- enc
 }
 
 func NotifyEncoderLogout(enc model.Encoder) {
@@ -147,6 +143,7 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 		case enc := <-encoderRemoved:
 			broadcasters[model.NetworkID(enc.NetworkID)].removeEncoder(model.EncoderID(enc.ID))
 
+		// TODO: This code isn't currently being used, but could be used if we need something like this in the future
 		case restartEnc := <-encoderFaulted:
 			if b, found := broadcasters[restartEnc.network]; found {
 				inbound := make(chan []byte)
@@ -236,11 +233,7 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 			if ok {
 				err := writeMessageSegmented(conn, msg)
 				if err != nil {
-					// Close the connection
-					conn.Close()
 					// Signal to the broadcaster that we have an error
-					// and will need to be restarted
-					// Try to restart
 					relay.UnexpectedDisconnect(enc)
 					n.removeEncoder(enc.ID)
 					n.faultedEncoder <- encId(enc)
