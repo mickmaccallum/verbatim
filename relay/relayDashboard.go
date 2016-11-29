@@ -85,5 +85,5 @@ func (dl dashboardListener) RemoveCaptioner(id model.CaptionerID) {
 
 // DisconnectCaptioner forcibly disconnects the specified captioner
 func (dl dashboardListener) DisconnectCaptioner(id model.CaptionerID) {
-
+	microphone.RemoveCaptioner(id)
 }

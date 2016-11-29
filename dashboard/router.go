@@ -680,7 +680,7 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
-	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/captioners/disconnect", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)

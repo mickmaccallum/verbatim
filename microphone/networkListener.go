@@ -151,11 +151,13 @@ func (n *networkListeningServer) serve() {
 				// Mute any existing captioners
 				for _, cl := range n.captioners {
 					cl.cell.Mute()
+					relay.Muted(cl.cell.id)
 				}
 				cl.cell.Unmute()
 				n.couldAddCaptioner <- nil
 				n.captioners[cl.cell.id] = cl
 				relay.Connected(cl.cell.id)
+				time.Sleep(time.Microsecond * 100)
 				relay.Unmuted(cl.cell.id)
 			} else {
 				n.couldAddCaptioner <- errServerStopped

@@ -242,6 +242,7 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster
 					// and will need to be restarted
 					// Try to restart
 					relay.UnexpectedDisconnect(enc)
+					n.removeEncoder(enc.ID)
 					n.faultedEncoder <- encId(enc)
 					return
 				}
