@@ -597,6 +597,56 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
+	// Disconnect encoder
+	router.HandleFunc("/encoder/connect/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
+		encoder, err := persist.GetEncoder(*id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.AddEncoder(*encoder)
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	// Disconnect encoder
+	router.HandleFunc("/encoder/disconnect/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
+		encoder, err := persist.GetEncoder(*id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.DeleteEncoder(*encoder)
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
 	// Get Network
 	router.HandleFunc("/network/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
