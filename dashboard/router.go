@@ -525,7 +525,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.AddEncoder(*newEncoder)
+		relay.LoginEncoder(*newEncoder)
 
 		bytes, err := persist.EncoderToJSON(*newEncoder)
 		if err != nil {
@@ -592,7 +592,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.DeleteEncoder(*encoder)
+		relay.LogoutEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
@@ -730,7 +730,7 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
-	router.HandleFunc("/captioner/disconnect", func(writer http.ResponseWriter, request *http.Request) {
+	router.HandleFunc("/captioners/disconnect", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)

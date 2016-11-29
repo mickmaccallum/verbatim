@@ -452,7 +452,7 @@ function addMuteCaptionerListners() {
     event.preventDefault();
 
     $.ajax({
-      url: '/captioner/mute',
+      url: '/captioners/mute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
     }).fail(alertAjaxFailure);
@@ -464,7 +464,7 @@ function addUnmuteCaptionerListners() {
     event.preventDefault();
 
     $.ajax({
-      url: '/captioner/unmute',
+      url: '/captioners/unmute',
       type: 'POST',
       data: $.param(getCaptionerData(this))
     }).fail(alertAjaxFailure);
@@ -476,7 +476,7 @@ function addDisconnectCaptionerListeners() {
     event.preventDefault();
 
     $.ajax({
-      url: '/captioner/disconnect',
+      url: '/captioners/disconnect',
       type: 'POST',
       data: $.param(getCaptionerData(this))
     }).fail(alertAjaxFailure);

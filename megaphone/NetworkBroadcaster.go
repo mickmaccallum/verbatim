@@ -2,7 +2,6 @@ package megaphone
 
 import (
 	"github.com/0x7fffffff/verbatim/model"
-	"time"
 )
 
 type AddEncoderResult int
@@ -102,12 +101,6 @@ func (n *NetworkBroadcaster) serveConnection() {
 		case id := <-n.faultedEncoder:
 			close(n.encoders[id])
 			delete(n.encoders, id)
-			// WARNING:
-			go func() {
-				// TODO: Implement expoential backoff here.
-				<-time.After(5 * time.Second)
-				n.restartEncoder <- encoderIdPair{n.id, id}
-			}()
 		case id := <-n.rmEncoder:
 			if _, found := n.encoders[id]; found {
 				close(n.encoders[id])
