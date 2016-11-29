@@ -617,7 +617,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.AddEncoder(*encoder)
+		relay.LoginEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
@@ -642,7 +642,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		relay.DeleteEncoder(*encoder)
+		relay.LogoutEncoder(*encoder)
 
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
