@@ -410,8 +410,6 @@ function addConnectEncoderHandler() {
       url: '/encoder/connect/' + encoderId,
       type: 'POST',
       data: $('#delete-encoder-form').serialize()
-    }).done(function() {
-
     }).fail(alertAjaxFailure);    
   });  
 };
@@ -432,8 +430,6 @@ function addDisconnectEncoderHandler() {
       url: '/encoder/disconnect/' + encoderId,
       type: 'POST',
       data: $('#delete-encoder-form').serialize()
-    }).done(function() {
-
     }).fail(alertAjaxFailure);    
   });
 };
