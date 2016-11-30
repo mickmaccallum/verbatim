@@ -41,7 +41,7 @@ func TestGetAdminByID(t *testing.T) {
 }
 
 func TestGetAdminByCredentials(t *testing.T) {
-	admin, err := GetAdminForCredentials("mick2", "abc123")
+	admin, err := GetAdminForCredentials("0x7fs", "1234567890")
 
 	if err != nil {
 		t.Error(err.Error())
@@ -49,6 +49,22 @@ func TestGetAdminByCredentials(t *testing.T) {
 	}
 
 	t.Log(admin)
+}
+
+// AddNetwork, UpdateNetwork, DeleteNetwork
+func TestAddNetwork(t *testing.T) {
+	newNetwork := model.Network{
+		Name:          "MSNBC",
+		ListeningPort: 4040,
+	}
+
+	network, err := AddNetwork(newNetwork)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(network)
 }
 
 func TestGetNetworks(t *testing.T) {
@@ -78,23 +94,6 @@ func TestGetNetworkByID(t *testing.T) {
 	t.Log(network)
 }
 
-// AddNetwork, UpdateNetwork, DeleteNetwork
-
-func TestAddNetwork(t *testing.T) {
-	newNetwork := model.Network{
-		Name:          "MSNBC",
-		ListeningPort: 4040,
-	}
-
-	network, err := AddNetwork(newNetwork)
-	if err != nil {
-		t.Error(err.Error())
-		t.Fail()
-	}
-
-	t.Log(network)
-}
-
 func TestUpdateNetwork(t *testing.T) {
 	network, _ := GetNetwork(1)
 	network.ListeningPort = 6000
@@ -108,69 +107,11 @@ func TestUpdateNetwork(t *testing.T) {
 	t.Log(network)
 }
 
-func TestDeleteNetwork(t *testing.T) {
-	network, _ := GetNetwork(1)
-	err := DeleteNetwork(*network)
-	if err != nil {
-		t.Error(err.Error())
-		t.Fail()
-	}
-
-	t.Log(network)
-}
-
-func TestGetEncoders(t *testing.T) {
-	encoders, err := GetEncoders()
-
-	if err == nil {
-		if len(encoders) == 0 {
-			t.Log("Got 0 encoders, expected 3")
-			t.Fail()
-		}
-	} else {
-		t.Error(err.Error())
-		t.Fail()
-	}
-
-	t.Log(encoders)
-}
-
-func TestGetEncoder(t *testing.T) {
-	encoder, err := GetEncoder(1)
-
-	if err == nil {
-		if encoder == nil {
-			t.Log("Encoder was unexpectedly nil")
-			t.Fail()
-		}
-	} else {
-		t.Error(err.Error())
-		t.Fail()
-	}
-
-	t.Log(encoder)
-}
-
-func TestGetEncodersForNetwork(t *testing.T) {
-	network, _ := GetNetwork(1)
-	encoders, err := GetEncodersForNetwork(*network)
-
-	if err == nil {
-		if len(encoders) == 0 {
-			t.Log("Got 0 encoders, expected 2")
-			t.Fail()
-		}
-	} else {
-		t.Error(err.Error())
-		t.Fail()
-	}
-
-	t.Log(encoders)
-}
-
 // AddEncoder, UpdateEncoder, DeleteEncoder
 func TestAddEncoder(t *testing.T) {
 	network, _ := GetNetwork(1)
+	t.Log("Adding encoder for network: ")
+	t.Log(network.ID)
 	encoder := model.Encoder{
 		IPAddress: "19.34.76.34",
 		Port:      3456,
@@ -216,6 +157,38 @@ func TestAddEncoder(t *testing.T) {
 	t.Log(newEncoder)
 }
 
+func TestGetEncoders(t *testing.T) {
+	encoders, err := GetEncoders()
+
+	if err == nil {
+		if len(encoders) == 0 {
+			t.Log("Got 0 encoders, expected 3")
+			t.Fail()
+		}
+	} else {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(encoders)
+}
+
+func TestGetEncoder(t *testing.T) {
+	encoder, err := GetEncoder(1)
+
+	if err == nil {
+		if encoder == nil {
+			t.Log("Encoder was unexpectedly nil")
+			t.Fail()
+		}
+	} else {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(encoder)
+}
+
 func TestUpdateEncoder(t *testing.T) {
 	encoder, _ := GetEncoder(1)
 	encoder.IPAddress = "127.21.33.134"
@@ -246,6 +219,17 @@ func TestDeleteEncoder(t *testing.T) {
 		t.Error(err.Error())
 		t.Fail()
 	}
+}
+
+func TestDeleteNetwork(t *testing.T) {
+	network, _ := GetNetwork(1)
+	err := DeleteNetwork(*network)
+	if err != nil {
+		t.Error(err.Error())
+		t.Fail()
+	}
+
+	t.Log(network)
 }
 
 // TODO: Test EncoderToJSON & NetworkToJSON
