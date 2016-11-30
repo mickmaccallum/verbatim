@@ -3,34 +3,57 @@ $(function() {
   addAddEncoderHandler();
   addEditEncoderHandler();
   addDeleteEncoderHandler();
-  configureEditing();
-  startWebSocket();
-  autoStopWebSocket();
+  addConnectEncoderHandler();
+  addDisconnectEncoderHandler();
+
   addMuteCaptionerListners();
   addUnmuteCaptionerListners();
   addDisconnectCaptionerListeners();
+
+  configureEditing();
+  startWebSocket();
+  autoStopWebSocket();
 });
+
+function makeConnectButton() {
+  return '<p data-placement="top" data-toggle="tooltip" title="Connect">' +
+            '<button class="btn btn-danger btn-xs pull-right connect-encoder-button">' +
+              '<span class="glyphicon glyphicon-ok-circle"></span>' +
+            '</button>' +
+          '</p>';
+};
+
+function makeDisconnectButton() {
+  return '<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
+            '<button class="btn btn-danger btn-xs pull-right disconnect-encoder-button">' +
+              '<span class="glyphicon glyphicon-ban-circle"></span>' +
+            '</button>' +
+          '</p>';
+};
+
+function setEncoderRowState(encoderRow, encoderState) {
+  var state = encoderStateToString(encoderState);
+  encoderRow.children('.encoder-status-row').val(state);
+};
 
 function changeEncoderState(encoder, encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
 
-  if (encoderState === 0) { // connected
-    addEncoder(encoder);
+  if (row == null) {
+    return;
+  }
 
-  } else if (encoderState === 1) { // disconnected
-    var wrapper = $('#encoder-list-wrapper');
-    if (!wrapper.is(':hidden')) {
-      $('#encoder-list-header').hide('slow');
-      wrapper.animate({ height: '0px' }, 'slow', function() {
-        row.remove();
-      });
-    }
-  } else if (encoderState === 2) { // auth failure
+  setEncoderRowState(row, state);
+  var connectColumn = row.children('.encoder-connect-row');
 
-  } else if (encoderState === 3) { // writes failing
-
-  } else { // assuming disconnected
-    // NOOP
+  if (encoderState === 0) {
+    connectColumn.html(makeDisconnectButton());
+    addDisconnectEncoderHandler();
+  } else if (encoderState === 1) {
+    connectColumn.html('');
+  } else {
+    connectColumn.html(makeConnectButton());
+    addConnectEncoderHandler();
   }
 };
 
@@ -369,6 +392,9 @@ function addEditEncoderHandler() {
 
 function addDeleteEncoderHandler() {
   $('.delete-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
     var row = $(this).closest('tr');
     var encoderId = row.attr('data-encoder-id');
 
@@ -383,6 +409,46 @@ function addDeleteEncoderHandler() {
     }).done(function() {
       row.remove();
       recountEncoders();
+    }).fail(alertAjaxFailure);    
+  });
+};
+
+function addConnectEncoderHandler() {
+  $('.connect-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var row = $(this).closest('tr');
+    var encoderId = row.attr('data-encoder-id');
+
+    if (!confirm('Are you sure you want to connect this encoder?')) {
+      return;
+    }
+
+    $.ajax({
+      url: '/encoder/connect/' + encoderId,
+      type: 'POST',
+      data: $('#delete-encoder-form').serialize()
+    }).fail(alertAjaxFailure);    
+  });  
+};
+
+function addDisconnectEncoderHandler() {
+  $('.disconnect-encoder-button').click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var row = $(this).closest('tr');
+    var encoderId = row.attr('data-encoder-id');
+
+    if (!confirm('Are you sure you want to disconnect this encoder?')) {
+      return;
+    }
+
+    $.ajax({
+      url: '/encoder/disconnect/' + encoderId,
+      type: 'POST',
+      data: $('#delete-encoder-form').serialize()
     }).fail(alertAjaxFailure);    
   });
 };

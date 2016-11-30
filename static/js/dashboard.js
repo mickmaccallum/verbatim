@@ -138,6 +138,8 @@ function hideNewNetworkErrors() {
 
 function addNetworkCreationListener() {
   $('#submit-network').click(function(event) {
+    event.preventDefault();
+
     var networkErrors = validateNewNetworkForm();
     if (networkErrors.length > 0) {
       displayNewNetworkErrors(networkErrors);
@@ -145,22 +147,20 @@ function addNetworkCreationListener() {
     }
 
     hideNewNetworkErrors();
+    var form = $(this).closest('form');
 
     $.ajax({
       url: '/network/add',
       type: 'POST',
       dataType: 'json',
-      data: $(this).closest('form').serialize(),
+      data: form.serialize(),
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
         deleteNetworkListListeners();
-      } else {
-        // Maybe prompt to refresh? IDK
       }
 
-      $('#network-form-port').val('');
-      $('#network-form-name').val('');
+      form.find('input.form-control').val('');
     }).fail(alertAjaxFailure);
   });
 };
@@ -186,13 +186,13 @@ function networkStateToString(state) {
 };
 
 function changeNetworkState(network, state) {
-  if (state == 0) { // connecting
+  if (state === 0) { // connecting
     
-  } else if (state == 1 || state == 2 || state == 3) { // listening, listening failed, close
+  } else if (state === 1 || state === 2 || state === 3) { // listening, listening failed, close
     var row = $('tr[data-network-id=' + network.ID + ']');
     row.children('.state-row').text(networkStateToString(state));
-  } else if (state == 4) { // deleted
-    
+  } else if (state === 4) { // deleted
+    // TODO: fill this out
   } else { // disconnected
 
   }
@@ -209,24 +209,8 @@ function startWebSocket() {
     };
 
     webSocket.onerror = function(event) {
-      console.log('ERROR: ' + event.data);
+      console.log('Web Socket Error: ' + event.data);
     };
-
-    // setTimeout(function() {
-    //   console.log("sending message");
-    //   var payload = {
-    //     "message": "Hello, Servar."
-    //   };
-    
-    //   socketRocket.send(payload, function(reply) {
-    //     console.log(reply);
-
-    //     // socketRocket.stop(function() {
-    //     //   console.log("finished closing.");
-    //     // });
-    //   });
-    // }, 2000);
-
   }).catch(function(event) {
     console.log(event);
   });

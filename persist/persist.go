@@ -14,38 +14,52 @@ var DB *sql.DB
 func init() {
 	var err error
 	DB, err = sql.Open("sqlite3", "database.db")
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
+
 	err = DB.Ping()
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
 
 	_, err = configureDatabase(DB)
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func configureDatabase(database *sql.DB) (sql.Result, error) {
 	ddl := `
 		create table if not exists admin (
-		  id integer primary key,
-		  handle text unique not null,
-		  hashed_password text not null
+			id integer primary key,
+			handle text unique not null,
+			hashed_password text not null
 		);
 
 		create table if not exists network (
-		  id integer primary key,
-		  listening_port integer unique not null,
-		  name text not null,
-		  timeout integer not null
+			id integer primary key,
+			listening_port integer unique not null,
+			name text not null,
+			timeout integer not null
 		);
 
 		create table if not exists encoder (
-		  id integer primary key,
-		  ip_address text not null,
-		  port integer not null default(23),
-		  name text null default ('New Encoder'),
-		  handle text not null,
-		  password text not null,
-		  network_id integer not null,
-		  foreign key(network_id) references network(id)
+			id integer primary key,
+			ip_address text not null,
+			port integer not null default(23),
+			name text null default ('New Encoder'),
+			handle text not null,
+			password text not null,
+			network_id integer not null,
+			foreign key(network_id) references network(id)
+		);
+
+		create table if not exists backup (
+			id integer primary key,
+			payload text not null,
+			network_id integer not null,
+			foreign key(network_id) references network(id)
 		);
 	`
 
@@ -53,10 +67,4 @@ func configureDatabase(database *sql.DB) (sql.Result, error) {
 	// checkErr(err)
 
 	return database.Exec(ddl)
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

@@ -597,6 +597,56 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
+	// Disconnect encoder
+	router.HandleFunc("/encoder/connect/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
+		encoder, err := persist.GetEncoder(*id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.LoginEncoder(*encoder)
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
+	// Disconnect encoder
+	router.HandleFunc("/encoder/disconnect/{encoder_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
+		_, sessionOk := checkSessionValidity(request)
+		if !sessionOk {
+			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id := identifierFromRequest("encoder_id", request)
+		if id == nil {
+			clientError(writer, errors.New("Missing encoder identifier"))
+			return
+		}
+
+		encoder, err := persist.GetEncoder(*id)
+		if err != nil {
+			clientError(writer, err)
+			return
+		}
+
+		relay.LogoutEncoder(*encoder)
+
+		writer.WriteHeader(http.StatusOK)
+	}).Methods("POST")
+
 	// Get Network
 	router.HandleFunc("/network/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
@@ -617,20 +667,37 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoders, err := persist.GetEncodersForNetwork(*network)
+		tmpEncoders, err := persist.GetEncodersForNetwork(*network)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
+		var encoders []model.Encoder
+
 		connectedEncoders := relay.GetConnectedEncoders(*network)
-		for _, encoder := range encoders {
+		for _, encoder := range tmpEncoders {
+			set := false
 			for _, connectedEncoderID := range connectedEncoders {
 				if encoder.ID == connectedEncoderID {
 					encoder.Status = states.EncoderConnected
+					set = true
+					log.Println("+++++++++++++++++++=")
 					break
 				}
 			}
+
+			if !set {
+				log.Println("encoder is disconnect")
+				encoder.Status = states.EncoderDisconnected
+			}
+
+			encoders = append(encoders, encoder)
+		}
+
+		for _, enc := range encoders {
+			log.Println("-----------------")
+			log.Println(enc.Status)
 		}
 
 		captioners := relay.GetConnectedCaptioners(*network)
@@ -752,7 +819,7 @@ func handleDashboardPage(router *mux.Router) {
 
 		newNetwork, err := persist.AddNetwork(*network)
 		if err != nil {
-			serverError(writer, err)
+			clientError(writer, err)
 			return
 		}
 
