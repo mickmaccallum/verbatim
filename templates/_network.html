@@ -64,17 +64,17 @@
         {{range $index, $element := .Encoders }}
         <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
           <th scope=row>{{ inc $index }}</th>
-          <td><span>{{ $element.Name.Value }}</span></td>
-          <td><span>{{ $element.IPAddress }}</span></td>
-          <td><span>{{ $element.Port }}</span></td>
-          <td><span>{{ $element.Handle }}</span></td>
-          <td><span>{{ $element.Password }}</span></td>
-          <td><span>{{ encoderStatus $element.Status }}</span></td>
+          <td>{{ $element.Name.Value }}</td>
+          <td>{{ $element.IPAddress }}</td>
+          <td>{{ $element.Port }}</td>
+          <td>{{ $element.Handle }}</td>
+          <td>{{ $element.Password }}</td>
+          <td class="encoder-status-row">{{ encoderStatus $element.Status }}</td>
 
           <!-- 0 connected, 4 disconnected -->
           <!-- show connect for 2,3,4.... show disconnect for 0, show nothing for 1 -->
           {{ if eq $element.Status 0 }}
-            <td>
+            <td class="encoder-connect-row">
               <p data-placement="top" data-toggle="tooltip" title="Disconnect">
                 <button class="btn btn-danger btn-xs pull-right disconnect-encoder-button">
                   <span class="glyphicon glyphicon-ban-circle"></span>
@@ -84,13 +84,17 @@
           {{ end }}
 
           {{ if or (eq $element.Status 2) (or (eq $element.Status 3) (eq $element.Status 4)) }}
-            <td>
+            <td class="encoder-connect-row">
               <p data-placement="top" data-toggle="tooltip" title="Connect">
                 <button class="btn btn-danger btn-xs pull-right connect-encoder-button">
                   <span class="glyphicon glyphicon-ok-circle"></span>
                 </button>
               </p>
             </td>
+          {{ end }}
+
+          {{ if eq $element.Status 1 }}
+            <td class="encoder-connect-row"></td>
           {{ end }}
 
           <td>
