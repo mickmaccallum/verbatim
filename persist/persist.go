@@ -14,12 +14,19 @@ var DB *sql.DB
 func init() {
 	var err error
 	DB, err = sql.Open("sqlite3", "database.db")
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
+
 	err = DB.Ping()
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
 
 	_, err = configureDatabase(DB)
-	checkErr(err)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func configureDatabase(database *sql.DB) (sql.Result, error) {
@@ -60,10 +67,4 @@ func configureDatabase(database *sql.DB) (sql.Result, error) {
 	// checkErr(err)
 
 	return database.Exec(ddl)
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
