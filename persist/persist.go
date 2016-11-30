@@ -48,6 +48,12 @@ func configureDatabase(database *sql.DB) (sql.Result, error) {
 			foreign key(network_id) references network(id)
 		);
 
+		create table if not exists backup (
+			id integer primary key,
+			payload text not null,
+			network_id integer not null,
+			foreign key(network_id) references network(id)
+		);
 	`
 
 	// bytes, err := ioutil.ReadFile("sql/create_tables.sql")
