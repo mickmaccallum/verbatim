@@ -667,20 +667,37 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoders, err := persist.GetEncodersForNetwork(*network)
+		tmpEncoders, err := persist.GetEncodersForNetwork(*network)
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
+		var encoders []model.Encoder
+
 		connectedEncoders := relay.GetConnectedEncoders(*network)
-		for _, encoder := range encoders {
+		for _, encoder := range tmpEncoders {
+			set := false
 			for _, connectedEncoderID := range connectedEncoders {
 				if encoder.ID == connectedEncoderID {
 					encoder.Status = states.EncoderConnected
+					set = true
+					log.Println("+++++++++++++++++++=")
 					break
 				}
 			}
+
+			if !set {
+				log.Println("encoder is disconnect")
+				encoder.Status = states.EncoderDisconnected
+			}
+
+			encoders = append(encoders, encoder)
+		}
+
+		for _, enc := range encoders {
+			log.Println("-----------------")
+			log.Println(enc.Status)
 		}
 
 		captioners := relay.GetConnectedCaptioners(*network)
