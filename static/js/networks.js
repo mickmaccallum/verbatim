@@ -31,7 +31,7 @@ function makeDisconnectButton() {
           '</p>';
 };
 
-function setEncoderState(encoderRow, encoderState) {
+function setEncoderRowState(encoderRow, encoderState) {
   var state = encoderStateToString(encoderState);
   encoderRow.children('.encoder-status-row').val(state);
 };
@@ -43,7 +43,7 @@ function changeEncoderState(encoder, encoderState) {
     return;
   }
 
-  changeEncoderState(row, state);
+  setEncoderRowState(row, state);
   var connectColumn = row.children('.encoder-connect-row');
 
   if (encoderState === 0) {
