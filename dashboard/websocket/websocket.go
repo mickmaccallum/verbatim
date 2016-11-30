@@ -25,7 +25,6 @@ const (
 var messages = make(chan SocketMessage, 10)
 var replies = make(chan reply, 10)
 
-// TODO: Figure out how to remove conns on disconnect.
 var connections = make(map[*websocket.Conn]struct{})
 var connMutex = &sync.Mutex{}
 
