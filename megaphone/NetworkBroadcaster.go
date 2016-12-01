@@ -2,6 +2,7 @@ package megaphone
 
 import (
 	"github.com/0x7fffffff/verbatim/model"
+	"github.com/0x7fffffff/verbatim/persist"
 )
 
 type AddEncoderResult int
@@ -85,8 +86,13 @@ func (n *NetworkBroadcaster) serveConnection() {
 	for {
 		select {
 		case buf := <-n.writeChan:
-			for _, dest := range n.encoders {
-				dest <- buf
+			if len(n.encoders) == 0 {
+				// Log here
+				persist.CreateBackup(buf, n.id)
+			} else {
+				for _, dest := range n.encoders {
+					dest <- buf
+				}
 			}
 		case dest := <-n.addEncoder:
 			// Only add an encoder if it hasn't been added already

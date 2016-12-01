@@ -8,7 +8,7 @@ import (
 
 // CreateBackup Creates a backup of the given data. Data should
 // represent an undelivered caption burst.
-func CreateBackup(data []byte, network model.Network) error {
+func CreateBackup(data []byte, network model.NetworkID) error {
 	query := `
 	    INSERT INTO backup (
 	      payload, network_id
@@ -18,7 +18,7 @@ func CreateBackup(data []byte, network model.Network) error {
 	`
 
 	backupError := errors.New("Failed to create backup")
-	result, err := DB.Exec(query, string(data), int(network.ID))
+	result, err := DB.Exec(query, string(data), int(network))
 	if err != nil {
 		return backupError
 	}
