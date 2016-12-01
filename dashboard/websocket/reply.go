@@ -9,10 +9,3 @@ type reply struct {
 	message  SocketMessage
 	response response
 }
-
-// send enqueues the reply to be sent.
-func (r reply) send() {
-	go func() {
-		replies <- r
-	}()
-}

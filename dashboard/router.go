@@ -162,7 +162,8 @@ func renewSession(session *sessions.Session) {
 func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 	admins, err := persist.GetAdmins()
 	if err != nil {
-
+		http.NotFound(writer, request)
+		return
 	}
 
 	if len(admins) > 0 {
@@ -172,7 +173,8 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 
 	host, _, err := net.SplitHostPort(request.RemoteAddr)
 	if err != nil {
-
+		http.NotFound(writer, request)
+		return
 	}
 
 	ip := net.ParseIP(host)
@@ -481,7 +483,15 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
-		err := store.Delete(request, writer, session)
+		delete(session.Values, "admin")
+		session.Options.MaxAge = -1
+		err := session.Save(request, writer)
+		if err != nil {
+			serverError(writer, err)
+			return
+		}
+
+		err = store.Delete(request, writer, session)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -682,7 +692,6 @@ func handleNetworksPage(router *mux.Router) {
 				if encoder.ID == connectedEncoderID {
 					encoder.Status = states.EncoderConnected
 					set = true
-					log.Println("+++++++++++++++++++=")
 					break
 				}
 			}
@@ -693,11 +702,6 @@ func handleNetworksPage(router *mux.Router) {
 			}
 
 			encoders = append(encoders, encoder)
-		}
-
-		for _, enc := range encoders {
-			log.Println("-----------------")
-			log.Println(enc.Status)
 		}
 
 		captioners := relay.GetConnectedCaptioners(*network)

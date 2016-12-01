@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -23,15 +22,11 @@ const (
 )
 
 var messages = make(chan SocketMessage, 10)
-var replies = make(chan reply, 10)
-
-var connections = make(map[*websocket.Conn]struct{})
+var connections = make(map[*websocket.Conn]chan SocketMessage)
 var connMutex = &sync.Mutex{}
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		// components := strings.Split(r.RemoteAddr, ":")
-		// return components[0] == "127.0.0.1"
 		return r.Header.Get("Origin") == "http://"+r.Host
 	},
 }
@@ -50,7 +45,7 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	connectionOpened(conn)
+	go connectionOpened(conn)
 
 	defer conn.Close()
 
@@ -69,27 +64,36 @@ func openSocket(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		// Wrap the message in a reply context and sent it back over the connection.
-		reply{
+		rep := reply{
 			conn:    conn,
 			message: message,
 			response: response{
 				Error:   nil,
 				Message: "Received Message",
 			},
-		}.send()
+		}
+
+		sendReply(rep)
 	}
 }
 
 // connectionOpened synchronizes adding of a connection to the connection pool
 func connectionOpened(conn *websocket.Conn) {
+	inboundMessages := make(chan SocketMessage)
+
 	connMutex.Lock()
-	connections[conn] = struct{}{}
+	connections[conn] = inboundMessages
 	connMutex.Unlock()
+
+	for message := range inboundMessages {
+		conn.WriteJSON(message)
+	}
 }
 
 // connectionClosed synchronizes removing of a connection to the connection pool
 func connectionClosed(conn *websocket.Conn) {
 	connMutex.Lock()
+	close(connections[conn])
 	delete(connections, conn)
 	connMutex.Unlock()
 }
@@ -99,9 +103,9 @@ func spin() {
 	for {
 		select {
 		case message := <-messages:
-			broadcastMessage(message)
-		case r := <-replies:
-			sendReply(r)
+			for _, channel := range connections {
+				channel <- message
+			}
 		}
 	}
 }
@@ -113,40 +117,20 @@ func sendReply(r reply) error {
 		Payload:   r.response,
 	}
 
-	return sendMessage(newMessage, r.conn)
-}
-
-// broadcastMessage Sends the given message on every active web socket connection.
-func broadcastMessage(message SocketMessage) map[*websocket.Conn]error {
-	var errors map[*websocket.Conn]error
-
-	// enumerate all the active connections, and send the message.
-	for conn := range connections {
-		err := sendMessage(message, conn)
-		if err != nil {
-			errors[conn] = err
-		}
-	}
-
-	return errors
-}
-
-// sendMessage Writes the given message over the given connection as JSON.
-func sendMessage(message SocketMessage, conn *websocket.Conn) error {
-	return conn.WriteJSON(message)
+	return r.conn.WriteJSON(newMessage)
 }
 
 // sendTestMessage Not actively used. Just here for testing message sends.
-func sendTestMessage() {
-	time.AfterFunc(10*time.Second, func() {
-		payload := map[string]string{
-			"message": "Hello, browser!",
-		}
+// func sendTestMessage() {
+// 	time.AfterFunc(10*time.Second, func() {
+// 		payload := map[string]string{
+// 			"message": "Hello, browser!",
+// 		}
 
-		m := &SocketMessage{
-			Payload: payload,
-		}
+// 		m := &SocketMessage{
+// 			Payload: payload,
+// 		}
 
-		m.Send()
-	})
-}
+// 		m.Send()
+// 	})
+// }
