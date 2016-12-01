@@ -692,7 +692,6 @@ func handleNetworksPage(router *mux.Router) {
 				if encoder.ID == connectedEncoderID {
 					encoder.Status = states.EncoderConnected
 					set = true
-					log.Println("+++++++++++++++++++=")
 					break
 				}
 			}
@@ -703,11 +702,6 @@ func handleNetworksPage(router *mux.Router) {
 			}
 
 			encoders = append(encoders, encoder)
-		}
-
-		for _, enc := range encoders {
-			log.Println("-----------------")
-			log.Println(enc.Status)
 		}
 
 		captioners := relay.GetConnectedCaptioners(*network)
