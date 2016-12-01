@@ -8,7 +8,5 @@ type SocketMessage struct {
 
 // Send emits the receiver as a message across all websocket connections.
 func (message SocketMessage) Send() {
-	go func() {
-		messages <- message
-	}()
+	messages <- message
 }
