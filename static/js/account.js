@@ -19,7 +19,7 @@ function addAdmin(admin) {
   row.attr('data-admin-id', admin.ID + '');
   row.attr('data-admin-handle', admin.Handle);
 
-  row.append('<th class="col-md-1 col-lg-1 col-xl-1" scope=row>0</th>');
+  row.append('<th class="col-md-1 col-lg-1 col-xl-1 row-number" scope=row>0</th>');
   row.append('<td class="col-md-10 col-lg-10 col-xl-10">' + admin.Handle + '</td>');
   row.append('<td class="col-md-1 col-lg-1 col-xl-1">' + makeDeleteButton() + '</td>');
 
@@ -214,6 +214,7 @@ function addAddAdminListener() { // that's hard to say...
     }).done(function(admin) {
       form.find('input.form-control').val('');
       addAdmin(admin);
+      $(window).blur();
     }).fail(alertAjaxFailure);    
   });
 };
