@@ -47,9 +47,6 @@ function addHandleChangeListener() {
       url: '/account/handle',
       type: 'POST',
       data: $('#admin-handle-form').serialize(),
-    }).done(function(response) {
-      // $('#network-form-port').val('');
-      // $('#network-form-name').val('');
     }).fail(alertAjaxFailure);
   });
 };
