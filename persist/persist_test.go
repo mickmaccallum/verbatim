@@ -231,5 +231,3 @@ func TestDeleteNetwork(t *testing.T) {
 
 	t.Log(network)
 }
-
-// TODO: Test EncoderToJSON & NetworkToJSON

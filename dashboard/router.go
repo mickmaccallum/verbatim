@@ -112,7 +112,7 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 
 	base := map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(request),
-		"SocketURL":      "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"SocketURL":      "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
 		"ShowAccount":    showAccount,
 	}
 
