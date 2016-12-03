@@ -1,6 +1,6 @@
 package states
 
-// Represents the meaningful states of an Encoder
+// Encoder Represents the meaningful states of an Encoder
 type Encoder int
 
 const (
@@ -24,13 +24,13 @@ const (
 type Captioner int
 
 const (
-	// A captioner has connected to our network
+	// CaptionerConnected A captioner has connected to our network
 	CaptionerConnected Captioner = iota
-	// A captioner has been disconnected from a network listener
+	// CaptionerDisconnected A captioner has been disconnected from a network listener
 	CaptionerDisconnected
-	// A captioner has been muted
+	// CaptionerMuted A captioner has been muted
 	CaptionerMuted
-	// A captioner has been unmuted
+	// CaptionerUnmuted A captioner has been unmuted
 	CaptionerUnmuted
 )
 
@@ -39,18 +39,18 @@ const (
 type Network int
 
 const (
-	// Network is in the process of connecting to a port
+	// NetworkConnecting Network is in the process of connecting to a port
 	NetworkConnecting Network = iota
 
-	// Network has successfully connected to a port
+	// NetworkListening Network has successfully connected to a port
 	NetworkListening
 
-	// Network failed to listen on a port
+	// NetworkListenFailed Network failed to listen on a port
 	NetworkListenFailed
 
-	// Network was told to stop listening
+	// NetworkClosed Network was told to stop listening
 	NetworkClosed
 
-	// Network was deleted
+	// NetworkDeleted Network was deleted
 	NetworkDeleted
 )
