@@ -190,7 +190,7 @@ function changeNetworkState(network, state) {
 
   if (state === 4) { // deleted
     row.remove();
-  } else { // disconnected, listening, listening failed, close
+  } else { // connecting, disconnected, listening, listening failed, close
     row.children('.state-row').text(networkStateToString(state));
   }
 };
