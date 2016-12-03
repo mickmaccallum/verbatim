@@ -4,7 +4,7 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">Account ({{ .Admin.Handle }})</li>
+  <li class="active">Account (<span id="top-account-name">{{ .Admin.Handle }}</span>)</li>
 </ol>
 
 <div class="page-header">
@@ -24,11 +24,11 @@
             Handle
           </span>
 
-          <input id="admin-form-handle" name="handle" type="text" 
-            class="form-control" value="{{ .Admin.Handle }}">
+          <input id="admin-form-handle" name="new_handle" type="text" 
+            class="form-control" value="{{ .Admin.Handle }}" autocomplete="off">
           
           <span class="input-group-btn">
-            <button id="submit-handle-change" class="btn btn-default" type="button">
+            <button id="submit-handle-change" class="btn btn-default" type="submit">
               Save
             </button>
           </span>
@@ -52,7 +52,8 @@
           </span>
 
           <input id="admin-form-old-password" name="old_password" 
-            type="password" class="form-control" placeholder="********" required>
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
         </div>
       </div>
 
@@ -63,7 +64,8 @@
           </span>
 
           <input id="admin-form-password" name="new_password" 
-            type="password" class="form-control" placeholder="********" required>
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
         </div>
       </div>      
 
@@ -74,10 +76,11 @@
           </span>
 
           <input id="admin-form-confirm-password" name="confirm_new_password" 
-            type="password" class="form-control" placeholder="********" required>
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
           
           <span class="input-group-btn">
-            <button id="submit-password-change" class="btn btn-default" type="button">
+            <button id="submit-password-change" class="btn btn-default" type="submit">
               Save
             </button>
           </span>

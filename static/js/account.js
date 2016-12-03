@@ -43,10 +43,17 @@ function addAdmin(admin) {
 
 function addHandleChangeListener() {
   $('#submit-handle-change').click(function(event) {
+    event.preventDefault();
+
+    var form = $('#admin-handle-form');
+
     $.ajax({
       url: '/account/handle',
       type: 'POST',
-      data: $('#admin-handle-form').serialize(),
+      data: form.serialize(),
+    }).done(function() {
+      $('#top-account-name').text($('#admin-form-handle').val());
+      form.blur();
     }).fail(alertAjaxFailure);
   });
 };
@@ -133,6 +140,7 @@ function hideErrorContainer(container) {
 function addPasswordChangeListener() {
   $('#submit-password-change').click(function(event) {
     event.preventDefault();
+
     var passwordErrors = validateNewPasswordForm();
     var container = $('#change-password-form-error-container');
 
@@ -150,6 +158,7 @@ function addPasswordChangeListener() {
       data: form.serialize(),
     }).done(function(response) {
       form.find('input.form-control').val('');
+      form.blur();
     }).fail(alertAjaxFailure);
   });	
 };

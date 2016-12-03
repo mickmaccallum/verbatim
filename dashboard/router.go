@@ -291,7 +291,7 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		handle := request.Form.Get("handle")
+		handle := request.Form.Get("new_handle")
 		if len(handle) == 0 || len(handle) > 255 {
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
