@@ -1,7 +1,5 @@
 {{ define "title" }}Login{{ end }}
-
 {{ define "content" }}
-
 <form class="form-signin" action="/login" method="POST" accept-charset="UTF-8">
   {{ $.csrfField }}
   <h2 class="form-signin-heading">Please sign in</h2>
@@ -9,15 +7,28 @@
     Email address
   </label>
 
-  <input type="text" id="login-form-handle" class="form-control" name="handle" placeholder="User Name" required autofocus>
-  <label for="login-form-password" class="sr-only">Password</label>
-  <input type="password" id="login-form-password" class="form-control" name="password" placeholder="Password" required>
+  <input type="text" id="login-form-handle" class="form-control" 
+    name="handle" placeholder="User Name" required autofocus>
+
+  <label for="login-form-password" class="sr-only">
+    Password
+  </label>
+
+  <input type="password" id="login-form-password" class="form-control"
+   name="password" placeholder="Password" required>
+
   <div class="checkbox">
     <label>
-      <input type="checkbox" value="remember-me" name="remember_me"> Remember me
+      <input type="checkbox" value="remember-me" name="remember_me"> 
+        Remember me
     </label>
   </div>
-  <button id="submit-login" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+
+  <button id="submit-login" 
+    class="btn btn-lg btn-primary btn-block" type="submit">
+
+    Sign in
+  </button>
 </form>
 {{ end }}
 
