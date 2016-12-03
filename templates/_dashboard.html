@@ -2,7 +2,6 @@
 
 {{ define "content" }}
 
-<!-- Maybe use http://getbootstrap.com/css/#tables-contextual-classes to indicate what networks are experiencing problems  -->
 <div class="table-responsive panel panel-default">
   <div class="panel-heading">Current Networks</div>
 
@@ -28,11 +27,26 @@
         <tr data-network-id="{{ $element.ID }}" 
           data-network-name="{{ $element.Name }}">
 
-          <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>{{ inc $index }}</th>
-          <td class="col-xl-3 col-lg-3 col-md-3">{{ $element.Name }}</td>
-          <td class="col-xl-2 col-lg-2 col-md-2">{{ $element.ListeningPort }}</td>
-          <td class="col-xl-3 col-lg-3 col-md-3">{{ $element.Timeout }}</td>
-          <td class="col-xl-2 col-lg-2 col-md-2 state-row">{{ networkStatus $element.State }}</td>
+          <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>
+            {{ inc $index }}
+          </th>
+
+          <td class="col-xl-3 col-lg-3 col-md-3">
+            {{ $element.Name }}
+          </td>
+
+          <td class="col-xl-2 col-lg-2 col-md-2">
+            {{ $element.ListeningPort }}
+          </td>
+          
+          <td class="col-xl-3 col-lg-3 col-md-3">
+            {{ $element.Timeout }}
+          </td>
+          
+          <td class="col-xl-2 col-lg-2 col-md-2 state-row">
+            {{ networkStatus $element.State }}
+          </td>
+          
           <td class="col-xl-1 col-lg-1 col-md-1">
             <p data-placement="top" data-toggle="tooltip" title="Delete">
               <button class="btn btn-danger btn-xs pull-right delete-button"
@@ -59,25 +73,25 @@
     <form id="add-network-form" method="POST" accept-charset="UTF-8">
       {{ $.csrfField }}
 
-      <!-- <input id="add-network-element" type="hidden" class="form-control"> -->
       <div class="col-lg-4 col-md-4 col-sm-4">
         <div class="input-group">
           <span class="input-group-addon">
             Name
           </span>
 
-          <input name="name" id="network-form-name" type="text" class="form-control" placeholder="C-SPAN" required>
+          <input name="name" id="network-form-name" type="text" 
+            class="form-control" placeholder="C-SPAN" required>
         </div>
       </div>
 
-      <!-- <input id="add-network-element" type="hidden" class="form-control"> -->
       <div class="col-lg-3 col-md-3 col-sm-3">
         <div class="input-group">
           <span class="input-group-addon">
             Port
           </span>
 
-          <input name="listening_port" id="network-form-port" type="number" class="form-control" placeholder="4000" required>
+          <input name="listening_port" id="network-form-port" type="number" 
+            class="form-control" placeholder="4000" required>
         </div>
       </div>
 
@@ -87,17 +101,22 @@
             Timeout (seconds)
           </span>
 
-          <input name="timeout" id="network-form-timeout" type="number" class="form-control" placeholder="300" required>
+          <input name="timeout" id="network-form-timeout" type="number" 
+            class="form-control" placeholder="300" required>
 
           <span class="input-group-btn">
-            <button id="submit-network" class="btn btn-default" type="submit">Add Network</button>
+            <button id="submit-network" class="btn btn-default" type="submit">
+              Add Network
+            </button>
           </span>
         </div>
       </div>
     </form>
   </div>
 
-  <div class="alert alert-danger row buffered-row" role="alert" id="network-form-error-container" hidden>
+  <div class="alert alert-danger row buffered-row" role="alert" 
+    id="network-form-error-container" hidden>
+    
     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
     <span class="sr-only">Errors:</span>
   </div>
