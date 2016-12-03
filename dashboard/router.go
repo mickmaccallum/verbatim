@@ -390,7 +390,7 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
-		admin, err := model.FormValuesToAdmin(request.Form)
+		admin, err := model.RegistrationCredentialsToAdmin(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
@@ -428,12 +428,6 @@ func handleLogin(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		// session, sessionOk := checkSessionValidity(request)
-		// if !sessionOk {
-		// 	writer.WriteHeader(http.StatusUnauthorized)
-		// 	return
-		// }
-
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
