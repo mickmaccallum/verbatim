@@ -24,10 +24,13 @@
             Handle
           </span>
 
-          <input id="admin-form-handle" name="handle" type="text" class="form-control" value="{{ .Admin.Handle }}">
+          <input id="admin-form-handle" name="handle" type="text" 
+            class="form-control" value="{{ .Admin.Handle }}">
           
           <span class="input-group-btn">
-            <button id="submit-handle-change" class="btn btn-default" type="button">Save</button>
+            <button id="submit-handle-change" class="btn btn-default" type="button">
+              Save
+            </button>
           </span>
         </div>
       </div>
@@ -48,7 +51,8 @@
             Old Password
           </span>
 
-          <input id="admin-form-old-password" name="old_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-old-password" name="old_password" 
+            type="password" class="form-control" placeholder="********" required>
         </div>
       </div>
 
@@ -58,7 +62,8 @@
             New Password
           </span>
 
-          <input id="admin-form-password" name="new_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-password" name="new_password" 
+            type="password" class="form-control" placeholder="********" required>
         </div>
       </div>      
 
@@ -68,17 +73,21 @@
             Confirm Password
           </span>
 
-          <input id="admin-form-confirm-password" name="confirm_new_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-confirm-password" name="confirm_new_password" 
+            type="password" class="form-control" placeholder="********" required>
           
           <span class="input-group-btn">
-            <button id="submit-password-change" class="btn btn-default" type="button">Save</button>
+            <button id="submit-password-change" class="btn btn-default" type="button">
+              Save
+            </button>
           </span>
         </div>
       </div>
     </form>
   </div>
 
-  <div class="alert alert-danger row buffered-row" role="alert" id="change-password-form-error-container" hidden>
+  <div class="alert alert-danger row buffered-row" role="alert" 
+    id="change-password-form-error-container" hidden>
     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
     <span class="sr-only">Errors:</span>
   </div>
@@ -122,8 +131,8 @@
 
               <td class="col-md-1 col-lg-1 col-xl-1">
                 <p data-placement="top" data-toggle="tooltip" title="Delete">
-                  <button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" 
-                    data-toggle="modal" data-target="#delete">
+                  <button class="btn btn-danger btn-xs pull-right delete-button" 
+                    data-title="Delete" data-toggle="modal" data-target="#delete">
                     <span class="glyphicon glyphicon-trash"></span>
                   </button>
                 </p>
@@ -183,7 +192,8 @@
   </form>
 </div>
 
-<div class="alert alert-danger row buffered-row" role="alert" id="add-admin-form-error-container" hidden>
+<div class="alert alert-danger row buffered-row" role="alert" 
+  id="add-admin-form-error-container" hidden>
   <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
   <span class="sr-only">Errors:</span>
 </div>
