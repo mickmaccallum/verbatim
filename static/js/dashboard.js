@@ -186,15 +186,12 @@ function networkStateToString(state) {
 };
 
 function changeNetworkState(network, state) {
-  if (state === 0) { // connecting
-    
-  } else if (state === 1 || state === 2 || state === 3) { // listening, listening failed, close
-    var row = $('tr[data-network-id=' + network.ID + ']');
-    row.children('.state-row').text(networkStateToString(state));
-  } else if (state === 4) { // deleted
-    // TODO: fill this out
-  } else { // disconnected
+  var row = $('tr[data-network-id=' + network.ID + ']');
 
+  if (state === 4) { // deleted
+    row.remove();
+  } else { // disconnected, listening, listening failed, close
+    row.children('.state-row').text(networkStateToString(state));
   }
 };
 
