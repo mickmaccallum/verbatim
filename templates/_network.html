@@ -4,24 +4,48 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">{{ .Network.Name }} <small>- <span id="encoder-count">{{ len .Encoders }}</span> {{ simplePlural "encoder" (len .Encoders) }}</small></li>
+  <li class="active">
+    {{ .Network.Name }} 
+    <small>
+      -&nbsp;
+      <span id="encoder-count">
+        {{ len .Encoders }}
+      </span> 
+
+      {{ simplePlural "encoder" (len .Encoders) }}
+    </small>
+  </li>
 </ol>
 
 <form id="edit-network-form" method="POST" accept-charset="UTF-8">
   {{ $.csrfField }}
 
-  <div id="editing-page-header" class="page-header" data-network-id="{{ .Network.ID }}">
+  <div id="editing-page-header" class="page-header" 
+    data-network-id="{{ .Network.ID }}">
+
     <div>
       <div>
-        <h3><span data-name="name" name="name">{{ .Network.Name }}</span> <small>(Network Name)</small></h3>
+        <h3>
+          <span data-name="name" name="name">
+            {{ .Network.Name }}
+          </span> <small>(Network Name)</small>
+        </h3>
       </div>
 
       <div>
-        <h3><span data-name="listening_port" name="listening_port">{{ .Network.ListeningPort }}</span> <small>(Port)</small></h3>
+        <h3>
+          <span data-name="listening_port" name="listening_port">
+            {{ .Network.ListeningPort }}
+          </span> <small>(Port)</small>
+        </h3>
       </div>
 
       <div>
-        <h3><span data-name="timeout" name="timeout">{{ .Network.Timeout }}</span> <small>(Timeout in seconds)</small></h3>
+        <h3>
+          <span data-name="timeout" name="timeout">
+            {{ .Network.Timeout }}
+          </span> <small>(Timeout in seconds)</small>
+        </h3>
       </div>
     </div>
   </div>  
@@ -36,9 +60,11 @@
 </div>
 
 {{ if eq (len $.Encoders) 0 }}
-<div class="table-responsive panel panel-default" id="encoder-list-wrapper" hidden>
+<div class="table-responsive panel panel-default" 
+  id="encoder-list-wrapper" hidden>
 {{ else }}
-<div class="table-responsive panel panel-default" id="encoder-list-wrapper">
+<div class="table-responsive panel panel-default" 
+  id="encoder-list-wrapper">
 {{ end }}
   <div class="panel-heading">Connected Encoders</div>
 
@@ -69,7 +95,9 @@
           <td>{{ $element.Port }}</td>
           <td>{{ $element.Handle }}</td>
           <td>{{ $element.Password }}</td>
-          <td class="encoder-status-row">{{ encoderStatus $element.Status }}</td>
+          <td class="encoder-status-row">
+            {{ encoderStatus $element.Status }}
+          </td>
 
           <!-- 0 connected, 4 disconnected -->
           <!-- show connect for 2,3,4.... show disconnect for 0, show nothing for 1 -->
@@ -117,7 +145,9 @@
 
 <div class="panel">
   <div class="row">
-    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
+    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" 
+      data-network-id="{{ $.Network.ID }}">
+      
       {{ $.csrfField }}
 
       <div class="col-md-4 col-lg-4 col-xl-4">
@@ -126,7 +156,8 @@
             IP Address
           </span>
 
-          <input name="ip_address" id="encoder-form-ip" type="text" class="form-control" placeholder="192.168.1.1">
+          <input name="ip_address" id="encoder-form-ip" type="text" 
+            class="form-control" placeholder="192.168.1.1">
         </div>
       </div>
 
@@ -136,7 +167,8 @@
             Name
           </span>
 
-          <input name="name" id="encoder-form-name" type="text" class="form-control" placeholder="Optional">
+          <input name="name" id="encoder-form-name" type="text" 
+            class="form-control" placeholder="Optional">
         </div>
       </div>
 
@@ -146,7 +178,8 @@
             Port
           </span>
 
-          <input name="port" id="encoder-form-port" type="text" class="form-control" value="23" placeholder="23">
+          <input name="port" id="encoder-form-port" type="text" 
+            class="form-control" value="23" placeholder="23">
         </div>
       </div>
 
@@ -156,7 +189,8 @@
             Handle
           </span>
 
-          <input name="handle" id="encoder-form-handle" type="text" class="form-control" placeholder="user123">
+          <input name="handle" id="encoder-form-handle" type="text" 
+            class="form-control" placeholder="user123">
         </div>
       </div>
 
@@ -166,17 +200,22 @@
             Password
           </span>
 
-          <input name="password" id="encoder-form-password" type="text" class="form-control" placeholder="********">
+          <input name="password" id="encoder-form-password" type="text" 
+            class="form-control" placeholder="********">
 
           <span class="input-group-btn">
-            <button id="submit-encoder" class="btn btn-default" type="button">Add Encoder</button>
+            <button id="submit-encoder" class="btn btn-default" type="button">
+              Add Encoder
+            </button>
           </span>
         </div>
       </div>
     </form>
   </div>
 
-  <div class="alert alert-danger row buffered-row" role="alert" id="encoder-form-error-container" hidden>
+  <div class="alert alert-danger row buffered-row" role="alert" 
+    id="encoder-form-error-container" hidden>
+    
     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
     <span class="sr-only">Errors:</span>
   </div>
@@ -212,10 +251,21 @@
             data-captioner-num-conn="{{ $element.ID.NumConn }}"
             data-captioner-network-id="{{ $element.ID.NetworkID }}">
 
-            <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>{{ inc $index }}</th>
-            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.ID.IPAddr }}</td>
-            <td class="col-xl-2 col-lg-2 col-md-3">{{ $element.ID.NumConn }}</td>
-            <td class="col-xl-2 col-lg-2 col-md-3 state-row">{{ captionerStatus $element.State }}</td>
+            <th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>
+              {{ inc $index }}
+            </th>
+
+            <td class="col-xl-2 col-lg-2 col-md-3">
+              {{ $element.ID.IPAddr }}
+            </td>
+
+            <td class="col-xl-2 col-lg-2 col-md-3">
+              {{ $element.ID.NumConn }}
+            </td>
+            
+            <td class="col-xl-2 col-lg-2 col-md-3 state-row">
+              {{ captionerStatus $element.State }}
+            </td>
 
             <!-- connected = 0, disconnected = 1, muted = 2, unmuted = 3 -->
             {{ if or (eq $element.State 2) (eq $element.State 3) }} 
@@ -251,7 +301,6 @@
     </tbody>
   </table>
 </div>
-
 {{ end }}
 
 {{ define "scripts"}}
