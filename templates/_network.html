@@ -163,13 +163,13 @@
   <h3>Add an Encoder</h3>
 </div>
 
-<div class="panel">
-  <div class="row">
-    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" 
-      data-network-id="{{ $.Network.ID }}">
-      
-      {{ $.csrfField }}
+<div class="row">
+  <form id="add-encoder-form" class="form-horizontal" method="POST" 
+    accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
+    
+    {{ $.csrfField }}
 
+    <div class="form-group">
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
@@ -201,8 +201,10 @@
           <input name="port" id="encoder-form-port" type="text" 
             class="form-control" value="23" placeholder="23" autocomplete="off">
         </div>
-      </div>
+      </div>        
+    </div>
 
+    <div class="form-group">
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
@@ -230,8 +232,8 @@
           </span>
         </div>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
 
   <div class="alert alert-danger row buffered-row" role="alert" 
     id="encoder-form-error-container" hidden>
