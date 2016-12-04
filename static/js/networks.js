@@ -377,19 +377,6 @@ function addAddEncoderHandler() {
   });
 };
 
-function addEditEncoderHandler() {
-  $('#edit-encoder').click(function (e) {
-    $.ajax({
-      url: '/encoder/' + id,
-      type: 'POST',
-      dataType: 'json',
-      // data: {param1: 'value1'},
-    }).done(function() {
-      console.log('success');
-    }).fail(alertAjaxFailure);
-  });
-};
-
 function addDeleteEncoderHandler() {
   $('.delete-encoder-button').click(function(event) {
     event.preventDefault();
