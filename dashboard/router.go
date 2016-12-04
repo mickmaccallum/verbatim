@@ -691,7 +691,6 @@ func handleNetworksPage(router *mux.Router) {
 			}
 
 			if !set {
-				log.Println("encoder is disconnect")
 				encoder.Status = states.EncoderDisconnected
 			}
 
