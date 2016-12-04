@@ -246,11 +246,11 @@ function addEncoder(encoder) {
   var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
 
   row.append('<th scope=row>' + (count + 1) + '</th>');
-  row.append('<td>' + encoder.Name + '</td>');
-  row.append('<td>' + encoder.IPAddress + '</td>');
-  row.append('<td>' + encoder.Port + '</td>');
-  row.append('<td>' + encoder.Handle + '</td>');
-  row.append('<td>' + encoder.Password + '</td>');
+  row.append('<td class="editable">' + encoder.Name + '</td>');
+  row.append('<td class="editable">' + encoder.IPAddress + '</td>');
+  row.append('<td class="editable">' + encoder.Port + '</td>');
+  row.append('<td class="editable">' + encoder.Handle + '</td>');
+  row.append('<td class="editable">' + encoder.Password + '</td>');
   row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
   row.append(deleteItem);
 
@@ -490,10 +490,6 @@ function configureEditing() {
 
   configureNetworkEditing();
   configureEncoderEditing();
-
-  $('#encoder-selection-table > tbody td').editable({
-    mode: 'inline'
-  });
 };
 
 function configureNetworkEditing() {
@@ -542,8 +538,45 @@ function configureNetworkEditing() {
 };
 
 function configureEncoderEditing() {
-  $('').editable({
+  $('#encoder-selection-table > tbody td.editable').editable({
+    url: function(event) {
+      var d = new $.Deferred();
+      // var id = $('#editing-page-header').attr('data-network-id');
 
+      // var data = $('#edit-network-form').serializeArray();
+      // $('.page-header > h1,h2,h3 > span').each(function(index, el) {
+      //   var obj = $(el);
+      //   var attribute = obj.attr('name').trim();
+
+      //   if (event.name == obj.attr('data-name')) {
+      //     data.push({
+      //       name: attribute,
+      //       value: event.value.trim()
+      //     });
+      //   } else {
+      //     data.push({
+      //       name: attribute,
+      //       value: obj.text().trim()
+      //     });          
+      //   }
+      // });
+
+      // if (event.value == null || event.value.toString().length === 0) {
+      //   return d.reject('field empty');
+      // }
+
+      // $.ajax({
+      //   url: '/network/' + id,
+      //   type: 'POST',
+      //   data: $.param(data),
+      // }).done(function() {
+      //   d.resolve(this);
+      // }).fail(function(xhr, status, error) {
+      //   d.reject(readAjaxError(xhr, error));
+      // });
+
+      return d.promise(); 
+    }
   });
 };
 

@@ -90,11 +90,11 @@
         {{range $index, $element := .Encoders }}
         <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
           <th scope=row>{{ inc $index }}</th>
-          <td>{{ $element.Name.Value }}</td>
-          <td>{{ $element.IPAddress }}</td>
-          <td>{{ $element.Port }}</td>
-          <td>{{ $element.Handle }}</td>
-          <td>{{ $element.Password }}</td>
+          <td class="editable">{{ $element.Name.Value }}</td>
+          <td class="editable">{{ $element.IPAddress }}</td>
+          <td class="editable">{{ $element.Port }}</td>
+          <td class="editable">{{ $element.Handle }}</td>
+          <td class="editable">{{ $element.Password }}</td>
           <td class="encoder-status-row">
             {{ encoderStatus $element.Status }}
           </td>
