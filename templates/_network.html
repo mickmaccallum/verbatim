@@ -83,18 +83,38 @@
       </tr>
     </thead>
 
-    <form id="delete-encoder-form" method="POST" accept-charset="UTF-8">
+    <form id="delete-encoder-form" method="POST" 
+      accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
+
       {{ $.csrfField }}
 
       <tbody>
         {{range $index, $element := .Encoders }}
         <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
-          <th scope=row>{{ inc $index }}</th>
-          <td class="editable">{{ $element.Name.Value }}</td>
-          <td class="editable">{{ $element.IPAddress }}</td>
-          <td class="editable">{{ $element.Port }}</td>
-          <td class="editable">{{ $element.Handle }}</td>
-          <td class="editable">{{ $element.Password }}</td>
+          <th scope=row>
+            {{ inc $index }}
+          </th>
+          
+          <td class="editable" data-name="name" name="name">
+            {{ $element.Name.Value }}
+          </td>
+
+          <td class="editable" data-name="ip_address" name="ip_address">
+            {{ $element.IPAddress }}
+          </td>
+          
+          <td class="editable" data-name="port" name="port">
+            {{ $element.Port }}
+          </td>
+          
+          <td class="editable" data-name="handle" name="handle">
+            {{ $element.Handle }}
+          </td>
+          
+          <td class="editable" data-name="password" name="password">
+            {{ $element.Password }}
+          </td>
+          
           <td class="encoder-status-row">
             {{ encoderStatus $element.Status }}
           </td>
