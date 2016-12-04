@@ -488,6 +488,15 @@ function addDisconnectCaptionerListeners() {
 function configureEditing() {
   $.fn.editable.defaults.mode = 'inline';
 
+  configureNetworkEditing();
+  configureEncoderEditing();
+
+  $('#encoder-selection-table > tbody td').editable({
+    mode: 'inline'
+  });
+};
+
+function configureNetworkEditing() {
   $('.page-header > h1,h2,h3 > span').editable({
     mode: 'popup',
     placement: 'right',
@@ -498,38 +507,43 @@ function configureEditing() {
       var data = $('#edit-network-form').serializeArray();
       $('.page-header > h1,h2,h3 > span').each(function(index, el) {
         var obj = $(el);
+        var attribute = obj.attr('name').trim();
 
         if (event.name == obj.attr('data-name')) {
           data.push({
-            name: obj.attr('name'),
-            value: event.value
+            name: attribute,
+            value: event.value.trim()
           });
         } else {
           data.push({
-            name: obj.attr('name'),
-            value: obj.text()
+            name: attribute,
+            value: obj.text().trim()
           });          
         }
       });
 
-      console.log(data);
-      if (event.value === 'abc') {
-        return d.reject('error message');
-      } else {
-        $.ajax({
-          url: '/network/' + id,
-          type: 'POST',
-          data: $.param(data),
-        }).done(function() {
-          d.resolve(this);
-        }).fail(alertAjaxFailure);
-
-        return d.promise();
+      if (event.value == null || event.value.toString().length === 0) {
+        return d.reject('field empty');
       }
+
+      $.ajax({
+        url: '/network/' + id,
+        type: 'POST',
+        data: $.param(data),
+      }).done(function() {
+        d.resolve(this);
+      }).fail(function(xhr, status, error) {
+        d.reject(readAjaxError(xhr, error));
+      });
+
+      return d.promise(); 
     }
   });
+};
 
-  $('#encoder-selection-table > tbody td').editable({
-    mode: 'inline'
+function configureEncoderEditing() {
+  $('').editable({
+
   });
 };
+
