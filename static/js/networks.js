@@ -1,7 +1,6 @@
 
 $(function() {
   addAddEncoderHandler();
-  addEditEncoderHandler();
   addDeleteEncoderHandler();
   addConnectEncoderHandler();
   addDisconnectEncoderHandler();
