@@ -1,3 +1,6 @@
 #! /bin/bash
+set -euo pipefail
 
-go build && ./verbatim
+go build -o verbatim
+sudo setcap cap_net_bind_service=ep ./verbatim
+./verbatim
