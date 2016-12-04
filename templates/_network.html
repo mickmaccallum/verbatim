@@ -83,18 +83,38 @@
       </tr>
     </thead>
 
-    <form id="delete-encoder-form" method="POST" accept-charset="UTF-8">
+    <form id="delete-encoder-form" method="POST" 
+      accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
+
       {{ $.csrfField }}
 
       <tbody>
         {{range $index, $element := .Encoders }}
         <tr class="encoder-row" data-encoder-id="{{ $element.ID }}">
-          <th scope=row>{{ inc $index }}</th>
-          <td>{{ $element.Name.Value }}</td>
-          <td>{{ $element.IPAddress }}</td>
-          <td>{{ $element.Port }}</td>
-          <td>{{ $element.Handle }}</td>
-          <td>{{ $element.Password }}</td>
+          <th scope=row>
+            {{ inc $index }}
+          </th>
+          
+          <td class="editable" data-name="name" name="name">
+            {{ $element.Name.Value }}
+          </td>
+
+          <td class="editable" data-name="ip_address" name="ip_address">
+            {{ $element.IPAddress }}
+          </td>
+          
+          <td class="editable" data-name="port" name="port">
+            {{ $element.Port }}
+          </td>
+          
+          <td class="editable" data-name="handle" name="handle">
+            {{ $element.Handle }}
+          </td>
+          
+          <td class="editable" data-name="password" name="password">
+            {{ $element.Password }}
+          </td>
+          
           <td class="encoder-status-row">
             {{ encoderStatus $element.Status }}
           </td>
@@ -125,7 +145,7 @@
             <td class="encoder-connect-row"></td>
           {{ end }}
 
-          <td>
+          <td class="encoder-delete-row">
             <p data-placement="top" data-toggle="tooltip" title="Delete">
               <button class="btn btn-danger btn-xs pull-right delete-encoder-button">
                 <span class="glyphicon glyphicon-trash"></span>
@@ -143,13 +163,13 @@
   <h3>Add an Encoder</h3>
 </div>
 
-<div class="panel">
-  <div class="row">
-    <form id="add-encoder-form" method="POST" accept-charset="UTF-8" 
-      data-network-id="{{ $.Network.ID }}">
-      
-      {{ $.csrfField }}
+<div class="row">
+  <form id="add-encoder-form" class="form-horizontal" method="POST" 
+    accept-charset="UTF-8" data-network-id="{{ $.Network.ID }}">
+    
+    {{ $.csrfField }}
 
+    <div class="form-group">
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
@@ -181,8 +201,10 @@
           <input name="port" id="encoder-form-port" type="text" 
             class="form-control" value="23" placeholder="23" autocomplete="off">
         </div>
-      </div>
+      </div>        
+    </div>
 
+    <div class="form-group">
       <div class="col-md-4 col-lg-4 col-xl-4">
         <div class="input-group">
           <span class="input-group-addon">
@@ -210,8 +232,8 @@
           </span>
         </div>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
 
   <div class="alert alert-danger row buffered-row" role="alert" 
     id="encoder-form-error-container" hidden>

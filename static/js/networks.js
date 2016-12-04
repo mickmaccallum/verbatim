@@ -43,7 +43,7 @@ function changeEncoderState(encoder, encoderState) {
     return;
   }
 
-  setEncoderRowState(row, state);
+  setEncoderRowState(row, encoderState);
   var connectColumn = row.children('.encoder-connect-row');
 
   if (encoderState === 0) {
@@ -233,7 +233,7 @@ function addEncoder(encoder) {
   }
 
   var body = $('#encoder-selection-table > tbody');
-  var deleteItem = '<td class="col-md-1">' +
+  var deleteItem = '<td class="encoder-delete-row">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
         '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
           '<span class="glyphicon glyphicon-trash"></span>' +
@@ -246,12 +246,13 @@ function addEncoder(encoder) {
   var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
 
   row.append('<th scope=row>' + (count + 1) + '</th>');
-  row.append('<td>' + encoder.Name + '</td>');
-  row.append('<td>' + encoder.IPAddress + '</td>');
-  row.append('<td>' + encoder.Port + '</td>');
-  row.append('<td>' + encoder.Handle + '</td>');
-  row.append('<td>' + encoder.Password + '</td>');
+  row.append('<td class="editable" data-name="name" name="name">' + encoder.Name + '</td>');
+  row.append('<td class="editable" data-name="ip_address" name="ip_address">' + encoder.IPAddress + '</td>');
+  row.append('<td class="editable" data-name="port" name="port">' + encoder.Port + '</td>');
+  row.append('<td class="editable" data-name="handle" name="handle">' + encoder.Handle + '</td>');
+  row.append('<td class="editable" data-name="password" name="password">' + encoder.Password + '</td>');
   row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
+  row.append('<td class="encoder-connect-row">' + makeDisconnectButton() + '</td>');
   row.append(deleteItem);
 
   body.append(row);
@@ -367,6 +368,7 @@ function addAddEncoderHandler() {
     }).done(function(encoder) {
       if (addEncoder(encoder)) {
         addDeleteEncoderHandler();
+        addDisconnectEncoderHandler();
         configureEditing();
         recountEncoders();
         form.find('input.form-control').val('');
@@ -490,10 +492,6 @@ function configureEditing() {
 
   configureNetworkEditing();
   configureEncoderEditing();
-
-  $('#encoder-selection-table > tbody td').editable({
-    mode: 'inline'
-  });
 };
 
 function configureNetworkEditing() {
@@ -542,8 +540,50 @@ function configureNetworkEditing() {
 };
 
 function configureEncoderEditing() {
-  $('').editable({
+  $('#encoder-selection-table > tbody td.editable').editable({
+    url: function(event) {
+      var d = new $.Deferred();
+      var row = $(this).parent('tr');
+      var data = $('#delete-encoder-form').serializeArray();
 
+      data.push({
+        name: 'network_id',
+        value: $('#delete-encoder-form').attr('data-network-id')
+      });
+
+      row.children('td.editable').each(function(index, el) {
+        var obj = $(el);
+        var attribute = obj.attr('name').trim();
+
+        if (event.name == obj.attr('data-name')) {
+          data.push({
+            name: attribute,
+            value: event.value.trim()
+          });
+        } else {
+          data.push({
+            name: attribute,
+            value: obj.text().trim()
+          });          
+        }
+      });
+
+      if (event.value == null || event.value.toString().length === 0) {
+        return d.reject('field empty');
+      }
+
+      $.ajax({
+        url: '/encoder/' + row.attr('data-encoder-id'),
+        type: 'POST',
+        data: $.param(data),
+      }).done(function() {
+        d.resolve(this);
+      }).fail(function(xhr, status, error) {
+        d.reject(readAjaxError(xhr, error));
+      });
+
+      return d.promise(); 
+    }
   });
 };
 
