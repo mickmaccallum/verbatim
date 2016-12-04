@@ -15,11 +15,26 @@ type Admin struct {
 }
 
 // FormValuesToAdmin validates that an Admin can be created
-// from the given form values and creates it.
+// from the given form values.
 func FormValuesToAdmin(values url.Values) (*Admin, error) {
-	handle, password, confirmPassword :=
-		values.Get("handle"), values.Get("password"), values.Get("confirm_password")
+	handle := values.Get("new_admin_handle")
+	password := values.Get("new_admin_password")
+	confirmPassword := values.Get("new_admin_confirm_password")
 
+	return valuesToAdmin(handle, password, confirmPassword)
+}
+
+// RegistrationCredentialsToAdmin validates that an Admin can be created
+// from the given form values.
+func RegistrationCredentialsToAdmin(values url.Values) (*Admin, error) {
+	handle := values.Get("handle")
+	password := values.Get("password")
+	confirmPassword := values.Get("confirm_password")
+
+	return valuesToAdmin(handle, password, confirmPassword)
+}
+
+func valuesToAdmin(handle string, password string, confirmPassword string) (*Admin, error) {
 	if len(handle) == 0 {
 		return nil, errors.New("Missing Handle")
 	}

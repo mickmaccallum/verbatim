@@ -2,9 +2,10 @@ package model
 
 import (
 	"errors"
-	"github.com/0x7fffffff/verbatim/states"
 	"net/url"
 	"strconv"
+
+	"github.com/0x7fffffff/verbatim/states"
 )
 
 // NetworkID lint

@@ -19,7 +19,7 @@ function addAdmin(admin) {
   row.attr('data-admin-id', admin.ID + '');
   row.attr('data-admin-handle', admin.Handle);
 
-  row.append('<th class="col-md-1 col-lg-1 col-xl-1" scope=row>0</th>');
+  row.append('<th class="col-md-1 col-lg-1 col-xl-1 row-number" scope=row>0</th>');
   row.append('<td class="col-md-10 col-lg-10 col-xl-10">' + admin.Handle + '</td>');
   row.append('<td class="col-md-1 col-lg-1 col-xl-1">' + makeDeleteButton() + '</td>');
 
@@ -43,13 +43,17 @@ function addAdmin(admin) {
 
 function addHandleChangeListener() {
   $('#submit-handle-change').click(function(event) {
+    event.preventDefault();
+
+    var form = $('#admin-handle-form');
+
     $.ajax({
       url: '/account/handle',
       type: 'POST',
-      data: $('#admin-handle-form').serialize(),
-    }).done(function(response) {
-      // $('#network-form-port').val('');
-      // $('#network-form-name').val('');
+      data: form.serialize(),
+    }).done(function() {
+      $('#top-account-name').text($('#admin-form-handle').val());
+      form.blur();
     }).fail(alertAjaxFailure);
   });
 };
@@ -136,6 +140,7 @@ function hideErrorContainer(container) {
 function addPasswordChangeListener() {
   $('#submit-password-change').click(function(event) {
     event.preventDefault();
+
     var passwordErrors = validateNewPasswordForm();
     var container = $('#change-password-form-error-container');
 
@@ -153,6 +158,7 @@ function addPasswordChangeListener() {
       data: form.serialize(),
     }).done(function(response) {
       form.find('input.form-control').val('');
+      form.blur();
     }).fail(alertAjaxFailure);
   });	
 };
@@ -214,6 +220,7 @@ function addAddAdminListener() { // that's hard to say...
     }).done(function(admin) {
       form.find('input.form-control').val('');
       addAdmin(admin);
+      $(window).blur();
     }).fail(alertAjaxFailure);    
   });
 };

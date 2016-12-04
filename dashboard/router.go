@@ -112,7 +112,7 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 
 	base := map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(request),
-		"SocketURL":      "ws://" + request.Host + "/socket", // TODO: Update to wss:// once SSL support is added.
+		"SocketURL":      "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
 		"ShowAccount":    showAccount,
 	}
 
@@ -291,7 +291,7 @@ func handleAccountsPage(router *mux.Router) {
 			return
 		}
 
-		handle := request.Form.Get("handle")
+		handle := request.Form.Get("new_handle")
 		if len(handle) == 0 || len(handle) > 255 {
 			writer.WriteHeader(http.StatusUnprocessableEntity)
 			return
@@ -390,7 +390,7 @@ func handleLogin(router *mux.Router) {
 			return
 		}
 
-		admin, err := model.FormValuesToAdmin(request.Form)
+		admin, err := model.RegistrationCredentialsToAdmin(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return
@@ -428,12 +428,6 @@ func handleLogin(router *mux.Router) {
 	}).Methods("GET")
 
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
-		// session, sessionOk := checkSessionValidity(request)
-		// if !sessionOk {
-		// 	writer.WriteHeader(http.StatusUnauthorized)
-		// 	return
-		// }
-
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)
 			return
@@ -516,7 +510,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoder, err := model.FormValuesToEncoder(request.Form)
+		encoder, err := model.FormValuesToNewEncoder(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return

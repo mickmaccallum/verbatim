@@ -4,7 +4,9 @@
 
 <ol class="breadcrumb">
   <li><a href="/">Dashboard</a></li>
-  <li class="active">Account ({{ .Admin.Handle }})</li>
+  <li class="active">
+    Account&nbsp;(<span id="top-account-name">{{ .Admin.Handle }}</span>)
+  </li>
 </ol>
 
 <div class="page-header">
@@ -24,10 +26,15 @@
             Handle
           </span>
 
-          <input id="admin-form-handle" name="handle" type="text" class="form-control" value="{{ .Admin.Handle }}">
+          <input id="admin-form-handle" name="new_handle" type="text" 
+            class="form-control" value="{{ .Admin.Handle }}" autocomplete="off">
           
           <span class="input-group-btn">
-            <button id="submit-handle-change" class="btn btn-default" type="button">Save</button>
+            <button id="submit-handle-change" 
+              class="btn btn-default" type="submit">
+
+              Save
+            </button>
           </span>
         </div>
       </div>
@@ -48,7 +55,9 @@
             Old Password
           </span>
 
-          <input id="admin-form-old-password" name="old_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-old-password" name="old_password" 
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
         </div>
       </div>
 
@@ -58,7 +67,9 @@
             New Password
           </span>
 
-          <input id="admin-form-password" name="new_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-password" name="new_password" 
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
         </div>
       </div>      
 
@@ -68,18 +79,27 @@
             Confirm Password
           </span>
 
-          <input id="admin-form-confirm-password" name="confirm_new_password" type="password" class="form-control" placeholder="********" required>
+          <input id="admin-form-confirm-password" name="confirm_new_password" 
+            type="password" class="form-control" placeholder="********" 
+            autocomplete="off" required>
           
           <span class="input-group-btn">
-            <button id="submit-password-change" class="btn btn-default" type="button">Save</button>
+            <button id="submit-password-change" 
+              class="btn btn-default" type="submit">
+
+              Save
+            </button>
           </span>
         </div>
       </div>
     </form>
   </div>
 
-  <div class="alert alert-danger row buffered-row" role="alert" id="change-password-form-error-container" hidden>
-    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <div class="alert alert-danger row buffered-row" role="alert" 
+    id="change-password-form-error-container" hidden>
+    <span class="glyphicon glyphicon-exclamation-sign" 
+      aria-hidden="true"></span>
+
     <span class="sr-only">Errors:</span>
   </div>
 </div>
@@ -95,9 +115,11 @@
 </div>
 
 {{ if eq (len $admins) 0 }}
-<div class="table-responsive panel panel-default" id="admin-list-wrapper" hidden>
+<div class="table-responsive panel panel-default" 
+  id="admin-list-wrapper" hidden>
 {{ else }}
-<div class="table-responsive panel panel-default" id="admin-list-wrapper">
+<div class="table-responsive panel panel-default" 
+  id="admin-list-wrapper">
 {{ end }}
   <div class="panel-heading">Other Admins</div>
 
@@ -116,13 +138,23 @@
       <tbody>
         {{ range $index, $element := $admins }}
           {{ if ne $element.ID $.Admin.ID }}
-            <tr data-admin-id="{{ $element.ID }}" data-admin-handle="{{ $element.Handle }}">
-              <th class="col-md-1 col-lg-1 col-xl-1" scope=row>{{ inc $index }}</th>
-              <td class="col-md-10 col-lg-10 col-xl-10">{{ $element.Handle }}</td>
+            <tr data-admin-id="{{ $element.ID }}" 
+              data-admin-handle="{{ $element.Handle }}">
+
+              <th class="col-md-1 col-lg-1 col-xl-1 row-number" scope=row>
+                {{ inc $index }}
+              </th>
+
+              <td class="col-md-10 col-lg-10 col-xl-10">
+                {{ $element.Handle }}
+              </td>
 
               <td class="col-md-1 col-lg-1 col-xl-1">
                 <p data-placement="top" data-toggle="tooltip" title="Delete">
-                  <button class="btn btn-danger btn-xs pull-right delete-button" data-title="Delete" data-toggle="modal" data-target="#delete">
+                  <button class="btn btn-danger btn-xs pull-right delete-button" 
+                    data-title="Delete" data-toggle="modal" 
+                    data-target="#delete">
+
                     <span class="glyphicon glyphicon-trash"></span>
                   </button>
                 </p>
@@ -149,7 +181,9 @@
           Handle
         </span>
 
-        <input id="add-admin-form-handle" name="handle" type="text" class="form-control" placeholder="admin123">
+        <input id="add-admin-form-handle" name="new_admin_handle" 
+          type="text" class="form-control" 
+          placeholder="admin123" autocomplete="off">
       </div>
     </div>
 
@@ -159,7 +193,9 @@
           Password
         </span>
 
-        <input id="add-admin-form-password" name="password" type="password" class="form-control" placeholder="********">
+        <input id="add-admin-form-password" name="new_admin_password" 
+          type="password" class="form-control" 
+          placeholder="********" autocomplete="off">
       </div>
     </div>
 
@@ -169,17 +205,22 @@
           Confirm Password
         </span>
 
-        <input id="add-admin-form-confirm-password" name="confirm_password" type="password" class="form-control" placeholder="********">
+        <input id="add-admin-form-confirm-password" 
+          name="new_admin_confirm_password" type="password" 
+          class="form-control" placeholder="********" autocomplete="off">
         
         <span class="input-group-btn">
-          <button id="submit-add-admin" class="btn btn-default" type="button">Add Admin</button>
+          <button id="submit-add-admin" class="btn btn-default" type="submit">
+            Add Admin
+          </button>
         </span>
       </div>
     </div>
   </form>
 </div>
 
-<div class="alert alert-danger row buffered-row" role="alert" id="add-admin-form-error-container" hidden>
+<div class="alert alert-danger row buffered-row" role="alert" 
+  id="add-admin-form-error-container" hidden>
   <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
   <span class="sr-only">Errors:</span>
 </div>
