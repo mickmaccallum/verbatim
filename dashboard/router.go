@@ -510,7 +510,7 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
-		encoder, err := model.FormValuesToEncoder(request.Form)
+		encoder, err := model.FormValuesToNewEncoder(request.Form)
 		if err != nil {
 			clientError(writer, err)
 			return

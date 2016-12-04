@@ -35,6 +35,7 @@ function setEncoderRowState(encoderRow, encoderState) {
   encoderRow.children('.encoder-status-row').val(state);
 };
 
+// connected = 0, connecting = 1, auth failure = 2, faulted = 3, disconnected = 4
 function changeEncoderState(encoder, encoderState) {
   var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
 

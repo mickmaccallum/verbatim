@@ -24,9 +24,25 @@ type Encoder struct {
 	Status    states.Encoder
 }
 
+func FormValuesToNewEncoder(values url.Values) (*Encoder, error) {
+	handleKey, passwordKey := "new_encoder_handle", "new_encoder_password"
+	handle, password := values.Get(handleKey), values.Get(passwordKey)
+
+	values.Del(handleKey)
+	values.Del(passwordKey)
+	values.Set("handle", handle)
+	values.Set("password", password)
+
+	return formToEncoder(values)
+}
+
 // FormValuesToEncoder validates that an Encoder can be created
 // from the given form values and creates it.
 func FormValuesToEncoder(values url.Values) (*Encoder, error) {
+	return formToEncoder(values)
+}
+
+func formToEncoder(values url.Values) (*Encoder, error) {
 	ipAddress, portString, name, handle, password, networkIDString :=
 		values.Get("ip_address"),
 		values.Get("port"),
