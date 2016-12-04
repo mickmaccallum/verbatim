@@ -13,6 +13,10 @@ function alertError(error) {
 };
 
 function alertAjaxFailure(xhr, status, error) {
+  alertError(readAjaxError(xhr, error));
+};
+
+function readAjaxError(xhr, error) {
   var message = '';
   if (xhr.responseText != null) {
     message = xhr.responseText;
@@ -20,5 +24,5 @@ function alertAjaxFailure(xhr, status, error) {
     message = error;
   }
 
-  alertError(message);
-};
+  return message;
+}
