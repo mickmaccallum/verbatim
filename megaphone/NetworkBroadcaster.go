@@ -7,6 +7,7 @@ import (
 	"github.com/0x7fffffff/verbatim/persist"
 	"log"
 	"net"
+	"time"
 )
 
 type AddEncoderResult int
@@ -154,7 +155,10 @@ func writeMessageSegmented(conn net.Conn, msg []byte) error {
 
 func loginToEncoder(enc model.Encoder, ctx context.Context) (net.Conn, error) {
 	addr := fmt.Sprint(enc.IPAddress, ":", enc.Port)
-	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", addr)
+	// Give a 5 second timeout for the dial to succeed or fail
+	conn, err := (&net.Dialer{
+		Timeout: time.Second * 5,
+	}).DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return nil, err
 	}
@@ -173,6 +177,7 @@ func loginToEncoder(enc model.Encoder, ctx context.Context) (net.Conn, error) {
 }
 
 func handleEncoder(enc model.Encoder, inbound chan []byte, ctx context.Context, n *NetworkBroadcaster) {
+	relay.LoggingIn(enc)
 	conn, err := loginToEncoder(enc, ctx)
 	if err != nil {
 		// Login failed, remove it from the list of the things
@@ -199,6 +204,7 @@ func handleEncoder(enc model.Encoder, inbound chan []byte, ctx context.Context, 
 					// Signal to the broadcaster that we have an error
 					relay.UnexpectedDisconnect(enc)
 					n.removeEncoder(enc.ID)
+					conn.Close()
 					// n.faultedEncoder <- encId(enc)
 					return
 				}

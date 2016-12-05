@@ -8,6 +8,9 @@ import (
 
 type encoderListener struct{}
 
+func (e encoderListener) LoggingIn(enc model.Encoder) {
+	dashboard.EncoderStateChanged(enc, states.EncoderConnecting)
+}
 // Logged into encoder properly
 func (e encoderListener) LoginSucceeded(enc model.Encoder) {
 	dashboard.EncoderStateChanged(enc, states.EncoderConnected)
