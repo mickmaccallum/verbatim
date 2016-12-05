@@ -48,13 +48,15 @@ function changeEncoderState(encoder, encoderState) {
   var connectColumn = row.children('.encoder-connect-row');
 
   if (encoderState === 0) {
-    connectColumn.html(makeDisconnectButton());
-    addDisconnectEncoderHandler();
+    var disconnectButton = makeDisconnectButton();
+    connectColumn.html(disconnectButton);
+    addDisconnectListener(disconnectButton.find('.disconnect-encoder-button'));
   } else if (encoderState === 1) {
     connectColumn.html('');
   } else {
-    connectColumn.html(makeConnectButton());
-    addConnectEncoderHandler();
+    var connectButton = $(makeConnectButton());
+    connectColumn.html(connectButton);
+    addConnectListener(connectButton.find('.connect-encoder-button'));
   }
 };
 
@@ -182,6 +184,9 @@ function changeCaptionerState(captioner, state) {
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
+      console.log('+++++++++++ new ws message +++++++++++');
+      console.log(message);
+      console.log('++++++++++++++++++++++++++++++++++++++');
       var encoderState = message['encoderState'];
       var captionerState = message['captionerState'];
 
@@ -234,13 +239,15 @@ function addEncoder(encoder) {
   }
 
   var body = $('#encoder-selection-table > tbody');
-  var deleteItem = '<td class="encoder-delete-row">' +
+  var deleteItem = $('<td class="encoder-delete-row">' +
       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
         '<button class="btn btn-danger btn-xs pull-right delete-encoder-button">' +
           '<span class="glyphicon glyphicon-trash"></span>' +
         '</button>' +
       '</p>' +
-    '</td>';
+    '</td>');
+
+  var disconnectItem = $('<td class="encoder-connect-row">' + makeDisconnectButton() + '</td>');
 
   var count = body.children().length;
 
@@ -252,9 +259,12 @@ function addEncoder(encoder) {
   row.append('<td class="editable" data-name="port" name="port">' + encoder.Port + '</td>');
   row.append('<td class="editable" data-name="handle" name="handle">' + encoder.Handle + '</td>');
   row.append('<td class="editable" data-name="password" name="password">' + encoder.Password + '</td>');
-  row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
-  row.append('<td class="encoder-connect-row">' + makeConnectButton() + '</td>');
+  row.append('<td>' + encoderStateToString(1) + '</td>');
+  row.append(disconnectItem);
   row.append(deleteItem);
+
+  addDisconnectListener(disconnectItem.find('.disconnect-encoder-button'));
+  addDeleteHandler(deleteItem.find('.delete-encoder-button'));
 
   body.append(row);
 
@@ -368,8 +378,6 @@ function addAddEncoderHandler() {
       data: $.param(data),
     }).done(function(encoder) {
       if (addEncoder(encoder)) {
-        addDeleteEncoderHandler();
-        addDisconnectEncoderHandler();
         configureEditing();
         recountEncoders();
         form.find('input.form-control').val('');
