@@ -21,15 +21,16 @@ function addAdmin(admin) {
 
   row.append('<th class="col-md-1 col-lg-1 col-xl-1 row-number" scope=row>0</th>');
   row.append('<td class="col-md-10 col-lg-10 col-xl-10">' + admin.Handle + '</td>');
-  row.append('<td class="col-md-1 col-lg-1 col-xl-1">' + makeDeleteButton() + '</td>');
+  var deleteButton = $(makeDeleteButton());
+  var deleteColumn = $('<td class="col-md-1 col-lg-1 col-xl-1"></td>');
+  deleteColumn.append(deleteButton);
+  row.append(deleteColumn);
 
   var wrapper = $('#admin-list-wrapper');
   if (wrapper.is(':hidden')) {
     $('#admin-selection-table > tbody').append(row);
 
     recountAdmins();
-    addDeleteAdminListener();
-
     wrapper.show('slow');
     $('#admin-list-header').show('slow');
   } else {
@@ -37,8 +38,9 @@ function addAdmin(admin) {
     row.appendTo('#admin-selection-table > tbody').show('fast');
 
     recountAdmins();
-    addDeleteAdminListener();
   }
+
+  addDeleteHandler($(deleteButton.find('.delete-button')));
 };
 
 function addHandleChangeListener() {
@@ -164,7 +166,11 @@ function addPasswordChangeListener() {
 };
 
 function addDeleteAdminListener() {
-  $('.delete-button').click(function(event) {
+  addDeleteHandler($('.delete-button'));
+};
+
+function addDeleteHandler(object) {
+  object.click(function(event) {
     event.stopPropagation();
     event.preventDefault();
 
@@ -186,11 +192,13 @@ function addDeleteAdminListener() {
       if (count <= 1) {
         $('#admin-list-header').hide('400');
         $('#admin-list-wrapper').hide('400', function() {
-          row.remove();          
+          row.remove();
+          recountAdmins();
         });
       } else {
         row.hide('fast', function() {
-          this.remove();          
+          this.remove();
+          recountAdmins();
         });
       }
     }).fail(alertAjaxFailure);
