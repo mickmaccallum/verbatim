@@ -34,14 +34,16 @@ func FormValuesToCaptionerID(values url.Values) (*CaptionerID, error) {
 		values.Get("networkId")
 
 	// validate IPv4 & IPv6 addresses
-	valid, err := isValidIp(ipAddress)
-	if err != nil {
-		return nil, err
-	}
+	/*
+		valid, err := isValidIp(ipAddress)
+		if err != nil {
+			return nil, err
+		}
 
-	if !valid {
-		return nil, errors.New("Invalid IP address")
-	}
+		if !valid {
+			return nil, errors.New("Invalid IP address")
+		}
+	*/
 
 	// sizeof(int); derp
 	if len(numConnString) == 0 || len(numConnString) > 10 {
