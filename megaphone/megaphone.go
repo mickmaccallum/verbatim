@@ -5,7 +5,6 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"log"
-	"net"
 )
 
 func encId(enc model.Encoder) model.EncoderID {
@@ -100,32 +99,30 @@ func setupEncoders() error {
 		return err
 	}
 
-	encoderFaulted := make(chan encoderIdPair)
+	// encoderFaulted := make(chan encoderIdPair)
 	networkBroadcasters = make(map[model.NetworkID]*NetworkBroadcaster)
 	for _, n := range networks {
-		broadcaster := makeBroadcaster(n.ID, encoderFaulted)
+		broadcaster := makeBroadcaster(n.ID) /*, encoderFaulted)*/
 		networkBroadcasters[n.ID] = broadcaster
 		// Launch this off so that calls below don't block
 		go broadcaster.serveConnection()
 	}
 	for _, encoder := range encoders {
 		broadcaster := networkBroadcasters[networkId(encoder)]
-		inbound := make(chan []byte)
-		broadcaster.registerEncoderChan(encId(encoder), inbound)
-		go handleEncoder(encoder, inbound, broadcaster)
+		broadcaster.registerEncoder(encoder)
 	}
-	daemonOfAwesome(networkBroadcasters, encoderFaulted)
+	daemonOfAwesome(networkBroadcasters) //, encoderFaulted)
 	return fmt.Errorf("Closed the daemon of awesome for some reason")
 }
 
-func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encoderFaulted chan encoderIdPair) {
+func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster /*, encoderFaulted chan encoderIdPair*/) {
 	for {
 		select {
 		case id := <-askBroadcaster:
 			giveBroadCasters <- broadcasters[id]
 		case newNet := <-networkAdded:
 			if _, found := broadcasters[netId(newNet)]; !found {
-				b := makeBroadcaster(netId(newNet), encoderFaulted)
+				b := makeBroadcaster(netId(newNet)) //, encoderFaulted)
 				broadcasters[netId(newNet)] = b
 				go b.serveConnection()
 			}
@@ -144,23 +141,24 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 			broadcasters[model.NetworkID(enc.NetworkID)].removeEncoder(model.EncoderID(enc.ID))
 
 		// TODO: This code isn't currently being used, but could be used if we need something like this in the future
-		case restartEnc := <-encoderFaulted:
-			if b, found := broadcasters[restartEnc.network]; found {
-				inbound := make(chan []byte)
-				// If the encoder is already running, don't try to start it again
-				if b.registerEncoderChan(restartEnc.encoder, inbound) == encoderDidExist {
-					continue
+		/*
+			case restartEnc := <-encoderFaulted:
+				if b, found := broadcasters[restartEnc.network]; found {
+					// If the encoder is already running, don't try to start it again
+					if b.registerEncoder(restartEnc.encoder) == encoderDidExist {
+						continue
+					}
+					// Refresh the info from the database
+					enc, err := persist.GetEncoder(int(restartEnc.encoder))
+					if err != nil {
+						// Try to restart this at the next tick
+						b.faultedEncoder <- model.EncoderID(enc.ID)
+						continue
+					}
+					// Remove the encoder from the broadcaster if it dies
+					go handleEncoder(*enc, inbound, b)
 				}
-				// Refresh the info from the database
-				enc, err := persist.GetEncoder(int(restartEnc.encoder))
-				if err != nil {
-					// Try to restart this at the next tick
-					b.faultedEncoder <- model.EncoderID(enc.ID)
-					continue
-				}
-				// Remove the encoder from the broadcaster if it dies
-				go handleEncoder(*enc, inbound, b)
-			}
+		*/
 		case newEnc, ok := <-encoderAdded:
 			if !ok {
 				log.Print("Closed network addition channel!")
@@ -168,82 +166,7 @@ func daemonOfAwesome(broadcasters map[model.NetworkID]*NetworkBroadcaster, encod
 			}
 			// Make sure we're adding to a network that exists
 			if b, found := broadcasters[model.NetworkID(newEnc.NetworkID)]; found {
-				inbound := make(chan []byte)
-				// If we are asked to add an existing encoder, then do nothing
-				if b.registerEncoderChan(encId(newEnc), inbound) == encoderDidNotExist {
-					// Remove the encoder from the broadcaster if it dies
-					log.Println("Started new encoder")
-					go handleEncoder(newEnc, inbound, b)
-				} else {
-					close(inbound)
-				}
-			}
-		}
-	}
-}
-
-const LINE_CUT_WIDTH = 32
-
-func writeMessageSegmented(conn net.Conn, msg []byte) error {
-	// Write message in chunks
-	for i := 0; i*LINE_CUT_WIDTH < len(msg); i++ {
-		begin := i * LINE_CUT_WIDTH
-		end := (i + 1) * LINE_CUT_WIDTH
-		if end > len(msg) {
-			end = len(msg)
-		}
-		if _, err := conn.Write(msg[begin:end]); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func loginToEncoder(enc model.Encoder) (net.Conn, error) {
-	conn, err := net.Dial("tcp", fmt.Sprint(enc.IPAddress, ":", enc.Port))
-	if err != nil {
-		return nil, err
-	}
-	if _, err = conn.Write([]byte(enc.Handle + "\n")); err != nil {
-		return nil, err
-	}
-	if _, err = conn.Write([]byte(enc.Password + "\n")); err != nil {
-		return nil, err
-	}
-	// TODO: Read response here?
-	return conn, nil
-}
-
-func handleEncoder(enc model.Encoder, inbound chan []byte, n *NetworkBroadcaster) {
-	conn, err := loginToEncoder(enc)
-	if err != nil {
-		// Login failed, remove it from the list of the things
-		n.removeEncoder(encId(enc))
-		// And then notify that login failed for the encoder
-		// Allowing the user to try to relogin
-		relay.LoginFailed(enc)
-		// conn.Close()
-		return
-	}
-	relay.LoginSucceeded(enc)
-	for {
-		select {
-
-		case msg, ok := <-inbound:
-			if ok {
-				err := writeMessageSegmented(conn, msg)
-				if err != nil {
-					// Signal to the broadcaster that we have an error
-					relay.UnexpectedDisconnect(enc)
-					n.removeEncoder(enc.ID)
-					n.faultedEncoder <- encId(enc)
-					return
-				}
-			} else {
-				log.Println("Encoder removed")
-				conn.Close()
-				relay.Logout(enc)
-				return
+				b.registerEncoder(newEnc)
 			}
 		}
 	}
