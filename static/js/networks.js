@@ -260,9 +260,7 @@ function addEncoder(encoder) {
     '</td>');
 
   var disconnectItem = $('<td class="encoder-connect-row">' + makeDisconnectButton() + '</td>');
-
   var count = body.children().length;
-
   var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
 
   row.append('<th class="row-number" scope=row>' + (count + 1) + '</th>');
