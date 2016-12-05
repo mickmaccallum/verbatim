@@ -123,32 +123,36 @@ function makeUnmuteButton() {
 };
 
 function addCaptioner(captioner, tableId, state) {
-  var openRow = '<tr class="captioner-row" id="' + tableId + '" ' +
+  var row = $('<tr class="captioner-row" id="' + tableId + '" ' +
     'data-captioner-ip="' + captioner.IPAddr + '" ' +
     'data-captioner-num-conn="' + captioner.NumConn + '" ' +
-    'data-captioner-network-id="' + captioner.NetworkID + '">';
+    'data-captioner-network-id="' + captioner.NetworkID + '"></tr>');
 
   var headers = '<th class="col-xl-1 col-lg-1 col-md-1 row-number" scope=row>0</th>' + 
     '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.IPAddr + '</td>' + 
     '<td class="col-xl-2 col-lg-2 col-md-3">' + captioner.NumConn + '</td>' + 
     '<td class="col-xl-2 col-lg-2 col-md-3 state-row">' + captionerStateToString(state) + '</td>';
   // state will always be 0 here. Default to disconnectable/mutable
- 
-  var muteColumn = '<td class="col-xl-1 col-lg-1 col-md-1 mute-row">' + makeMuteButton() + '</td>';
-  var disconnect = '<td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">' +
+  row.append($(headers));
+
+  var muteColumn = $('<td class="col-xl-1 col-lg-1 col-md-1 mute-row"></td>');
+  muteColumn.append(makeMuteButton());
+  row.append(muteColumn);
+
+  var disconnect = $('<td class="col-xl-1 col-lg-1 col-md-1 disconnect-row">' +
                      '<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
                        '<button class="btn btn-danger btn-xs disconnect-captioner-button">' +
                          '<span class="glyphicon glyphicon-ban-circle"></span>' +
                        '</button>' +
                      '</p>' +
-                   '</td>';
- 
-  var endRow = '</tr>';
-  var row = $(openRow + headers + muteColumn + disconnect + endRow);
-  $('#captioner-selection-table > tbody').prepend(row);
+                   '</td>');
+
+  addCaptionerDisconnectListener(disconnect.find('.disconnect-captioner-button'));
+  row.append(disconnect);
+
+  $('#captioner-selection-table > tbody').append(row);
   
   recountCaptioners();
-  addDisconnectCaptionerListeners();
 
   var wrapper = $('#captioner-list-wrapper');
   if (wrapper.is(':hidden')) {
