@@ -97,7 +97,7 @@ func Start(l RelayListener) {
 	csrfHandle := csrfProtect(router) // func call conditional to the build "prod" tag.
 
 	// Start the HTTP server
-	if err := http.ListenAndServe(":4000", csrfHandle); err != nil {
+	if err := http.ListenAndServe(":80", csrfHandle); err != nil {
 		panic(err)
 	}
 }
