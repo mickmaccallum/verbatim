@@ -175,6 +175,7 @@ function changeCaptionerState(captioner, state) {
     var row = $(document.getElementById(tableId));
     row.hide('slow', function() {
       this.remove();
+      recountCaptioners();
     });
   } else if (state === 2) { // muted
     var row = $(document.getElementById(tableId));
@@ -232,7 +233,7 @@ function recountEncoders() {
   var body = $('#encoder-selection-table > tbody');
   var rows = body.children('tr');
 
-  $('#encoder-count').text(rows.length);
+  $('#encoder-count').text(rows.length + '');
   rows.each(function(index, el) {
     $(el).children('.row-number').text((index + 1) + '');
   });
@@ -264,7 +265,7 @@ function addEncoder(encoder) {
 
   var row = $('<tr class="encoder-row" data-encoder-id="' + encoder.ID + '"></tr>');
 
-  row.append('<th scope=row>' + (count + 1) + '</th>');
+  row.append('<th class="row-number" scope=row>' + (count + 1) + '</th>');
   row.append('<td class="editable" data-name="name" name="name">' + encoder.Name + '</td>');
   row.append('<td class="editable" data-name="ip_address" name="ip_address">' + encoder.IPAddress + '</td>');
   row.append('<td class="editable" data-name="port" name="port">' + encoder.Port + '</td>');
