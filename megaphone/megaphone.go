@@ -25,6 +25,9 @@ type MegaphoneListener interface {
 	// Notify that the network has been removed, along with all it's effects, from the megaphone
 	// NetworkRemoved(net model.NetworkID)
 
+	// Attempting to log into encoder
+	LoggingIn(enc model.Encoder)
+
 	// Logged into encoder properly
 	LoginSucceeded(enc model.Encoder)
 	// Logged into encoder properly
