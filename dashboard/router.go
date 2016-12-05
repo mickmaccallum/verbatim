@@ -772,17 +772,23 @@ func handleDashboardPage(router *mux.Router) {
 			return
 		}
 
-		networks, err := persist.GetNetworks()
+		tmpNetworks, err := persist.GetNetworks()
 		if err != nil {
 			serverError(writer, err)
 			return
 		}
 
+		var networks []model.Network
 		connectedNetworks := relay.GetListeningNetworks()
-		for _, network := range networks {
+
+		for _, network := range tmpNetworks {
 			if connectedNetworks[network.ID] {
 				network.State = states.NetworkListening
+			} else {
+				network.State = states.NetworkClosed
 			}
+
+			networks = append(networks, network)
 		}
 
 		data := map[string]interface{}{
