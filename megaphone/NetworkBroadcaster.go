@@ -1,8 +1,12 @@
 package megaphone
 
 import (
+	"context"
+	"fmt"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
+	"log"
+	"net"
 )
 
 type AddEncoderResult int
@@ -12,9 +16,14 @@ const (
 	encoderDidNotExist
 )
 
-type encoderChan struct {
-	id      model.EncoderID
+type encoderConn struct {
 	channel chan []byte
+	cancel  context.CancelFunc
+}
+
+type encoderChan struct {
+	id model.EncoderID
+	encoderConn
 }
 
 type encoderIdPair struct {
@@ -25,30 +34,30 @@ type encoderIdPair struct {
 type NetworkBroadcaster struct {
 	id             model.NetworkID
 	writeChan      chan []byte
-	encoderExisted chan bool
-	addEncoder     chan encoderChan
+	encoderExisted chan AddEncoderResult
+	addEncoder     chan model.Encoder
 	rmEncoder      chan model.EncoderID
-	faultedEncoder chan model.EncoderID
-	restartEncoder chan encoderIdPair
-	die            chan struct{}
-	getEncoders    chan struct{}
-	encoderIds     chan []model.EncoderID
-	encoders       map[model.EncoderID]chan []byte
+	// faultedEncoder chan model.EncoderID
+	// restartEncoder chan encoderIdPair
+	die         chan struct{}
+	getEncoders chan struct{}
+	encoderIds  chan []model.EncoderID
+	encoders    map[model.EncoderID]encoderConn
 }
 
-func makeBroadcaster(n model.NetworkID, restartEncoder chan encoderIdPair) *NetworkBroadcaster {
+func makeBroadcaster(n model.NetworkID /*, restartEncoder chan encoderIdPair*/) *NetworkBroadcaster {
 	return &NetworkBroadcaster{
 		id:             n,
 		writeChan:      make(chan []byte, 10),
-		encoderExisted: make(chan bool),
-		addEncoder:     make(chan encoderChan),
+		encoderExisted: make(chan AddEncoderResult),
+		addEncoder:     make(chan model.Encoder),
 		rmEncoder:      make(chan model.EncoderID),
-		encoders:       make(map[model.EncoderID]chan []byte),
+		encoders:       make(map[model.EncoderID]encoderConn),
 		die:            make(chan struct{}),
-		faultedEncoder: make(chan model.EncoderID),
-		restartEncoder: restartEncoder,
-		getEncoders:    make(chan struct{}),
-		encoderIds:     make(chan []model.EncoderID),
+		// faultedEncoder: make(chan model.EncoderID),
+		// restartEncoder: restartEncoder,
+		getEncoders: make(chan struct{}),
+		encoderIds:  make(chan []model.EncoderID),
 	}
 }
 
@@ -62,13 +71,9 @@ func (n NetworkBroadcaster) removeEncoder(id model.EncoderID) {
 }
 
 // If it returns true, the encoder was added, otherwise it was already running
-func (n NetworkBroadcaster) registerEncoderChan(id model.EncoderID, dest chan []byte) AddEncoderResult {
-	n.addEncoder <- encoderChan{id, dest}
-	if <-n.encoderExisted {
-		return encoderDidExist
-	} else {
-		return encoderDidNotExist
-	}
+func (n NetworkBroadcaster) registerEncoder(enc model.Encoder) AddEncoderResult {
+	n.addEncoder <- enc
+	return <-n.encoderExisted
 }
 
 func (n NetworkBroadcaster) getConnectedEncoderIds() []model.EncoderID {
@@ -91,25 +96,25 @@ func (n *NetworkBroadcaster) serveConnection() {
 				persist.CreateBackup(buf, n.id)
 			} else {
 				for _, dest := range n.encoders {
-					dest <- buf
+					dest.channel <- buf
 				}
 			}
-		case dest := <-n.addEncoder:
+		case enc := <-n.addEncoder:
 			// Only add an encoder if it hasn't been added already
-			if _, found := n.encoders[dest.id]; found {
-				n.encoderExisted <- true
+			if _, found := n.encoders[enc.ID]; found {
+				n.encoderExisted <- encoderDidExist
 				continue
 			} else {
-				n.encoders[dest.id] = dest.channel
-				n.encoderExisted <- false
+				dest := make(chan []byte)
+				ctx, cancel := context.WithCancel(context.Background())
+				n.encoders[enc.ID] = encoderConn{dest, cancel}
+				go handleEncoder(enc, dest, ctx, n)
+				n.encoderExisted <- encoderDidNotExist
 			}
 			// backoffs[dest.id] = 1 * time.Microsecond
-		case id := <-n.faultedEncoder:
-			close(n.encoders[id])
-			delete(n.encoders, id)
 		case id := <-n.rmEncoder:
-			if _, found := n.encoders[id]; found {
-				close(n.encoders[id])
+			if val, found := n.encoders[id]; found {
+				val.cancel()
 				delete(n.encoders, id)
 			}
 		case <-n.getEncoders:
@@ -119,12 +124,85 @@ func (n *NetworkBroadcaster) serveConnection() {
 			}
 			n.encoderIds <- encoders
 		case <-n.die:
-			// Close all the encoders hooked up to this broa
+			// Close all the encoders hooked up to this broadcaster
 			close(n.writeChan)
 			for _, ch := range n.encoders {
-				close(ch)
+				// Cancel out all the connections
+				ch.cancel()
 			}
 			return
+		}
+	}
+}
+
+const LINE_CUT_WIDTH = 32
+
+func writeMessageSegmented(conn net.Conn, msg []byte) error {
+	// Write message in chunks
+	for i := 0; i*LINE_CUT_WIDTH < len(msg); i++ {
+		begin := i * LINE_CUT_WIDTH
+		end := (i + 1) * LINE_CUT_WIDTH
+		if end > len(msg) {
+			end = len(msg)
+		}
+		if _, err := conn.Write(msg[begin:end]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func loginToEncoder(enc model.Encoder, ctx context.Context) (net.Conn, error) {
+	addr := fmt.Sprint(enc.IPAddress, ":", enc.Port)
+	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	// Hacky, make sure this isn't broken?
+	go func() {
+		<-(ctx.Done())
+		conn.Close()
+	}()
+	if _, err = conn.Write([]byte(enc.Handle + "\n")); err != nil {
+		return nil, err
+	}
+	if _, err = conn.Write([]byte(enc.Password + "\n")); err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+func handleEncoder(enc model.Encoder, inbound chan []byte, ctx context.Context, n *NetworkBroadcaster) {
+	conn, err := loginToEncoder(enc, ctx)
+	if err != nil {
+		// Login failed, remove it from the list of the things
+		n.removeEncoder(encId(enc))
+		// And then notify that login failed for the encoder
+		// Allowing the user to try to relogin
+		relay.LoginFailed(enc)
+		// conn.Close()
+		return
+	}
+	relay.LoginSucceeded(enc)
+	for {
+		select {
+		case <-(ctx.Done()):
+			log.Println("Encoder removed")
+			close(inbound)
+			relay.Logout(enc)
+			return
+
+		case msg, ok := <-inbound:
+			if ok {
+				err := writeMessageSegmented(conn, msg)
+				if err != nil {
+					// Signal to the broadcaster that we have an error
+					relay.UnexpectedDisconnect(enc)
+					n.removeEncoder(enc.ID)
+					// n.faultedEncoder <- encId(enc)
+					return
+				}
+			}
 		}
 	}
 }
