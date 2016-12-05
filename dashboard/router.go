@@ -787,6 +787,8 @@ func handleDashboardPage(router *mux.Router) {
 			} else {
 				network.State = states.NetworkClosed
 			}
+
+			networks = append(networks, network)
 		}
 
 		data := map[string]interface{}{

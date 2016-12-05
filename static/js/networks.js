@@ -32,12 +32,13 @@ function makeDisconnectButton() {
 
 function setEncoderRowState(encoderRow, encoderState) {
   var state = encoderStateToString(encoderState);
-  encoderRow.children('.encoder-status-row').val(state);
+  encoderRow.children('.encoder-status-row').text(state);
 };
 
 // connected = 0, connecting = 1, auth failure = 2, faulted = 3, disconnected = 4
 function changeEncoderState(encoder, encoderState) {
-  var row = $('.encoder-row[data-encoder-id=\'' + encoderState.encoderId + '\']');
+
+  var row = $('.encoder-row[data-encoder-id=\'' + encoder.ID + '\']');
 
   if (row == null) {
     return;
@@ -185,7 +186,7 @@ function startWebSocket() {
       var captionerState = message['captionerState'];
 
       if (typeof encoderState !== 'undefined') {
-        changeEncoderState(encoderState.encoderId, encoderState.state);
+        changeEncoderState(encoderState.encoder, encoderState.state);
       } else if (typeof captionerState !== 'undefined') {
         changeCaptionerState(captionerState.captionerId, captionerState.state);
       }      
@@ -252,7 +253,7 @@ function addEncoder(encoder) {
   row.append('<td class="editable" data-name="handle" name="handle">' + encoder.Handle + '</td>');
   row.append('<td class="editable" data-name="password" name="password">' + encoder.Password + '</td>');
   row.append('<td>' + encoderStateToString(encoder.Status) + '</td>');
-  row.append('<td class="encoder-connect-row">' + makeDisconnectButton() + '</td>');
+  row.append('<td class="encoder-connect-row">' + makeConnectButton() + '</td>');
   row.append(deleteItem);
 
   body.append(row);
@@ -380,7 +381,11 @@ function addAddEncoderHandler() {
 };
 
 function addDeleteEncoderHandler() {
-  $('.delete-encoder-button').click(function(event) {
+  addDeleteHandler($('.delete-encoder-button'));
+};
+
+function addDeleteHandler(object) {
+  object.click(function(event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -403,7 +408,11 @@ function addDeleteEncoderHandler() {
 };
 
 function addConnectEncoderHandler() {
-  $('.connect-encoder-button').click(function(event) {
+  addConnectListener($('.connect-encoder-button'));
+};
+
+function addConnectListener(object) {
+  object.click(function(event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -419,11 +428,15 @@ function addConnectEncoderHandler() {
       type: 'POST',
       data: $('#delete-encoder-form').serialize()
     }).fail(alertAjaxFailure);    
-  });  
+  });
 };
 
 function addDisconnectEncoderHandler() {
-  $('.disconnect-encoder-button').click(function(event) {
+  addDisconnectListener($('.disconnect-encoder-button'));
+};
+
+function addDisconnectListener(object) {
+  object.click(function(event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -476,7 +489,11 @@ function addUnmuteCaptionerListners() {
 };
 
 function addDisconnectCaptionerListeners() {
-  $('.disconnect-captioner-button').click(function(event) {
+  addCaptionerDisconnectListener($('.disconnect-captioner-button'));
+};
+
+function addCaptionerDisconnectListener(object) {
+  object.click(function(event) {
     event.preventDefault();
 
     $.ajax({
@@ -484,7 +501,7 @@ function addDisconnectCaptionerListeners() {
       type: 'POST',
       data: $.param(getCaptionerData(this))
     }).fail(alertAjaxFailure);
-  });  
+  });
 };
 
 function configureEditing() {
