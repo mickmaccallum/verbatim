@@ -15,19 +15,25 @@ $(function() {
 });
 
 function makeConnectButton() {
-  return '<p data-placement="top" data-toggle="tooltip" title="Connect">' +
-            '<button class="btn btn-danger btn-xs pull-right connect-encoder-button">' +
-              '<span class="glyphicon glyphicon-ok-circle"></span>' +
-            '</button>' +
-          '</p>';
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Connect">' +
+                  '<button class="btn btn-danger btn-xs pull-right connect-encoder-button">' +
+                    '<span class="glyphicon glyphicon-ok-circle"></span>' +
+                  '</button>' +
+                '</p>');
+
+  addConnectListener(wrapper.find('.connect-encoder-button'));
+  return wrapper;
 };
 
 function makeDisconnectButton() {
-  return '<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
-            '<button class="btn btn-danger btn-xs pull-right disconnect-encoder-button">' +
-              '<span class="glyphicon glyphicon-ban-circle"></span>' +
-            '</button>' +
-          '</p>';
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Disconnect">' +
+                  '<button class="btn btn-danger btn-xs pull-right disconnect-encoder-button">' +
+                    '<span class="glyphicon glyphicon-ban-circle"></span>' +
+                  '</button>' +
+                '</p>');
+
+  addDisconnectListener(wrapper.find('.disconnect-encoder-button'));
+  return wrapper;
 };
 
 function setEncoderRowState(encoderRow, encoderState) {
@@ -37,10 +43,10 @@ function setEncoderRowState(encoderRow, encoderState) {
 
 // connected = 0, connecting = 1, auth failure = 2, faulted = 3, disconnected = 4
 function changeEncoderState(encoder, encoderState) {
-
+  console.log('Encoder state = ' + encoderState);
   var row = $('.encoder-row[data-encoder-id=\'' + encoder.ID + '\']');
-
   if (row == null) {
+    console.log('ROW WAS NULL');
     return;
   }
 
@@ -50,13 +56,11 @@ function changeEncoderState(encoder, encoderState) {
   if (encoderState === 0) {
     var disconnectButton = makeDisconnectButton();
     connectColumn.html(disconnectButton);
-    addDisconnectListener(disconnectButton.find('.disconnect-encoder-button'));
   } else if (encoderState === 1) {
     connectColumn.html('');
   } else {
     var connectButton = $(makeConnectButton());
     connectColumn.html(connectButton);
-    addConnectListener(connectButton.find('.connect-encoder-button'));
   }
 };
 
@@ -97,19 +101,25 @@ function captionerStateToString(state) {
 };
 
 function makeMuteButton() {
-  return '<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
-            '<button class="btn btn-danger btn-xs mute-captioner-button">' +
-              '<span class="glyphicon glyphicon-volume-off"></span>' + 
-            '</button>' + 
-          '</p>';
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
+                    '<button class="btn btn-danger btn-xs mute-captioner-button">' +
+                      '<span class="glyphicon glyphicon-volume-off"></span>' + 
+                    '</button>' + 
+                  '</p>');
+
+  addMuteCaptionerHandler(wrapper.find('.mute-captioner-button'));
+  return wrapper;
 };
 
 function makeUnmuteButton() {
-  return '<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
-            '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
-              '<span class="glyphicon glyphicon-volume-up"></span>' + 
-            '</button>' + 
-          '</p>';
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
+                    '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
+                      '<span class="glyphicon glyphicon-volume-up"></span>' + 
+                    '</button>' + 
+                '</p>');
+
+  addUnmuteCaptionerHandler(wrapper.find('.unmute-captioner-button'));
+  return wrapper;
 };
 
 function addCaptioner(captioner, tableId, state) {
@@ -139,7 +149,6 @@ function addCaptioner(captioner, tableId, state) {
   
   recountCaptioners();
   addDisconnectCaptionerListeners();
-  addMuteCaptionerListners();
 
   var wrapper = $('#captioner-list-wrapper');
   if (wrapper.is(':hidden')) {
@@ -168,14 +177,12 @@ function changeCaptionerState(captioner, state) {
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeUnmuteButton());
-    addUnmuteCaptionerListners();
 
   } else if (state === 3) { // unmuted
     var row = $(document.getElementById(tableId));
 
     row.children('.state-row').text(captionerStateToString(state));
     row.children('.mute-row').children().replaceWith(makeMuteButton());
-    addMuteCaptionerListners();
   } else {
     // NOOP
   }
@@ -259,11 +266,10 @@ function addEncoder(encoder) {
   row.append('<td class="editable" data-name="port" name="port">' + encoder.Port + '</td>');
   row.append('<td class="editable" data-name="handle" name="handle">' + encoder.Handle + '</td>');
   row.append('<td class="editable" data-name="password" name="password">' + encoder.Password + '</td>');
-  row.append('<td>' + encoderStateToString(1) + '</td>');
+  row.append('<td class="encoder-status-row">' + encoderStateToString(1) + '</td>');
   row.append(disconnectItem);
   row.append(deleteItem);
 
-  addDisconnectListener(disconnectItem.find('.disconnect-encoder-button'));
   addDeleteHandler(deleteItem.find('.delete-encoder-button'));
 
   body.append(row);
@@ -466,14 +472,20 @@ function addDisconnectListener(object) {
 function getCaptionerData(button) {
   var row = $(button).closest('tr');
   var data = $('#toggle-captioner-mute-form').serializeArray();
+  
   data.push({name: 'ipAddress', value: row.attr('data-captioner-ip')});
   data.push({name: 'numConn', value: row.attr('data-captioner-num-conn')});
   data.push({name: 'networkId', value: row.attr('data-captioner-network-id')});
+  
   return data;
 };
 
 function addMuteCaptionerListners() {
-  $('.mute-captioner-button').click(function(event) {
+  addMuteCaptionerHandler($('.mute-captioner-button'));
+};
+
+function addMuteCaptionerHandler(object) {
+  object.click(function(event) {
     event.preventDefault();
 
     $.ajax({
@@ -485,7 +497,11 @@ function addMuteCaptionerListners() {
 };
 
 function addUnmuteCaptionerListners() {
-  $('.unmute-captioner-button').click(function(event) {
+  $('.unmute-captioner-button')
+};
+
+function addUnmuteCaptionerHandler(object) {
+  object.click(function(event) {
     event.preventDefault();
 
     $.ajax({
