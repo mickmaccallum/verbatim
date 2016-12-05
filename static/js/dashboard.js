@@ -5,7 +5,7 @@ function addNetwork(network) {
 
   var body = $('#network-selection-table > tbody');
   
-  var deleteItem = '<td class="col-xl-1 col-lg-1 col-md-1">' +
+  var deleteItem = $('<td class="col-xl-1 col-lg-1 col-md-1">' +
                       '<p data-placement="top" data-toggle="tooltip" title="Delete">' +
                         '<button class="btn btn-danger btn-xs pull-right delete-button" ' +
                           'data-title="Delete" data-toggle="modal" ' +
@@ -13,11 +13,9 @@ function addNetwork(network) {
                             '<span class="glyphicon glyphicon-trash"></span>' +
                         '</button>' +
                       '</p>' +
-                    '</td>';
-
+                    '</td>');
 
   var count = body.children().length;
-
   var row = $('<tr></tr>');
 
   row.attr('data-network-id', network.ID + '');
@@ -27,12 +25,20 @@ function addNetwork(network) {
   row.append('<td class="col-xl-3 col-lg-3 col-md-3">' + network.Name + '</td>');
   row.append('<td class="col-xl-2 col-lg-2 col-md-2">' + network.ListeningPort + '</td>');
   row.append('<td class="col-xl-3 col-lg-3 col-md-3">' + network.Timeout + '</td>');
-  row.append('<td class="col-xl-2 col-lg-2 col-md-2 state-row">' + network.State + '</td>');
+  row.append('<td class="col-xl-2 col-lg-2 col-md-2 state-row">' + networkStateToString(network.State) + '</td>');
   row.append(deleteItem);
 
   body.append(row);
   
+  addDeleteListener(deleteItem.find('.delete-button'));
+  
   return true;
+};
+
+function recountNetworks() {
+  $('#network-selection-table > tbody').children('tr').each(function(index, el) {
+    $(el).children('.row-number').text((index + 1) + '');
+  });
 };
 
 function addNetworkListListeners() {
@@ -50,9 +56,16 @@ function addNetworkListListeners() {
 };
 
 function deleteNetworkListListeners() {
-  $('.delete-button').click(function(event) {
+  console.log('++++++++++++++++++++++++++++++++++++');
+  addDeleteListener($('.delete-button'));
+}
+
+function addDeleteListener(object) {
+  object.click(function(event) {
     event.stopPropagation();
     event.preventDefault();
+
+    console.log('----------------------------------');
 
     var row = $(this).closest('tr');
     var networkId = row.attr('data-network-id');
@@ -68,9 +81,10 @@ function deleteNetworkListListeners() {
       data: $('#delete-network-form').serialize()
     }).done(function() {
       row.remove();
+      recountNetworks();
     }).fail(alertAjaxFailure);
   });
-}
+};
 
 function validateNewNetworkForm() {
   var errors = [];
@@ -104,7 +118,7 @@ function validateNewNetworkForm() {
 
   // validate timeout field
   if (timeout == null || timeout.length === 0) {
-    errors.push('Missing timeout');
+    $('#network-form-timeout').val('300'); // hack
   } else {
     var intTimeout = parseInt(timeout, 10);
     if (isNaN(intTimeout)) {
@@ -157,7 +171,6 @@ function addNetworkCreationListener() {
     }).done(function(network) {
       if (addNetwork(network)) {
         addNetworkListListeners();
-        deleteNetworkListListeners();
       }
 
       form.find('input.form-control').val('');
