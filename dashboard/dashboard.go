@@ -93,11 +93,8 @@ func Start(l RelayListener) {
 	// Add all web page routes to the router.
 	router := addRoutes()
 
-	// insert middleware for CSRF protection.
-	csrfHandle := csrfProtect(router) // func call conditional to the build "prod" tag.
-
 	// Start the HTTP server
-	if err := http.ListenAndServe(":80", csrfHandle); err != nil {
+	if err := http.ListenAndServe(":4000", router); err != nil {
 		panic(err)
 	}
 }

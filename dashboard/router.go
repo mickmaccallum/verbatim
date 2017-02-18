@@ -16,7 +16,6 @@ import (
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -111,9 +110,8 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 	}
 
 	base := map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(request),
-		"SocketURL":      "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
-		"ShowAccount":    showAccount,
+		"SocketURL":   "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
+		"ShowAccount": showAccount,
 	}
 
 	for k, v := range base {
