@@ -8,15 +8,17 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path"
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"bytes"
 
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -950,17 +952,29 @@ func addRoutes() *mux.Router {
 	return router
 }
 
+// Tag a given folder as being static/pack served
+func serveStaticFolder(folder string, router *mux.Router) {
+	router.PathPrefix(folder).Handler(folderPrefix(folder))
+}
+
+type folderPrefix string
+
+// ServerHTTP allows a folder prefix to be used as an HTTP handler for routing purposes
+func (p folderPrefix) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	location := r.URL.Path
+	assetPath := path.Join("static", location)
+
+	info, err := AssetInfo(assetPath)
+	if err != nil {
+		generalNotFound(w, r)
+		return
+	}
+
+	http.ServeContent(w, r, info.Name(), info.ModTime(), bytes.NewReader(MustAsset(assetPath)))
+}
+
 // TODO: Finish this
 // used to server static files, like CSS/JavaScript/fonts/etc.
-func serveStaticFolder(folder string, router *mux.Router) {
-	static := "static" + folder
-	fileServer := http.FileServer(&assetfs.AssetFS{
-		Asset:    Asset,
-		AssetDir: AssetDir,
-		Prefix:   static,
-	})
-	router.PathPrefix(folder).Handler(http.StripPrefix(folder, fileServer))
-}
 
 func clientError(writer http.ResponseWriter, err error) {
 	http.Error(writer, err.Error(), http.StatusBadRequest)
