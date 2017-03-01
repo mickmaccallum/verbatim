@@ -21,7 +21,6 @@ import (
 	"github.com/0x7fffffff/verbatim/states"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/kr/pretty"
 )
 
 // creates the base template into which all subtemplates for individual
@@ -752,7 +751,6 @@ func handleNetworksPage(router *mux.Router) {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		pretty.Print(request.Form)
 
 		if err := request.ParseForm(); err != nil {
 			clientError(writer, err)

@@ -28,22 +28,9 @@ func (c CaptionerID) String() string {
 // FormValuesToCaptionerID validates that an CaptionerID can be created
 // from the given form values and creates it.
 func FormValuesToCaptionerID(values url.Values) (*CaptionerID, error) {
-	ipAddress := values.Get("numConn")
-	numConnString := values.Get("ipAddress")
+	ipAddress := values.Get("ipAddress")
+	numConnString := values.Get("numConn")
 	networkIDString := values.Get("networkId")
-	fmt.Println(ipAddress, numConnString, networkIDString)
-
-	// validate IPv4 & IPv6 addresses
-	/*
-		valid, err := isValidIp(ipAddress)
-		if err != nil {
-			return nil, err
-		}
-
-		if !valid {
-			return nil, errors.New("Invalid IP address")
-		}
-	*/
 
 	// sizeof(int); derp
 	if len(numConnString) == 0 || len(numConnString) > 10 {
