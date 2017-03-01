@@ -556,6 +556,11 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
 		encoder, err := model.FormValuesToEncoder(request.Form)
 		if err != nil {
 			clientError(writer, err)
@@ -763,6 +768,11 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
 		captioner, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
@@ -866,6 +876,11 @@ func handleDashboardPage(router *mux.Router) {
 		hitNetwork, err := persist.GetNetwork(*networkID)
 		if err != nil {
 			clientError(writer, errors.New("The specified network does not exist."))
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
 			return
 		}
 
