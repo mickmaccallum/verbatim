@@ -719,6 +719,11 @@ func handleNetworksPage(router *mux.Router) {
 			return
 		}
 
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
+			return
+		}
+
 		captioner, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
 			clientError(writer, err)
@@ -733,6 +738,11 @@ func handleNetworksPage(router *mux.Router) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := request.ParseForm(); err != nil {
+			clientError(writer, err)
 			return
 		}
 
