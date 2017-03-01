@@ -21,6 +21,7 @@ import (
 	"github.com/0x7fffffff/verbatim/states"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/kr/pretty"
 )
 
 // creates the base template into which all subtemplates for individual
@@ -730,11 +731,18 @@ func handleNetworksPage(router *mux.Router) {
 	}).Methods("POST")
 
 	router.HandleFunc("/captioners/unmute", func(writer http.ResponseWriter, request *http.Request) {
+		// Just parse some stuff?
+		err := request.ParseForm()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
 			writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		pretty.Print(request.Form)
 
 		captioner, err := model.FormValuesToCaptionerID(request.Form)
 		if err != nil {
