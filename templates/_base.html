@@ -7,7 +7,6 @@
 
     <meta name="description" content="">
     <meta name="author" content="">
-    <meta name="gorilla.csrf.Token" content="{{ $.csrfToken }}">
     <link rel="icon" href="favicon.ico">
 
     <title>{{ template "title" . }}</title>
@@ -38,7 +37,6 @@
         <div id="navbar" class="navbar-collapse collapse">
           {{ if .ShowAccount }}
           <form action="/logout" method="POST">
-            {{ $.csrfField }}
 
             <ul class="nav navbar-nav navbar-right">
               <li class="dropdown">

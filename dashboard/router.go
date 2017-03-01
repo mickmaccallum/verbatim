@@ -8,15 +8,17 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path"
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"bytes"
 
 	"github.com/0x7fffffff/verbatim/dashboard/websocket"
 	"github.com/0x7fffffff/verbatim/model"
 	"github.com/0x7fffffff/verbatim/persist"
 	"github.com/0x7fffffff/verbatim/states"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 )
@@ -93,10 +95,11 @@ func templateOnBase(path string) *template.Template {
 		},
 	}
 
-	return template.Must(template.New("_base.html").Funcs(funcMap).ParseFiles(
-		"templates/_base.html",
-		path,
-	))
+	base := template.Must(
+		template.New("_base.html").
+			Funcs(funcMap).
+			Parse(string(MustAsset("templates/_base.html"))))
+	return template.Must(base.Parse(string(MustAsset(path))))
 }
 
 // creates the base params that will be passed to all templates when
@@ -111,9 +114,8 @@ func templateParamsOnBase(new map[string]interface{}, request *http.Request) map
 	}
 
 	base := map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(request),
-		"SocketURL":      "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
-		"ShowAccount":    showAccount,
+		"SocketURL":   "ws://" + request.Host + "/socket", // Update to wss:// if SSL support is added.
+		"ShowAccount": showAccount,
 	}
 
 	for k, v := range base {
@@ -187,6 +189,7 @@ func redirectLogin(writer http.ResponseWriter, request *http.Request) {
 
 // Handles all routes related to the account page.
 func handleAccountsPage(router *mux.Router) {
+	accountTemplate := templateOnBase("templates/_account.html")
 	router.HandleFunc("/account", func(writer http.ResponseWriter, request *http.Request) {
 		session, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
@@ -211,8 +214,7 @@ func handleAccountsPage(router *mux.Router) {
 			"Admins": admins,
 		}
 
-		template := templateOnBase("templates/_account.html")
-		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err = accountTemplate.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -375,11 +377,11 @@ func handleAccountsPage(router *mux.Router) {
 
 // Handles all routes related to the login page.
 func handleLogin(router *mux.Router) {
+	registerTemplate := templateOnBase("templates/_registration.html")
 	router.HandleFunc("/register", func(writer http.ResponseWriter, request *http.Request) {
 		data := map[string]interface{}{}
 
-		template := templateOnBase("templates/_registration.html")
-		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err := registerTemplate.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -418,11 +420,11 @@ func handleLogin(router *mux.Router) {
 		http.Redirect(writer, request, "/", http.StatusSeeOther)
 	}).Methods("POST")
 
+	loginTemplate := templateOnBase("templates/_login.html")
 	router.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		data := map[string]interface{}{}
 
-		template := templateOnBase("templates/_login.html")
-		if err := template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err := loginTemplate.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -651,6 +653,7 @@ func handleNetworksPage(router *mux.Router) {
 		writer.WriteHeader(http.StatusOK)
 	}).Methods("POST")
 
+	networkTemplate := templateOnBase("templates/_network.html")
 	// Get Network
 	router.HandleFunc("/network/{network_id:[0-9]+}", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
@@ -704,8 +707,7 @@ func handleNetworksPage(router *mux.Router) {
 			"Captioners": captioners,
 		}
 
-		template := templateOnBase("templates/_network.html")
-		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err = networkTemplate.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -765,6 +767,7 @@ func handleNetworksPage(router *mux.Router) {
 // Handles all routes related to the dashboard page.
 func handleDashboardPage(router *mux.Router) {
 	// Get Dashboard
+	dashboardTemplate := templateOnBase("templates/_dashboard.html")
 	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		_, sessionOk := checkSessionValidity(request)
 		if !sessionOk {
@@ -795,8 +798,7 @@ func handleDashboardPage(router *mux.Router) {
 			"Networks": networks,
 		}
 
-		template := templateOnBase("templates/_dashboard.html")
-		if err = template.Execute(writer, templateParamsOnBase(data, request)); err != nil {
+		if err = dashboardTemplate.Execute(writer, templateParamsOnBase(data, request)); err != nil {
 			serverError(writer, err)
 		}
 	}).Methods("GET")
@@ -950,12 +952,29 @@ func addRoutes() *mux.Router {
 	return router
 }
 
-// used to server static files, like CSS/JavaScript/fonts/etc.
+// Tag a given folder as being static/pack served
 func serveStaticFolder(folder string, router *mux.Router) {
-	static := "static" + folder
-	fileServer := http.FileServer(http.Dir(static))
-	router.PathPrefix(folder).Handler(http.StripPrefix(folder, fileServer))
+	router.PathPrefix(folder).Handler(folderPrefix(folder))
 }
+
+type folderPrefix string
+
+// ServerHTTP allows a folder prefix to be used as an HTTP handler for routing purposes
+func (p folderPrefix) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	location := r.URL.Path
+	assetPath := path.Join("static", location)
+
+	info, err := AssetInfo(assetPath)
+	if err != nil {
+		generalNotFound(w, r)
+		return
+	}
+
+	http.ServeContent(w, r, info.Name(), info.ModTime(), bytes.NewReader(MustAsset(assetPath)))
+}
+
+// TODO: Finish this
+// used to server static files, like CSS/JavaScript/fonts/etc.
 
 func clientError(writer http.ResponseWriter, err error) {
 	http.Error(writer, err.Error(), http.StatusBadRequest)
