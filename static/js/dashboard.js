@@ -56,7 +56,6 @@ function addNetworkListListeners() {
 };
 
 function deleteNetworkListListeners() {
-  console.log('++++++++++++++++++++++++++++++++++++');
   addDeleteListener($('.delete-button'));
 }
 
@@ -64,8 +63,6 @@ function addDeleteListener(object) {
   object.click(function(event) {
     event.stopPropagation();
     event.preventDefault();
-
-    console.log('----------------------------------');
 
     var row = $(this).closest('tr');
     var networkId = row.attr('data-network-id');

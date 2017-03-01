@@ -43,10 +43,8 @@ function setEncoderRowState(encoderRow, encoderState) {
 
 // connected = 0, connecting = 1, auth failure = 2, faulted = 3, disconnected = 4
 function changeEncoderState(encoder, encoderState) {
-  console.log('Encoder state = ' + encoderState);
   var row = $('.encoder-row[data-encoder-id=\'' + encoder.ID + '\']');
   if (row == null) {
-    console.log('ROW WAS NULL');
     return;
   }
 
@@ -196,9 +194,6 @@ function changeCaptionerState(captioner, state) {
 function startWebSocket() {
   socketRocket.start(socketURL).then(function(webSocket) {
     webSocket.onNewMessage = function(message) {
-      console.log('+++++++++++ new ws message +++++++++++');
-      console.log(message);
-      console.log('++++++++++++++++++++++++++++++++++++++');
       var encoderState = message['encoderState'];
       var captionerState = message['captionerState'];
 
