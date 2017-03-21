@@ -90,16 +90,16 @@ function captionerStateToString(state) {
   } else if (state === 1) {
     return 'Disconnected';
   } else if (state === 2) {
-    return 'Muted';
+    return 'Off Air';
   } else if (state === 3) {
-    return 'Unmuted';
+    return 'On Air';
   } else {
     return 'Disconnected';
   }
 };
 
 function makeMuteButton() {
-  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Mute">' + 
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Take Off Air">' + 
                     '<button class="btn btn-danger btn-xs mute-captioner-button">' +
                       '<span class="glyphicon glyphicon-volume-off"></span>' + 
                     '</button>' + 
@@ -110,7 +110,7 @@ function makeMuteButton() {
 };
 
 function makeUnmuteButton() {
-  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Unmute">' + 
+  var wrapper = $('<p data-placement="top" data-toggle="tooltip" title="Take On Air">' + 
                     '<button class="btn btn-danger btn-xs unmute-captioner-button">' + 
                       '<span class="glyphicon glyphicon-volume-up"></span>' + 
                     '</button>' + 
